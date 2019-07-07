@@ -1,7 +1,7 @@
 {
   "name": "schema-control",
   "version": "0.0.0",
-  "description": "Generate relational database schema for entities. Ensure best practices are followed and automate managing boiler plate sql.",
+  "description": "Generate relational database schema for entities. Ensure best practices are followed and abstract away boiler plate sql.",
   "author": "UladKasach @uladkasach",
   "license": "MIT",
   "repository": "uladkasach/schema-generator",
