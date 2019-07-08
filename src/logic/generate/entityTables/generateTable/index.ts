@@ -1,0 +1,1 @@
+export { generateTable } from './generateTable';

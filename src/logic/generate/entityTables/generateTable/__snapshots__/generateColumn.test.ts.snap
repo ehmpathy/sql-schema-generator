@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateColumn should be able to specify a comment 1`] = `"\`user_id\` int NOT NULL COMMENT 'hey there'"`;
+
+exports[`generateColumn should be able to specify a default value 1`] = `"\`user_id\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)"`;
+
+exports[`generateColumn should be able to specify a default value while nullable 1`] = `"\`user_id\` enum('option_one','option_two') COLLATE utf8mb4_unicode_ci DEFAULT CURRENT_TIMESTAMP(6)"`;
+
+exports[`generateColumn should define column name accurately 1`] = `"\`user_id\` int NOT NULL"`;
+
+exports[`generateColumn should define precision accurately, when specified 1`] = `"\`user_id\` int(11) NOT NULL"`;
+
+exports[`generateColumn should specify NOT NULL by default 1`] = `"\`user_id\` int NOT NULL"`;

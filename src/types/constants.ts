@@ -1,10 +1,15 @@
-// NOTE: data types are data ttypes that _we_ understand. the generator logic will know how to convert them into the target language
 export enum DataTypeName {
-  UUID = 'UUID',
-  CHAR = 'CHAR',
-  VARCHAR = 'VARCHAR',
-  TEXT = 'TEXT',
-  ENUM = 'ENUM',
+  CHAR = 'char',
+  VARCHAR = 'varchar',
+  TEXT = 'text',
+  ENUM = 'enum',
 
-  BIGINT = 'BIGINT',
+  INT = 'int',
+  BIGINT = 'bigint',
+
+  DATETIME = 'datetime',
+}
+
+export enum Constraint {
+  FOREIGN_KEY = 'FOREIGN_KEY',
 }

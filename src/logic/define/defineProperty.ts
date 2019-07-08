@@ -6,8 +6,10 @@ import { DataType, DataTypeName, Entity, Property } from '../../types';
 // string types
 export const UUID = () => new Property({
   type: new DataType({
-    name: DataTypeName.UUID,
+    name: DataTypeName.CHAR,
+    precision: 36,
   }),
+  // TODO: add check
 });
 export const ENUM = (values: string[]) => new Property({
   type: new DataType({
@@ -28,16 +30,31 @@ export const TEXT = () => new Property({
 });
 
 // numeric types
-export const BIGINT = () => new Property({
+export const INT = () => new Property({
+  type: new DataType({
+    name: DataTypeName.INT,
+    precision: 11,
+  }),
+});
+export const BIGINT = (precision: number) => new Property({
   type: new DataType({
     name: DataTypeName.BIGINT,
+    precision,
+  }),
+});
+
+// datetime types
+export const DATETIME = (precision: number) => new Property({
+  type: new DataType({
+    name: DataTypeName.DATETIME,
+    precision,
   }),
 });
 
 // foreign keys
 export const REFERENCES = (entity: Entity) => new Property({
-  ...BIGINT(), // pk type is always a bigint
-  references: entity,
+  ...BIGINT(20), // pk type is always a bigint
+  references: entity.name, // name of entity
 });
 
 // checks; TODO

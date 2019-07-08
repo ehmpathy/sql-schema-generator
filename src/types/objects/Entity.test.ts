@@ -19,6 +19,7 @@ describe('Entity', () => {
       properties: {
         name: property,
       },
+      unique: [],
     });
     expect(user.constructor).toEqual(Entity);
   });

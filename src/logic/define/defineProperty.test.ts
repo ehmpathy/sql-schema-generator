@@ -6,7 +6,8 @@ describe('generateProperty', () => {
     const property = prop.UUID();
     expect(property.constructor).toEqual(Property);
     expect(property.type).toMatchObject({
-      name: DataTypeName.UUID,
+      name: DataTypeName.CHAR,
+      precision: 36,
     });
   });
   it('should be possible to create an enum data type', () => {
@@ -33,7 +34,7 @@ describe('generateProperty', () => {
           idea_uuid: prop.UUID(),
           request_uuid: prop.UUID(), // for idempotency
         },
-        // unique = ['idea_uuid', 'request_uuid']
+        unique: ['idea_uuid', 'request_uuid'],
       });
       const participant = new Entity({
         name: 'participant',
@@ -50,7 +51,7 @@ describe('generateProperty', () => {
             comment: 'read as "${reason} the plan"',
           },
         },
-        // public static unique = ['plan_id', 'user_uuid'];
+        unique: ['plan_id', 'user_uuid'],
       });
       expect(participant.constructor).toEqual(Entity);
     });
@@ -60,6 +61,7 @@ describe('generateProperty', () => {
         properties: {
           room_uuid: prop.UUID(),
         },
+        unique: ['room_uuid'],
       });
       const message = new Entity({
         name: 'message',
@@ -68,7 +70,7 @@ describe('generateProperty', () => {
           content: prop.TEXT(),
           user_uuid: prop.UUID(),
         },
-        // public static unique = ['chat_id', 'content', 'user_uuid'];
+        unique: ['chat_id', 'content', 'user_uuid'],
       });
       const like = new Entity({
         name: 'like',
@@ -76,6 +78,7 @@ describe('generateProperty', () => {
           message_id: prop.REFERENCES(message),
           user_uuid: prop.UUID(),
         },
+        unique: ['message_id', 'user_uuid'],
       });
       expect(like.constructor).toEqual(Entity);
     });

@@ -1,6 +1,5 @@
 import { DataTypeName } from '../constants';
 import { DataType } from './DataType';
-import { Entity } from './Entity';
 import { Property } from './Property';
 
 describe('Property', () => {
@@ -26,20 +25,10 @@ describe('Property', () => {
     });
   });
   it('should be able to define a fk property', () => {
-    const user = new Entity({
-      name: 'user',
-      properties: {
-        name: new Property({
-          type,
-          updatable: true,
-          nullable: true,
-        }),
-      },
-    });
     const property = new Property({
       type,
-      references: user,
+      references: 'user',
     });
-    expect(property.references).toEqual(user);
+    expect(property.references).toEqual('user');
   });
 });
