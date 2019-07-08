@@ -8,6 +8,8 @@ export enum DataTypeName {
   BIGINT = 'bigint',
 
   DATETIME = 'datetime',
+
+  BINARY = 'binary',
 }
 
 export enum Constraint {

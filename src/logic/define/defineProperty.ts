@@ -51,6 +51,14 @@ export const DATETIME = (precision: number) => new Property({
   }),
 });
 
+// other types
+export const BINARY = (precision: number) => new Property({
+  type: new DataType({
+    name: DataTypeName.BINARY,
+    precision,
+  }),
+});
+
 // foreign keys
 export const REFERENCES = (entity: Entity) => new Property({
   ...BIGINT(20), // pk type is always a bigint

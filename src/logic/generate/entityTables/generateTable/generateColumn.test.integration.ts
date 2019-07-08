@@ -18,7 +18,7 @@ describe('generateColumn', () => {
     await dbConnection.query({ sql: `
       CREATE TABLE generate_table_column_test_table (
         ${columnSql}
-      )
+      ) DEFAULT CHARSET=utf8 COLLATE=utf8_bin
     ` });
   };
   const getShowCreateNow = async () => {

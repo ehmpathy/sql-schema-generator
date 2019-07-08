@@ -1,15 +1,11 @@
 import { DataTypeName, Property } from '../../../../types';
+import { extractMysqlTypeDefinitionFromProperty } from '../../utils/extractMysqlTypeDefinitionFromProperty';
 
 /*
   // TODO: generalize w/ adapter pattern to other languages
 */
 const textTypes = [DataTypeName.CHAR, DataTypeName.VARCHAR, DataTypeName.TEXT, DataTypeName.ENUM];
 export const generateColumn = ({ columnName, property }: { columnName: string, property: Property }) => {
-
-  // define the type modifier
-  let typeModifier = '';
-  if (property.type.precision) typeModifier = `(${property.type.precision})`;
-  if (property.type.values) typeModifier = `(${property.type.values.map(opt => "'" + opt + "'").join(',')})`; // tslint:disable-line prefer-template
 
   // define default over-rides
   let defaultNullRelation = (property.nullable) ? 'DEFAULT NULL' : ''; // if nullable, then the "default" default is "null"; else, nothing
@@ -19,15 +15,17 @@ export const generateColumn = ({ columnName, property }: { columnName: string, p
   const modifiers = [
     `\`${columnName}\``,
 
-    `${property.type.name}${typeModifier}`, // empty string if precision not defined
+    extractMysqlTypeDefinitionFromProperty({ property }), // e.g., property => bigint(20)
 
-    (textTypes.includes(property.type.name)) ? 'COLLATE utf8mb4_unicode_ci' : '', // coalate if its a string type;
+    (textTypes.includes(property.type.name)) ? 'COLLATE utf8_bin' : '', // coalate if its a string type; collate to Case Sensitive by default
 
     (property.nullable) ? '' : 'NOT NULL', // if not nullable, then NOT NULL
 
     (property.default) ? `DEFAULT ${property.default}` : defaultNullRelation, // if default is set, use it; otherwise, no default
 
     (property.comment) ? `COMMENT '${property.comment}'` : '', // empty string if comment not defined
+
+    (columnName === 'id') ? 'AUTO_INCREMENT' : '',
   ];
   return modifiers
     .filter(modifier => !!modifier) // filter out null

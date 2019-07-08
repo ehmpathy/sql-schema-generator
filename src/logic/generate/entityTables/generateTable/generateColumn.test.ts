@@ -1,7 +1,13 @@
 import { DataType, DataTypeName, Property } from '../../../../types';
+import { extractMysqlTypeDefinitionFromProperty } from '../../utils/extractMysqlTypeDefinitionFromProperty';
 import { generateColumn } from './generateColumn';
 
+jest.mock('../../utils/extractMysqlTypeDefinitionFromProperty');
+const extractMysqlTypeDefinitionFromPropertyMock = extractMysqlTypeDefinitionFromProperty as jest.Mock;
+extractMysqlTypeDefinitionFromPropertyMock.mockReturnValue('__MOCKED_TYPE_DEFINITION__');
+
 describe('generateColumn', () => {
+  beforeEach(() => jest.clearAllMocks());
   it('should define column name accurately', () => {
     const property = new Property({
       type: new DataType({
@@ -12,25 +18,16 @@ describe('generateColumn', () => {
     expect(sql).toContain('`user_id`');
     expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
   });
-  it('should define type name accurately', () => {
+  it('should define type definition accurately, using extractMysqlTypeDefinitionFromProperty', () => { // TODO: make mysql indepenednet
     const property = new Property({
       type: new DataType({
         name: DataTypeName.INT,
       }),
     });
     const sql = generateColumn({ columnName: 'user_id', property });
-    expect(sql).toContain('int');
-  });
-  it('should define precision accurately, when specified', () => {
-    const property = new Property({
-      type: new DataType({
-        name: DataTypeName.INT,
-        precision: 11,
-      }),
-    });
-    const sql = generateColumn({ columnName: 'user_id', property });
-    expect(sql).toContain('int(11)');
-    expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
+    expect(extractMysqlTypeDefinitionFromPropertyMock.mock.calls.length).toEqual(1);
+    expect(extractMysqlTypeDefinitionFromPropertyMock.mock.calls[0][0]).toMatchObject({ property });
+    expect(sql).toContain('__MOCKED_TYPE_DEFINITION__');
   });
   it('should specify NOT NULL by default', () => {
     const property = new Property({
@@ -77,8 +74,5 @@ describe('generateColumn', () => {
     const sql = generateColumn({ columnName: 'user_id', property });
     expect(sql).toContain('DEFAULT CURRENT_TIMESTAMP(6)');
     expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
-  });
-  it('should be able to specify an enum column', () => {
-
   });
 });

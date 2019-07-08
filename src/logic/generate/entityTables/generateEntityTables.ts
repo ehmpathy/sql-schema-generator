@@ -18,7 +18,7 @@ export const generateEntityTables = ({ entity }: { entity: Entity }) => {
 
   // 3. define the sql
   const entityTable = generateTableForStaticProperties({ entityName: entity.name, unique: entity.unique, properties: staticProps });
-  const entityVersionTable = (updatableProps)
+  const entityVersionTable = (Object.keys(updatableProps).length)
     ? generateTableForUpdateableProperties({ entityName: entity.name, properties: updatableProps })
     : undefined;
 

@@ -31,6 +31,7 @@ describe('generateEntityTables', () => {
     const tables = await generateEntityTables({ entity: address });
     await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
     await dbConnection.query({ sql: tables.static.sql });
+    expect(tables.version).toEqual(undefined);
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
     const createStaticSql = await getShowCreateNow({ tableName: tables.static.name });

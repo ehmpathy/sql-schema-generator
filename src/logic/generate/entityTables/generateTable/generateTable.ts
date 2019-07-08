@@ -28,7 +28,7 @@ export const generateTable = ({ tableName, properties, unique }: { tableName: st
   const sql = `
 CREATE TABLE \`${tableName}\` (
   ${contents.join(',\n  ')}
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
   `.trim();
 
   // 3. return the sql
