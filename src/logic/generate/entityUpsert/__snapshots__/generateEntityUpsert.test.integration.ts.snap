@@ -7,8 +7,7 @@ exports[`generateEntityUpsert static entity should create the entity accurately 
   in_city varchar(255),
   in_country enum('US','CA','MX'),
   in_weekday_found varchar(15)
-)
-RETURNS BIGINT
+) RETURNS bigint(20)
 BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;
@@ -50,8 +49,7 @@ exports[`generateEntityUpsert versioned entity should create the entity accurate
   in_cognito_uuid char(36),
   in_name varchar(255),
   in_bio text
-)
-RETURNS BIGINT
+) RETURNS bigint(20)
 BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;

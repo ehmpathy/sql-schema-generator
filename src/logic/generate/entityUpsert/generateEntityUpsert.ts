@@ -88,8 +88,7 @@ export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
   const definition = `
 CREATE DEFINER=\`root\`@\`%\` FUNCTION \`upsert_${entity.name}\`(
   ${inputDefinitions.join(',\n  ')}
-)
-RETURNS BIGINT
+) RETURNS bigint(20)
 BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;

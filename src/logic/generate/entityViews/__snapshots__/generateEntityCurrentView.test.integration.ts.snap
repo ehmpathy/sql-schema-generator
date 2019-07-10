@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateEntityViewCurrent versioned entity should show the entity accurately 1`] = `
+"CREATE VIEW \`view_alternative_user_current\` AS
+  SELECT
+    s.id,
+    s.uuid,
+    s.cognito_uuid,
+    v.name,
+    v.bio,
+    s.created_at,
+    v.effective_at,
+    v.created_at as updated_at
+  FROM alternative_user s
+  JOIN alternative_user_version v ON v.alternative_user_id = s.id
+  WHERE 1=1
+    AND v.effective_at = ( -- current version
+      SELECT MAX(ssv.effective_at)
+      FROM alternative_user_version ssv
+      WHERE ssv.alternative_user_id = s.id
+        AND ssv.effective_at < NOW(3)
+    )
+    AND v.created_at = ( -- most up to date version (allows overwriting history while maintaining all records: e.g., two versions w/ same effective_at but differing created_at)
+      SELECT MAX(ssv.created_at)
+      FROM alternative_user_version ssv
+      WHERE ssv.alternative_user_id = s.id
+        AND ssv.effective_at = v.effective_at
+    )"
+`;

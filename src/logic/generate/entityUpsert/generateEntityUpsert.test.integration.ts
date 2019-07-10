@@ -168,7 +168,7 @@ describe('generateEntityUpsert', () => {
       const { name, sql: upsertSql } = generateEntityUpsert({ entity: user });
       await dbConnection.query({ sql: `DROP FUNCTION IF EXISTS ${name}` });
       await dbConnection.query({ sql: upsertSql });
-      return upsertSql;
+      return { name, sql: upsertSql };
     };
     const upsertUser = async ({ cognito_uuid, name, bio }: {
       cognito_uuid: string,
@@ -200,8 +200,16 @@ describe('generateEntityUpsert', () => {
       `)({ id })) as any;
       return result[0];
     };
+    it('should produce the same syntax as the SHOW CREATE FUNCTION query', async() => {
+      const { sql, name } = await recreateTheUpsertMethod();
+      const result = await dbConnection.query({
+        sql: `SHOW CREATE FUNCTION ${name}`,
+      }) as any;
+      const showCreateSql = result[0][0]['Create Function'];
+      expect(sql).toEqual(showCreateSql);
+    });
     it('should create the entity accurately', async () => {
-      const sql = await recreateTheUpsertMethod();
+      const { sql } = await recreateTheUpsertMethod();
       const props = {
         cognito_uuid: uuid(),
         name: 'hank hill',
