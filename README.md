@@ -1,7 +1,7 @@
 schema-generator
 ==============
 
-Generate relational database schema for entities. Ensure best practices are followed and abstract away boiler plate sql.  
+Declarative relational database schema management. Ensure best practices are followed and abstract away boiler plate sql.  
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/schema-control.svg)](https://npmjs.org/package/schema-control)
@@ -21,7 +21,7 @@ Generate relational database schema for entities. Ensure best practices are foll
 # Overview
 
 `schema-generator` does two things for us:
-- generates sql for "persisted entities" (both static and updatable) in relational databases
+- generates sql for "persisted entities" (both static and updatable) in relational databases, based on a declaritive definition of entities
   - i.e., it generates the following resources:
     - entity static table
     - entity version table (if updatable properties exist, for an insert-only / event-driven design, per temporal database design)
@@ -44,7 +44,7 @@ Note: the user has complete flexibility to update the generated sql to suite any
   npm install --save-dev schema-generator
   ```
 
-2. Define your entities, somewhere in your VCS repo
+2. Declare your entities, somewhere in your VCS repo
   ```ts
   // for example: in <root>/schema/entities.ts
 
@@ -74,7 +74,7 @@ Note: the user has complete flexibility to update the generated sql to suite any
 
 3. Run the generate command
   ```sh
-  npx schema-generator -s schema/entities.ts -t 
+  npx schema-generator -d schema/entities.ts -o
   ```
 
   ***TODO: show gif of output***

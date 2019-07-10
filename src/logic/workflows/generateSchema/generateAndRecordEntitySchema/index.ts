@@ -1,0 +1,1 @@
+export { generateAndRecordEntitySchema } from './generateAndRecordEntitySchema';

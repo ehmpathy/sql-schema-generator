@@ -75,7 +75,6 @@ BEGIN
     );
   END IF;
 
-
   -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
   SET v_matching_version_id = ( -- see if latest version already has this data
     SELECT id

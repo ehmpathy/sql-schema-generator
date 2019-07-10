@@ -94,7 +94,7 @@ BEGIN
   DECLARE v_static_id BIGINT;
   DECLARE v_matching_version_id BIGINT;
 
-  ${[findOrCreateStaticEntityLogic, insertVersionIfDynamicDataChangedLogic].filter(sql => !!sql).join('\n\n\n  ')}
+  ${[findOrCreateStaticEntityLogic, insertVersionIfDynamicDataChangedLogic].filter(sql => !!sql).join('\n\n  ')}
 
   -- return the static entity id
   return v_static_id;

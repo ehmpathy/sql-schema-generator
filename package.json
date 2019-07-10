@@ -1,7 +1,7 @@
 {
   "name": "schema-control",
   "version": "0.0.0",
-  "description": "Generate relational database schema for entities. Ensure best practices are followed and abstract away boiler plate sql.",
+  "description": "Declarative relational database schema management. Ensure best practices are followed and abstract away boiler plate sql. ",
   "author": "UladKasach @uladkasach",
   "license": "MIT",
   "repository": "uladkasach/schema-generator",
@@ -15,7 +15,7 @@
     "temporal-database-design"
   ],
   "bugs": "https://github.com/uladkasach/schema-control/issues",
-  "main": "dist/contract/index.js",
+  "main": "dist/contract/module.js",
   "types": "dist/index.d.ts",
   "bin": {
     "schema-control": "./bin/run"
@@ -29,7 +29,7 @@
     "/schema"
   ],
   "oclif": {
-    "commands": "./dist/contract",
+    "commands": "./dist/contract/commands",
     "bin": "schema-generator",
     "plugins": [
       "@oclif/plugin-help"
@@ -87,6 +87,7 @@
     "oclif": "^1.13.4",
     "schematic-joi-model": "^1.2.2",
     "simple-sha256": "^1.0.0",
+    "ts-node": "^8.3.0",
     "yaml": "^1.6.0"
   }
 }
