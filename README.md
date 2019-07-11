@@ -1,7 +1,7 @@
 schema-generator
 ==============
 
-Declarative relational database schema management. Ensure best practices are followed and abstract away boiler plate sql.  
+Declarative relational database schema generation. Ensure best practices are followed and abstract away boiler plate sql.  
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/schema-control.svg)](https://npmjs.org/package/schema-control)
@@ -48,40 +48,51 @@ Note: the user has complete flexibility to update the generated sql to suite any
   ```ts
   // for example: in <root>/schema/entities.ts
 
-  import { SchematicEntity, DataType } from 'schema-generator';
+  import { Entity, prop } from 'schema-generator';
 
-  class Plan {
-    public static properties = {
-      idea_uuid: DataType.UUID,
-      request_uuid: DataType.UUID,
-    };
-    public static unique = ['idea_uuid', 'request_uuid'];
-  }
-
-  class Participant {
-    public static properties = {
-      plan_id: Plan.fk(),
-      user_uuid: DataType.UUID,
-      status: {
-        type: DataType.ENUM(['GOING', 'UNDECIDED', 'NOT_GOING']),
+  const chat = new Entity({
+    name: 'chat',
+    properties: {
+      room_uuid: prop.UUID(),
+      started_date: {
+        ...prop.DATETIME(6),
         updatable: true,
       },
-    };
-    public static unique = ['plan_id', 'user_uuid'];
-  }
+    },
+    unique: ['room_uuid'],
+  });
+  const message = new Entity({
+    name: 'message',
+    properties: {
+      chat_id: prop.REFERENCES(chat),
+      content: prop.TEXT(),
+      user_uuid: prop.UUID(),
+    },
+    unique: ['chat_id', 'content', 'user_uuid'],
+  });
+  const like = new Entity({
+    name: 'like',
+    properties: {
+      message_id: prop.REFERENCES(message),
+      user_uuid: prop.UUID(),
+    },
+    unique: ['message_id', 'user_uuid'],
+  });
 
+  export const entities = [chat, message, like];
   ```
 
 3. Run the generate command
   ```sh
-  npx schema-generator -d schema/entities.ts -o
+  npx schema-generator -d schema/entities.ts -t schema/generated
   ```
 
-  ***TODO: show gif of output***
-
 4. Check the generated into your VCS
+  - Steps 2 and 3 above will have produced tables, functions, and views for each entity, as required. For best practice, we encourage you to check these sql resources into your VCS. This will make it easy to detect changes in the source sql, if ever modified, and for peer reviews.
 
 5. Use a schema management tool like schema-control or liquibase to apply your schema
+  - https://github.com/uladkasach/schema-control
+  - https://www.liquibase.org/index.html
 
 6. ???
 
@@ -89,26 +100,44 @@ Note: the user has complete flexibility to update the generated sql to suite any
 
 # Commands
 <!-- commands -->
-* [`schema-generator command [FILE]`](#schema-generator-command-file)
+* [`schema-generator generate`](#schema-generator-generate)
 * [`schema-generator help [COMMAND]`](#schema-generator-help-command)
 
-## `schema-generator command [FILE]`
+## `schema-generator generate`
 
-describe the command here
+generate sql schema for immutable and mutable entities: tables, upsert method, and views
 
 ```
 USAGE
-  $ schema-generator [FILE]
+  $ schema-generator generate
 
 OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
-  -v, --version    show CLI version
+  -d, --declarations=declarations  (required) [default: declarations.ts] path to config file, containing entity
+                                   definitions
+
+  -h, --help                       show CLI help
+
+  -t, --target=target              (required) [default: generated] target directory to record generated schema into
 ```
 
-_See code: [dist/contract/command.ts](https://github.com/uladkasach/schema-generator/blob/v0.0.0/dist/contract/command.ts)_
+_See code: [dist/contract/commands/generate.ts](https://github.com/uladkasach/schema-generator/blob/v1.0.0/dist/contract/commands/generate.ts)_
 
+## `schema-generator help [COMMAND]`
+
+display help for schema-generator
+
+```
+USAGE
+  $ schema-generator help [COMMAND]
+
+ARGUMENTS
+  COMMAND  command to show help for
+
+OPTIONS
+  --all  see all commands in CLI
+```
+
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
 <!-- commandsstop -->
 
 
