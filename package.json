@@ -1,5 +1,5 @@
 {
-  "name": "schema-control",
+  "name": "@uladkasach/schema-generator",
   "version": "0.0.0",
   "description": "Declarative relational database schema management. Ensure best practices are followed and abstract away boiler plate sql. ",
   "author": "UladKasach @uladkasach",
