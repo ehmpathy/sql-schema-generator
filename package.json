@@ -14,10 +14,10 @@
     "mysql",
     "temporal-database-design"
   ],
-  "bugs": "https://github.com/uladkasach/schema-control/issues",
+  "bugs": "https://github.com/uladkasach/schema-generator/issues",
   "main": "dist/contract/module.js",
   "bin": {
-    "schema-control": "./bin/run"
+    "schema-generator": "./bin/run"
   },
   "engines": {
     "node": ">=8.0.0"
