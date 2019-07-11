@@ -16,7 +16,6 @@
   ],
   "bugs": "https://github.com/uladkasach/schema-control/issues",
   "main": "dist/contract/module.js",
-  "types": "dist/index.d.ts",
   "bin": {
     "schema-control": "./bin/run"
   },
