@@ -49,7 +49,7 @@ CREATE VIEW \`${viewName}\` AS
       SELECT MAX(ssv.effective_at)
       FROM ${entity.name}_version ssv
       WHERE ssv.${entity.name}_id = s.id
-        AND ssv.effective_at < NOW(3)
+        AND ssv.effective_at <= NOW(6)
     )
     AND v.created_at = ( -- most up to date version (allows overwriting history while maintaining all records: e.g., two versions w/ same effective_at but differing created_at)
       SELECT MAX(ssv.created_at)
