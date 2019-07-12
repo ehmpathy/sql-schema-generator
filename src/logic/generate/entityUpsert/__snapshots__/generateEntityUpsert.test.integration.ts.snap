@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`generateEntityUpsert static entity should create the entity accurately 1`] = `
-"CREATE DEFINER=\`root\`@\`%\` FUNCTION \`upsert_alternative_address\`(
+"CREATE FUNCTION \`upsert_alternative_address\`(
   in_street varchar(255),
   in_suite varchar(255),
   in_city varchar(255),
@@ -45,7 +45,7 @@ END"
 `;
 
 exports[`generateEntityUpsert versioned entity should create the entity accurately 1`] = `
-"CREATE DEFINER=\`root\`@\`%\` FUNCTION \`upsert_alternative_user\`(
+"CREATE FUNCTION \`upsert_alternative_user\`(
   in_cognito_uuid char(36),
   in_name varchar(255),
   in_bio text

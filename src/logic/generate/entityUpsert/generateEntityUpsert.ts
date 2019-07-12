@@ -86,7 +86,7 @@ export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
 
   // combine the version and static logic into full upsert function
   const definition = `
-CREATE DEFINER=\`root\`@\`%\` FUNCTION \`upsert_${entity.name}\`(
+CREATE FUNCTION \`upsert_${entity.name}\`(
   ${inputDefinitions.join(',\n  ')}
 ) RETURNS bigint(20)
 BEGIN

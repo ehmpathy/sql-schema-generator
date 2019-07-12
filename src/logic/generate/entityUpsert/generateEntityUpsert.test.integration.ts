@@ -205,7 +205,7 @@ describe('generateEntityUpsert', () => {
       const result = await dbConnection.query({
         sql: `SHOW CREATE FUNCTION ${name}`,
       }) as any;
-      const showCreateSql = result[0][0]['Create Function'];
+      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
       expect(sql).toEqual(showCreateSql);
     });
     it('should create the entity accurately', async () => {

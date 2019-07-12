@@ -37,7 +37,7 @@ describe('generateAndRecordEntitySchema', () => {
 
     // check that the upsert function was created
     const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${user.name}.sql`, 'utf8');
-    expect(upsertSql).toContain('CREATE DEFINER=`root`@`%` FUNCTION');
+    expect(upsertSql).toContain('CREATE FUNCTION');
 
     // check that the _current view was created
     const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${user.name}_current.sql`, 'utf8');
