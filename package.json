@@ -1,5 +1,5 @@
 {
-  "name": "@uladkasach/schema-generator",
+  "name": "schema-generator",
   "version": "1.0.6",
   "description": "Declarative relational database schema generator. Ensure best practices are followed and abstract away boiler plate sql. ",
   "author": "UladKasach @uladkasach",
