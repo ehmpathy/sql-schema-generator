@@ -1,6 +1,6 @@
 {
   "name": "schema-generator",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Declarative relational database schema generator. Ensure best practices are followed and abstract away boiler plate sql. ",
   "author": "UladKasach @uladkasach",
   "license": "MIT",
