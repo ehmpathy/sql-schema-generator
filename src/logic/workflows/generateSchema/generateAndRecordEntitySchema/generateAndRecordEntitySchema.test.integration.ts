@@ -1,4 +1,4 @@
-import { Entity } from '../../../../types';
+import { Entity, ValueObject } from '../../../../types';
 import * as prop from '../../../define/defineProperty';
 import { readFile } from './_utils/fileIO';
 import { generateAndRecordEntitySchema } from './generateAndRecordEntitySchema';
@@ -42,5 +42,32 @@ describe('generateAndRecordEntitySchema', () => {
     // check that the _current view was created
     const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${user.name}_current.sql`, 'utf8');
     expect(viewCurrentSql).toContain('CREATE VIEW');
+  });
+  it('should record all resources for a value object (i.e., non updatable entity)', async () => {
+    const address = new ValueObject({
+      name: 'address',
+      properties: {
+        street: prop.VARCHAR(255),
+        suite: {
+          ...prop.VARCHAR(255),
+          nullable: true,
+        },
+        city: prop.VARCHAR(255),
+        state: prop.VARCHAR(255),
+        country: prop.VARCHAR(255),
+      },
+    });
+    await generateAndRecordEntitySchema({
+      targetDirPath,
+      entity: address,
+    });
+
+    // check static table was created
+    const tableStaticSql = await readFile(`${targetDirPath}/tables/${address.name}.sql`, 'utf8');
+    expect(tableStaticSql).toContain('CREATE TABLE');
+
+    // check that the upsert function was created
+    const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${address.name}.sql`, 'utf8');
+    expect(upsertSql).toContain('CREATE FUNCTION');
   });
 });

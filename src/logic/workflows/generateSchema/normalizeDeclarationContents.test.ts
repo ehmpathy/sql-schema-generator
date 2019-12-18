@@ -1,4 +1,4 @@
-import { Entity } from '../../../types';
+import { Entity, ValueObject } from '../../../types';
 import { normalizeDeclarationContents } from './normalizeDeclarationContents';
 
 describe('normalizeDeclarationContents', () => {
@@ -11,17 +11,20 @@ describe('normalizeDeclarationContents', () => {
       expect(error.message).toEqual('an entities array must be exported by the source file');
     }
   });
-  it('throw an error if entities are not all of class Entity', () => {
+  it('throw an error if entities are not all of class Entity or ValueObject', () => {
     const contents = { entities: ['not an Entity'] };
     try {
       normalizeDeclarationContents({ contents });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual('all exported entities must be of class Entity');
+      expect(error.message).toEqual('all exported entities must be of, or extend, class Entity');
     }
   });
-  it('should return the entities found in the contents', () => {
-    const contents = { entities: [new Entity({ name: 'name', properties: {}, unique: [] })] };
+  it('should return the entities and value objects found in the contents', () => {
+    const contents = { entities: [
+      new Entity({ name: 'name', properties: {}, unique: [] }),
+      new ValueObject({ name: 'name', properties: {} }),
+    ] };
     const { entities } = normalizeDeclarationContents({ contents });
     expect(entities).toEqual(contents.entities);
   });
