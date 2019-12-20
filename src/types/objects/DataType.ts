@@ -9,18 +9,21 @@ import { DataTypeName } from '../constants';
 
 const dataTypeSchema = Joi.object().keys({
   name: Joi.string().valid(Object.values(DataTypeName)),
-  precision: Joi.number().optional(), // only required on varchar, char, // TODO: throw an error if this should be defined but is not
+  precision: Joi.number().optional(),
+  scale: Joi.number().optional(),
   values: Joi.array().items(Joi.string()).optional(), // only required on enum, set, // TODO: throw an error if this should be defined but is not
 });
 
 interface DataTypeConstructorProps {
   name: DataTypeName;
-  precision?: number; // TODO: support multiple precision types
+  precision?: number;
+  scale?: number;
   values?: string[];
 }
 export class DataType extends SchematicJoiModel<DataTypeConstructorProps> {
   public name!: DataTypeName;
-  public precision!: number;
-  public values!: string[];
+  public precision?: number;
+  public scale?: number;
+  public values?: string[];
   public static schema = dataTypeSchema;
 }

@@ -1,7 +1,7 @@
 schema-generator
 ==============
 
-Declarative relational database schema generation. Ensure best practices are followed and abstract away boiler plate sql.  
+Declarative relational database schema generation. Ensure best practices are followed and abstract away boiler plate sql.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/schema-control.svg)](https://npmjs.org/package/schema-control)
@@ -84,7 +84,7 @@ Note: the user has complete flexibility to update the generated sql to suite any
 
 3. Run the generate command
   ```sh
-  npx schema-generator -d schema/entities.ts -t schema/generated
+  npx schema-generator generate -d schema/entities.ts -t schema/generated
   ```
 
 4. Check the generated into your VCS

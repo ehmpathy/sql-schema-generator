@@ -2,7 +2,7 @@ import { DataType, DataTypeName, Property } from '../../../types';
 import { extractMysqlTypeDefinitionFromProperty } from './extractMysqlTypeDefinitionFromProperty';
 
 describe('extractMysqlTypeDefinitionFromProperty', () => {
-  it('should be able to accuratly define varchar with precision', () => {
+  it('should be able to accurately define varchar with precision', () => {
     const property = new Property({
       type: new DataType({
         name: DataTypeName.VARCHAR,
@@ -11,6 +11,17 @@ describe('extractMysqlTypeDefinitionFromProperty', () => {
     });
     const definition = extractMysqlTypeDefinitionFromProperty({ property });
     expect(definition).toEqual(`${DataTypeName.VARCHAR}(255)`);
+  });
+  it('should be able to accurately define varchar with precision and scale', () => {
+    const property = new Property({
+      type: new DataType({
+        name: DataTypeName.DECIMAL,
+        precision: 5,
+        scale: 2,
+      }),
+    });
+    const definition = extractMysqlTypeDefinitionFromProperty({ property });
+    expect(definition).toEqual(`${DataTypeName.DECIMAL}(5,2)`);
   });
   it('should be able to accurately define enum', () => {
     const property = new Property({

@@ -9,7 +9,7 @@ export const generateTableForStaticProperties = ({ entityName, properties, uniqu
 }) => {
   // 0. add metadata properties
   const staticProps = {
-    id: prop.BIGINT(20),
+    id: prop.BIGINT(),
     uuid: prop.UUID(),
     created_at: new Property({
       ...prop.DATETIME(6),

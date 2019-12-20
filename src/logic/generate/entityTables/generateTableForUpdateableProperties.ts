@@ -9,9 +9,9 @@ export const generateTableForUpdateableProperties = ({ entityName, properties }:
   // 0. add metadata properties
   const staticTableReferenceName = `${entityName}_id`;
   const updateableProps = {
-    id: prop.BIGINT(20),
+    id: prop.BIGINT(),
     [staticTableReferenceName]: new Property({
-      ...prop.BIGINT(20),
+      ...prop.BIGINT(),
       references: entityName,
     }),
     effective_at: new Property({

@@ -30,7 +30,7 @@ describe('generateTableForStaticProperties', () => {
     });
     expect(generateTableMock.mock.calls[0][0]).toMatchObject({
       properties: {
-        id: prop.BIGINT(20),
+        id: prop.BIGINT(),
         uuid: prop.UUID(),
         created_at: new Property({
           ...prop.DATETIME(6),

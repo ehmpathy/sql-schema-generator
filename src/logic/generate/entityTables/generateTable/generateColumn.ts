@@ -4,7 +4,15 @@ import { extractMysqlTypeDefinitionFromProperty } from '../../utils/extractMysql
 /*
   // TODO: generalize w/ adapter pattern to other languages
 */
-const textTypes = [DataTypeName.CHAR, DataTypeName.VARCHAR, DataTypeName.TEXT, DataTypeName.ENUM];
+const textTypes = [
+  DataTypeName.CHAR,
+  DataTypeName.VARCHAR,
+  DataTypeName.TINYTEXT,
+  DataTypeName.TEXT,
+  DataTypeName.MEDIUMTEXT,
+  DataTypeName.LONGTEXT,
+  DataTypeName.ENUM,
+];
 export const generateColumn = ({ columnName, property }: { columnName: string, property: Property }) => {
 
   // define default over-rides

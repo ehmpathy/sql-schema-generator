@@ -28,9 +28,9 @@ describe('generateTableForUpdateableProperties', () => {
     });
     expect(generateTableMock.mock.calls[0][0]).toMatchObject({
       properties: {
-        id: prop.BIGINT(20),
+        id: prop.BIGINT(),
         __ENTITY_NAME___id: new Property({
-          ...prop.BIGINT(20),
+          ...prop.BIGINT(),
           references: '__ENTITY_NAME__',
         }),
         effective_at: new Property({

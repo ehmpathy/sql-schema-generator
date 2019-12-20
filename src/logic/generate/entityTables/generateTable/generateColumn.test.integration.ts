@@ -1,3 +1,4 @@
+import { prop } from '../../../../contract/module';
 import { DataType, DataTypeName, Property } from '../../../../types';
 import { DatabaseConnection, getDatabaseConnection } from '../../_test_utils/databaseConnection';
 import { generateColumn } from './generateColumn';
@@ -13,7 +14,7 @@ describe('generateColumn', () => {
   afterAll(async () => {
     await dbConnection.end();
   });
-  const testColumnIsCreateable = async ({ columnSql }: { columnSql: string }) => {
+  const testColumnIsCreatable = async ({ columnSql }: { columnSql: string }) => {
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_column_test_table;' });
     await dbConnection.query({ sql: `
       CREATE TABLE generate_table_column_test_table (
@@ -31,11 +32,11 @@ describe('generateColumn', () => {
         name: DataTypeName.INT,
         precision: 11,
       }),
-      comment: 'hope this clarifys things for ya',
+      comment: 'hope this clarifies things for ya',
       nullable: true,
     });
     const sql = generateColumn({ columnName: 'user_id', property });
-    await testColumnIsCreateable({ columnSql: sql });
+    await testColumnIsCreatable({ columnSql: sql });
     const createTableSQL = await getShowCreateNow();
     expect(createTableSQL).toContain(sql); // should contain the exact string
   });
@@ -45,12 +46,12 @@ describe('generateColumn', () => {
         name: DataTypeName.ENUM,
         values: ['option_one', 'option_two'],
       }),
-      comment: 'hope this clarifys things for ya',
+      comment: 'hope this clarifies things for ya',
       nullable: true,
       default: '\'option_one\'',
     });
     const sql = generateColumn({ columnName: 'user_id', property });
-    await testColumnIsCreateable({ columnSql: sql });
+    await testColumnIsCreatable({ columnSql: sql });
     const createTableSQL = await getShowCreateNow();
     expect(createTableSQL).toContain(sql); // should contain the exact string
   });
@@ -67,9 +68,49 @@ describe('generateColumn', () => {
       // for some reason, text type specifically does not include the DEFAULT NULL modifier in the SHOW CREATE statement, while the rest do
       expect(sql).not.toContain('DEFAULT NULL');
 
-      await testColumnIsCreateable({ columnSql: sql });
+      await testColumnIsCreatable({ columnSql: sql });
       const createTableSQL = await getShowCreateNow();
       expect(createTableSQL).toContain(sql); // should contain the exact string
+    });
+    describe('exhaustive check - every property exposed in contract with helper should be creatable', () => {
+      const propertiesToCheck = [
+        // integers
+        { name: 'TINYINT', args: [] },
+        { name: 'SMALLINT', args: [] },
+        { name: 'MEDIUMINT', args: [] },
+        { name: 'INT', args: [] },
+        { name: 'BIGINT', args: [] },
+
+        // exact numbers
+        { name: 'DECIMAL', args: [5, 2] },
+
+        // floating point
+        { name: 'FLOAT', args: [] },
+        { name: 'DOUBLE', args: [] },
+
+        // bit type
+        { name: 'BIT', args: [8] },
+
+        // text types
+        { name: 'ENUM', args: [['a', 'b', 'c', 'd', 'f']] },
+        { name: 'BINARY', args: [21] },
+        { name: 'CHAR', args: [21] },
+        { name: 'VARCHAR', args: [21] },
+        { name: 'TINYTEXT', args: [] },
+        { name: 'TEXT', args: [] },
+        { name: 'MEDIUMTEXT', args: [] },
+        { name: 'LONGTEXT', args: [] },
+      ];
+      propertiesToCheck.forEach((propertyKey) => {
+        it(`should be able to create ${JSON.stringify(propertyKey)} and result should match SHOW CREATE of db`, async () => {
+          const property = (prop as any)[propertyKey.name](...propertyKey.args);
+          const sql = generateColumn({ columnName: 'test_column', property });
+          expect(sql.toLowerCase()).toContain(propertyKey.name.toLowerCase()); // it should have the prop name in there
+          await testColumnIsCreatable({ columnSql: sql });
+          const createTableSQL = await getShowCreateNow();
+          expect(createTableSQL).toContain(sql); // should contain the exact string
+        });
+      });
     });
   });
 });
