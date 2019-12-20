@@ -21,10 +21,12 @@ describe('normalizeDeclarationContents', () => {
     }
   });
   it('should return the entities and value objects found in the contents', () => {
-    const contents = { entities: [
-      new Entity({ name: 'name', properties: {}, unique: [] }),
-      new ValueObject({ name: 'name', properties: {} }),
-    ] };
+    const contents = {
+      entities: [
+        new Entity({ name: 'name', properties: {}, unique: [] }),
+        new ValueObject({ name: 'name', properties: {} }),
+      ],
+    };
     const { entities } = normalizeDeclarationContents({ contents });
     expect(entities).toEqual(contents.entities);
   });

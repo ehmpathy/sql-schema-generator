@@ -5,11 +5,16 @@ import { Property } from '../../../../types';
 
   NOTE: in mysql generating a FK constraint automatically generates a 'key' on the referential column, so this util defines both of those to be explicit
 */
-export const generateConstraintForeignKey = ({ index, tableName, columnName, property }: {
-  index: number,
-  tableName: string,
-  columnName: string,
-  property: Property,
+export const generateConstraintForeignKey = ({
+  index,
+  tableName,
+  columnName,
+  property,
+}: {
+  index: number;
+  tableName: string;
+  columnName: string;
+  property: Property;
 }) => {
   const constraintName = `${tableName}_fk${index}`;
   const constraintSql = `

@@ -16,15 +16,17 @@ describe('generateTable', () => {
   const testTableIsCreateable = async ({ createTableSql }: { createTableSql: string }) => {
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test;' });
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test_referenced;' });
-    await dbConnection.query({ sql: `
+    await dbConnection.query({
+      sql: `
       CREATE TABLE generate_table_test_referenced (
         id BIGINT PRIMARY KEY
       )
-    ` });
+    `,
+    });
     await dbConnection.query({ sql: createTableSql });
   };
   const getShowCreateNow = async () => {
-    const result = await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_test' }) as any;
+    const result = (await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_test' })) as any;
     return result[0][0]['Create Table'];
   };
   it('can create a table with basic column definition, w/ same syntax as from SHOW CREATE TABLE', async () => {

@@ -16,15 +16,19 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
   const viewName = `view_${entity.name}_current`;
 
   // define the property names
-  const staticPropertyNames = Object.entries(entity.properties).filter(entry => !entry[1].updatable).map(entry => entry[0]);
-  const updateablePropertyNames = Object.entries(entity.properties).filter(entry => !!entry[1].updatable).map(entry => entry[0]);
+  const staticPropertyNames = Object.entries(entity.properties)
+    .filter((entry) => !entry[1].updatable)
+    .map((entry) => entry[0]);
+  const updateablePropertyNames = Object.entries(entity.properties)
+    .filter((entry) => !!entry[1].updatable)
+    .map((entry) => entry[0]);
 
   // if there are no updateable properties, don't return a view
   if (updateablePropertyNames.length === 0) return null;
 
   // define selectors
-  const staticPropertySelectors = staticPropertyNames.map(name => `s.${name}`);
-  const updateablePropertySelectors = updateablePropertyNames.map(name => `v.${name}`);
+  const staticPropertySelectors = staticPropertyNames.map((name) => `s.${name}`);
+  const updateablePropertySelectors = updateablePropertyNames.map((name) => `v.${name}`);
 
   // define the columns
   const columns = [
@@ -35,7 +39,7 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
     's.created_at',
     'v.effective_at',
     'v.created_at as updated_at',
-  ].filter(column => !!column); // only non empty coluns
+  ].filter((column) => !!column); // only non empty coluns
 
   // combine the version and static logic into full upsert function
   const definition = `

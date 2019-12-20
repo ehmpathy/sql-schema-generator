@@ -17,8 +17,12 @@ export const generateEntityTables = ({ entity }: { entity: Entity }) => {
   // TODO: throw error if the unique constraint has dynamic properties
 
   // 3. define the sql
-  const entityTable = generateTableForStaticProperties({ entityName: entity.name, unique: entity.unique, properties: staticProps });
-  const entityVersionTable = (Object.keys(updatableProps).length)
+  const entityTable = generateTableForStaticProperties({
+    entityName: entity.name,
+    unique: entity.unique,
+    properties: staticProps,
+  });
+  const entityVersionTable = Object.keys(updatableProps).length
     ? generateTableForUpdateableProperties({ entityName: entity.name, properties: updatableProps })
     : undefined;
 

@@ -9,7 +9,9 @@ readDeclarationFileMock.mockResolvedValue('__CONFIG_CONTENTS__');
 
 jest.mock('./normalizeDeclarationContents');
 const normalizeDeclarationContentsMock = normalizeDeclarationContents as jest.Mock;
-normalizeDeclarationContentsMock.mockResolvedValue({ entities: [{ name: '__ENTITY_ONE__' }, { name: '__ENTITY_TWO__' }] });
+normalizeDeclarationContentsMock.mockResolvedValue({
+  entities: [{ name: '__ENTITY_ONE__' }, { name: '__ENTITY_TWO__' }],
+});
 
 jest.mock('./generateAndRecordEntitySchema');
 const generateAndRecordEntitySchemaMock = generateAndRecordEntitySchema as jest.Mock;

@@ -18,7 +18,8 @@ describe('generateColumn', () => {
     expect(sql).toContain('`user_id`');
     expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
   });
-  it('should define type definition accurately, using extractMysqlTypeDefinitionFromProperty', () => { // TODO: make mysql indepenednet
+  it('should define type definition accurately, using extractMysqlTypeDefinitionFromProperty', () => {
+    // TODO: make mysql indepenednet
     const property = new Property({
       type: new DataType({
         name: DataTypeName.INT,

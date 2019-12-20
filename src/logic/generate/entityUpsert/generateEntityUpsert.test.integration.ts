@@ -25,7 +25,8 @@ describe('generateEntityUpsert', () => {
         },
         city: prop.VARCHAR(255),
         country: prop.ENUM(['US', 'CA', 'MX']),
-        weekday_found: { // non-unique but static property -> only track the first value
+        weekday_found: {
+          // non-unique but static property -> only track the first value
           ...prop.VARCHAR(15),
           nullable: true,
         },
@@ -44,14 +45,21 @@ describe('generateEntityUpsert', () => {
       await dbConnection.query({ sql: upsertSql });
       return upsertSql;
     };
-    const upsertAddress = async ({ street, suite, city, country, weekday_found }: {
-      street: string,
-      suite: string | null,
-      city: string,
-      country: string,
-      weekday_found?: string,
+    const upsertAddress = async ({
+      street,
+      suite,
+      city,
+      country,
+      weekday_found,
+    }: {
+      street: string;
+      suite: string | null;
+      city: string;
+      country: string;
+      weekday_found?: string;
     }) => {
-      const result = await dbConnection.query(prepare(`
+      const result = (await dbConnection.query(
+        prepare(`
         SELECT upsert_${address.name}(
           :street,
           :suite,
@@ -60,18 +68,21 @@ describe('generateEntityUpsert', () => {
           :weekday_found
         ) as id;
       `)({
-        street,
-        suite,
-        city,
-        country,
-        weekday_found: weekday_found || null,
-      })) as any;
+          street,
+          suite,
+          city,
+          country,
+          weekday_found: weekday_found || null,
+        }),
+      )) as any;
       return result[0][0].id;
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = await dbConnection.query(prepare(`
+      const result = (await dbConnection.query(
+        prepare(`
         select * from ${address.name} where id = :id
-      `)({ id })) as any;
+      `)({ id }),
+      )) as any;
       return result[0][0];
     };
     it('should create the entity accurately', async () => {
@@ -88,7 +99,8 @@ describe('generateEntityUpsert', () => {
       expect(entity).toMatchObject(props);
       expect(sql).toMatchSnapshot();
     });
-    it('should not create a second entity, if unique properties are the same', async () => { // idempotency
+    it('should not create a second entity, if unique properties are the same', async () => {
+      // idempotency
       await recreateTheUpsertMethod();
       const props = {
         street: '__STREET__',
@@ -125,7 +137,8 @@ describe('generateEntityUpsert', () => {
       const idAgain = await upsertAddress({ ...props, weekday_found: 'friday' });
       expect(id).toEqual(idAgain);
     });
-    it('should be case sensisitive in deciding whether values are unique', async () => { // mysql is not case sensitive by default, so we must make sure that somehow we meet this condition (options include default encode on table/column, binary on search, and data hashing)
+    it('should be case sensisitive in deciding whether values are unique', async () => {
+      // mysql is not case sensitive by default, so we must make sure that somehow we meet this condition (options include default encode on table/column, binary on search, and data hashing)
       await recreateTheUpsertMethod();
       await recreateTheUpsertMethod();
       const props = {
@@ -170,41 +183,43 @@ describe('generateEntityUpsert', () => {
       await dbConnection.query({ sql: upsertSql });
       return { name, sql: upsertSql };
     };
-    const upsertUser = async ({ cognito_uuid, name, bio }: {
-      cognito_uuid: string,
-      name: string,
-      bio?: string,
-    }) => {
-      const result = await dbConnection.query(prepare(`
+    const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
+      const result = (await dbConnection.query(
+        prepare(`
         SELECT upsert_${user.name}(
           :cognito_uuid,
           :name,
           :bio
         ) as id;
       `)({
-        cognito_uuid,
-        name,
-        bio,
-      })) as any;
+          cognito_uuid,
+          name,
+          bio,
+        }),
+      )) as any;
       return result[0][0].id;
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = await dbConnection.query(prepare(`
+      const result = (await dbConnection.query(
+        prepare(`
         select * from ${user.name} where id = :id
-      `)({ id })) as any;
+      `)({ id }),
+      )) as any;
       return result[0][0];
     };
     const getEntityVersions = async ({ id }: { id: number }) => {
-      const result = await dbConnection.query(prepare(`
+      const result = (await dbConnection.query(
+        prepare(`
         select * from ${user.name}_version where ${user.name}_id = :id
-      `)({ id })) as any;
+      `)({ id }),
+      )) as any;
       return result[0];
     };
-    it('should produce the same syntax as the SHOW CREATE FUNCTION query', async() => {
+    it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = await recreateTheUpsertMethod();
-      const result = await dbConnection.query({
+      const result = (await dbConnection.query({
         sql: `SHOW CREATE FUNCTION ${name}`,
-      }) as any;
+      })) as any;
       const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
       expect(sql).toEqual(showCreateSql);
     });
@@ -239,7 +254,7 @@ describe('generateEntityUpsert', () => {
         bio: 'i sell propane and propane accessories',
       };
       const id = await upsertUser(props);
-      const idAgain = await upsertUser({ ...props, name: 'Hank\'s Hill' });
+      const idAgain = await upsertUser({ ...props, name: "Hank's Hill" });
       expect(id).toEqual(idAgain);
 
       // expect two versions
@@ -247,9 +262,10 @@ describe('generateEntityUpsert', () => {
       expect(versions.length).toEqual(2);
 
       // expect newest version to have updated name
-      expect(versions[1].name).toEqual('Hank\'s Hill');
+      expect(versions[1].name).toEqual("Hank's Hill");
     });
-    it('should be case sensitive in determining updateable data has changed', async () => {  // mysql is not case sensitive by default, so we must make sure that somehow we meet this condition (options include default encode on table/column, binary on search, and data hashing)
+    it('should be case sensitive in determining updateable data has changed', async () => {
+      // mysql is not case sensitive by default, so we must make sure that somehow we meet this condition (options include default encode on table/column, binary on search, and data hashing)
       await recreateTheUpsertMethod();
       const props = {
         cognito_uuid: uuid(),
@@ -267,7 +283,8 @@ describe('generateEntityUpsert', () => {
       // expect newest version to have updated name
       expect(versions[1].name).toEqual('Hank Hill');
     });
-    it('should not create a new version if the updateable data did not change', async () => { // i.e., idempotency
+    it('should not create a new version if the updateable data did not change', async () => {
+      // i.e., idempotency
       await recreateTheUpsertMethod();
       const props = {
         cognito_uuid: uuid(),
@@ -282,7 +299,8 @@ describe('generateEntityUpsert', () => {
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(1);
     });
-    it('should not create a new version if the updateable data did not change, even if one of fields is null', async () => { // i.e., idempotency
+    it('should not create a new version if the updateable data did not change, even if one of fields is null', async () => {
+      // i.e., idempotency
       await recreateTheUpsertMethod();
       const props = {
         cognito_uuid: uuid(),

@@ -16,14 +16,16 @@ describe('generateColumn', () => {
   });
   const testColumnIsCreatable = async ({ columnSql }: { columnSql: string }) => {
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_column_test_table;' });
-    await dbConnection.query({ sql: `
+    await dbConnection.query({
+      sql: `
       CREATE TABLE generate_table_column_test_table (
         ${columnSql}
       ) DEFAULT CHARSET=utf8 COLLATE=utf8_bin
-    ` });
+    `,
+    });
   };
   const getShowCreateNow = async () => {
-    const result = await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_column_test_table' }) as any;
+    const result = (await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_column_test_table' })) as any;
     return result[0][0]['Create Table'];
   };
   it('can create a table with basic column definition, w/ same syntax as from SHOW CREATE TABLE', async () => {
@@ -48,7 +50,7 @@ describe('generateColumn', () => {
       }),
       comment: 'hope this clarifies things for ya',
       nullable: true,
-      default: '\'option_one\'',
+      default: "'option_one'",
     });
     const sql = generateColumn({ columnName: 'user_id', property });
     await testColumnIsCreatable({ columnSql: sql });
@@ -56,7 +58,8 @@ describe('generateColumn', () => {
     expect(createTableSQL).toContain(sql); // should contain the exact string
   });
   describe('SHOW CREATE PARITY', () => {
-    it('should be able to create nullable text type w/ same syntax as SHOW CREATE TABLE', async () => { // we've found this as a special case
+    it('should be able to create nullable text type w/ same syntax as SHOW CREATE TABLE', async () => {
+      // we've found this as a special case
       const property = new Property({
         type: new DataType({
           name: DataTypeName.TEXT,
@@ -102,7 +105,10 @@ describe('generateColumn', () => {
         { name: 'LONGTEXT', args: [] },
       ];
       propertiesToCheck.forEach((propertyKey) => {
-        it(`should be able to create ${JSON.stringify(propertyKey)} and result should match SHOW CREATE of db`, async () => {
+        const testName = `should be able to create ${JSON.stringify(
+          propertyKey,
+        )} and result should match SHOW CREATE of db`;
+        it(testName, async () => {
           const property = (prop as any)[propertyKey.name](...propertyKey.args);
           const sql = generateColumn({ columnName: 'test_column', property });
           expect(sql.toLowerCase()).toContain(propertyKey.name.toLowerCase()); // it should have the prop name in there

@@ -10,7 +10,10 @@ generateColumnMock.mockReturnValue('__COLUMN__');
 
 jest.mock('./generateConstraintForeignKey');
 const generateConstraintForeignKeyMock = generateConstraintForeignKey as jest.Mock;
-generateConstraintForeignKeyMock.mockReturnValue({ constraint: '__FOREIGN_KEY_CONSTRAINT__', key: '__FOREIGN_KEY_KEY__' });
+generateConstraintForeignKeyMock.mockReturnValue({
+  constraint: '__FOREIGN_KEY_CONSTRAINT__',
+  key: '__FOREIGN_KEY_KEY__',
+});
 
 describe('generateTableConstraint', () => {
   beforeEach(() => jest.clearAllMocks());

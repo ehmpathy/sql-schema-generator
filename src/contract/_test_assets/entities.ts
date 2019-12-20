@@ -29,8 +29,4 @@ const like = new Entity({
   unique: ['message_id', 'user_uuid'],
 });
 
-export const entities = [
-  chat,
-  message,
-  like,
-];
+export const entities = [chat, message, like];

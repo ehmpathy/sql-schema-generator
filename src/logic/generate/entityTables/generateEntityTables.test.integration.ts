@@ -15,7 +15,7 @@ describe('generateEntityTables', () => {
     await dbConnection.end();
   });
   const getShowCreateNow = async ({ tableName }: { tableName: string }) => {
-    const result = await dbConnection.query({ sql: `SHOW CREATE TABLE ${tableName}` }) as any;
+    const result = (await dbConnection.query({ sql: `SHOW CREATE TABLE ${tableName}` })) as any;
     return result[0][0]['Create Table'];
   };
   it('generates tables for a static entity, w/ same sytax as SHOW CREATE', async () => {

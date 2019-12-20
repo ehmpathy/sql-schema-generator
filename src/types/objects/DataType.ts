@@ -11,7 +11,9 @@ const dataTypeSchema = Joi.object().keys({
   name: Joi.string().valid(Object.values(DataTypeName)),
   precision: Joi.number().optional(),
   scale: Joi.number().optional(),
-  values: Joi.array().items(Joi.string()).optional(), // only required on enum, set, // TODO: throw an error if this should be defined but is not
+  values: Joi.array()
+    .items(Joi.string())
+    .optional(), // only required on enum, set, // TODO: throw an error if this should be defined but is not
 });
 
 interface DataTypeConstructorProps {

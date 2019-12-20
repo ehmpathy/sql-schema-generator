@@ -10,7 +10,10 @@ generateTableForStaticPropertiesMock.mockReturnValue({ name: '__ENTITY_NAME__', 
 
 jest.mock('./generateTableForUpdateableProperties');
 const generateTableForUpdateablePropertiesMock = generateTableForUpdateableProperties as jest.Mock;
-generateTableForUpdateablePropertiesMock.mockReturnValue({ name: '__ENTITY_NAME___version', sql: '__VERSIONED_ENTITY_SQL__' });
+generateTableForUpdateablePropertiesMock.mockReturnValue({
+  name: '__ENTITY_NAME___version',
+  sql: '__VERSIONED_ENTITY_SQL__',
+});
 
 describe('generateEntityTables', () => {
   beforeEach(() => jest.clearAllMocks());

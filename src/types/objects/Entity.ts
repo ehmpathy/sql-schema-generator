@@ -7,8 +7,13 @@ import { Property } from './Property';
 */
 const entitySchema = Joi.object().keys({
   name: Joi.string().required(),
-  properties: Joi.object().pattern(/^/, Joi.lazy(() => Property.schema)), // any key names, validate all against Property.schema; lazy since recursive
-  unique: Joi.array().items(Joi.string()).required(), // always require unique, as otherwise idempotency is not possible
+  properties: Joi.object().pattern(
+    /^/,
+    Joi.lazy(() => Property.schema),
+  ), // any key names, validate all against Property.schema; lazy since recursive
+  unique: Joi.array()
+    .items(Joi.string())
+    .required(), // always require unique, as otherwise idempotency is not possible
 });
 interface EntityConstructorProps {
   name: string;

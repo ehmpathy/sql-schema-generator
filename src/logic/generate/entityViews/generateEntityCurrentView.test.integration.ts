@@ -26,7 +26,8 @@ describe('generateEntityViewCurrent', () => {
         },
         city: prop.VARCHAR(255),
         country: prop.ENUM(['US', 'CA', 'MX']),
-        weekday_found: { // non-unique but static property -> only track the first value
+        weekday_found: {
+          // non-unique but static property -> only track the first value
           ...prop.VARCHAR(15),
           nullable: true,
         },
@@ -74,28 +75,26 @@ describe('generateEntityViewCurrent', () => {
       await dbConnection.query({ sql: upsertSql });
       return { name, sql: upsertSql };
     };
-    const getEntityFromView = async ({ name, id }: { name: string, id: number }) => {
-      const results = await dbConnection.execute({ sql: `select * from ${name} where id = ${id}` }) as any;
+    const getEntityFromView = async ({ name, id }: { name: string; id: number }) => {
+      const results = (await dbConnection.execute({ sql: `select * from ${name} where id = ${id}` })) as any;
       expect(results[0].length).toEqual(1);
       const entity = results[0][0];
       return entity;
     };
-    const upsertUser = async ({ cognito_uuid, name, bio }: {
-      cognito_uuid: string,
-      name: string,
-      bio?: string,
-    }) => {
-      const result = await dbConnection.query(prepare(`
+    const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
+      const result = (await dbConnection.query(
+        prepare(`
         SELECT upsert_${user.name}(
           :cognito_uuid,
           :name,
           :bio
         ) as id;
       `)({
-        cognito_uuid,
-        name,
-        bio,
-      })) as any;
+          cognito_uuid,
+          name,
+          bio,
+        }),
+      )) as any;
       return result[0][0].id;
     };
     it('should show the entity accurately', async () => {

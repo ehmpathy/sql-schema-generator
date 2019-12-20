@@ -2,9 +2,12 @@ import { Property } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { generateTable } from './generateTable';
 
-export const generateTableForUpdateableProperties = ({ entityName, properties }: {
-  entityName: string,
-  properties: { [index: string]: Property },
+export const generateTableForUpdateableProperties = ({
+  entityName,
+  properties,
+}: {
+  entityName: string;
+  properties: { [index: string]: Property };
 }) => {
   // 0. add metadata properties
   const staticTableReferenceName = `${entityName}_id`;

@@ -12,29 +12,38 @@ import { extractMysqlTypeDefinitionFromProperty } from '../utils/extractMysqlTyp
   5. return the id of the static entity
 */
 
-const propertyNameToWhereClauseConditional = ({ name, entity }: { name: string, entity: Entity }) => [
-  `AND (${name} = BINARY in_${name}`, // compare against binary rep of string to ensure case sensitivity (even though column may be case sensitive, mysql will still "help us out")
-  (entity.properties[name].nullable) ? ` OR (${name} IS null AND in_${name} IS null)` : '', // NULL != NULL, so special check if field is nullable
-  ')',
-].join('');
+const propertyNameToWhereClauseConditional = ({ name, entity }: { name: string; entity: Entity }) =>
+  [
+    `AND (${name} = BINARY in_${name}`, // compare against binary rep of string to ensure case sensitivity (even though column may be case sensitive, mysql will still "help us out")
+    entity.properties[name].nullable ? ` OR (${name} IS null AND in_${name} IS null)` : '', // NULL != NULL, so special check if field is nullable
+    ')',
+  ].join('');
 const propertyNameToInputName = (name: string) => `in_${name}`;
-const propertyToFunctionInputDefinition = ({ name, definition }: { name: string, definition: Property }) => [
-  propertyNameToInputName(name),
-  extractMysqlTypeDefinitionFromProperty({ property: definition }),
-].join(' ');
+const propertyToFunctionInputDefinition = ({ name, definition }: { name: string; definition: Property }) =>
+  [propertyNameToInputName(name), extractMysqlTypeDefinitionFromProperty({ property: definition })].join(' ');
 
 export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
   // define the property names
-  const staticPropertyNames = Object.entries(entity.properties).filter(entry => !entry[1].updatable).map(entry => entry[0]);
-  const updateablePropertyNames = Object.entries(entity.properties).filter(entry => !!entry[1].updatable).map(entry => entry[0]);
+  const staticPropertyNames = Object.entries(entity.properties)
+    .filter((entry) => !entry[1].updatable)
+    .map((entry) => entry[0]);
+  const updateablePropertyNames = Object.entries(entity.properties)
+    .filter((entry) => !!entry[1].updatable)
+    .map((entry) => entry[0]);
 
   // define where clause conditionals
-  const uniqueStaticPropertyNames = staticPropertyNames.filter(name => entity.unique.includes(name));
-  const uniqueStaticPropertyWhereClauseConditionals = uniqueStaticPropertyNames.map(name => propertyNameToWhereClauseConditional({ name, entity }));
-  const updateablePropertyWhereClauseConditionals = updateablePropertyNames.map(name => propertyNameToWhereClauseConditional({ name, entity }));
+  const uniqueStaticPropertyNames = staticPropertyNames.filter((name) => entity.unique.includes(name));
+  const uniqueStaticPropertyWhereClauseConditionals = uniqueStaticPropertyNames.map((name) =>
+    propertyNameToWhereClauseConditional({ name, entity }),
+  );
+  const updateablePropertyWhereClauseConditionals = updateablePropertyNames.map((name) =>
+    propertyNameToWhereClauseConditional({ name, entity }),
+  );
 
   // define the input definitions
-  const inputDefinitions = Object.entries(entity.properties).map(entry => propertyToFunctionInputDefinition({ name: entry[0], definition: entry[1] }));
+  const inputDefinitions = Object.entries(entity.properties).map((entry) =>
+    propertyToFunctionInputDefinition({ name: entry[0], definition: entry[1] }),
+  );
 
   // define the findOrCreateStaticEntityLogic
   const findOrCreateStaticEntityLogic = `
@@ -60,7 +69,7 @@ export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
   `.trim();
 
   // define the update version logic
-  const insertVersionIfDynamicDataChangedLogic = (updateablePropertyNames.length)
+  const insertVersionIfDynamicDataChangedLogic = updateablePropertyNames.length
     ? `
   -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
   SET v_matching_version_id = ( -- see if latest version already has this data
@@ -94,7 +103,7 @@ BEGIN
   DECLARE v_static_id BIGINT;
   DECLARE v_matching_version_id BIGINT;
 
-  ${[findOrCreateStaticEntityLogic, insertVersionIfDynamicDataChangedLogic].filter(sql => !!sql).join('\n\n  ')}
+  ${[findOrCreateStaticEntityLogic, insertVersionIfDynamicDataChangedLogic].filter((sql) => !!sql).join('\n\n  ')}
 
   -- return the static entity id
   return v_static_id;

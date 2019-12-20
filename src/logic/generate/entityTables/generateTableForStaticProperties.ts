@@ -2,10 +2,14 @@ import { Property } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { generateTable } from './generateTable';
 
-export const generateTableForStaticProperties = ({ entityName, properties, unique }: {
-  entityName: string,
-  properties: { [index: string]: Property },
-  unique: string[],
+export const generateTableForStaticProperties = ({
+  entityName,
+  properties,
+  unique,
+}: {
+  entityName: string;
+  properties: { [index: string]: Property };
+  unique: string[];
 }) => {
   // 0. add metadata properties
   const staticProps = {

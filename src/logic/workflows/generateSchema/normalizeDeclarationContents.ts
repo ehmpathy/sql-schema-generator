@@ -6,7 +6,9 @@ export const normalizeDeclarationContents = ({ contents }: { contents: any }) =>
   const entities = contents.entities as Entity[];
 
   // 2. check that each entity is of the constructor
-  entities.forEach((entity: any) => { if (!(entity instanceof Entity)) throw new Error('all exported entities must be of, or extend, class Entity'); });
+  entities.forEach((entity: any) => {
+    if (!(entity instanceof Entity)) throw new Error('all exported entities must be of, or extend, class Entity');
+  });
 
   // 3. return the entities now that we've validate them
   return { entities };

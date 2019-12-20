@@ -14,24 +14,36 @@ describe('generateConstraintForeignKey', () => {
   afterAll(async () => {
     await dbConnection.end();
   });
-  const testFkIsCreateable = async ({ columnSql, constraintSql, keySql }: { columnSql: string, constraintSql: string, keySql: string }) => {
+  const testFkIsCreateable = async ({
+    columnSql,
+    constraintSql,
+    keySql,
+  }: {
+    columnSql: string;
+    constraintSql: string;
+    keySql: string;
+  }) => {
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_constraint_fk_test;' });
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_constraint_fk_test_referenced;' });
-    await dbConnection.query({ sql: `
+    await dbConnection.query({
+      sql: `
       CREATE TABLE generate_table_constraint_fk_test_referenced (
         id BIGINT PRIMARY KEY
       )
-    ` });
-    await dbConnection.query({ sql: `
+    `,
+    });
+    await dbConnection.query({
+      sql: `
       CREATE TABLE generate_table_constraint_fk_test (
         ${columnSql} PRIMARY KEY,
         ${keySql},
         ${constraintSql}
       )
-    ` });
+    `,
+    });
   };
   const getShowCreateNow = async () => {
-    const result = await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_constraint_fk_test' }) as any;
+    const result = (await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_constraint_fk_test' })) as any;
     return result[0][0]['Create Table'];
   };
   const property = new Property({
@@ -43,7 +55,12 @@ describe('generateConstraintForeignKey', () => {
   });
   it('can create a table with basic column definition, w/ same syntax as from SHOW CREATE TABLE', async () => {
     const columnSql = generateColumn({ columnName: 'user_id', property });
-    const constraintSql = generateConstraintForeignKey({ index: 1, tableName: 'message', columnName: 'user_id', property });
+    const constraintSql = generateConstraintForeignKey({
+      index: 1,
+      tableName: 'message',
+      columnName: 'user_id',
+      property,
+    });
     await testFkIsCreateable({ columnSql, constraintSql: constraintSql.constraint, keySql: constraintSql.key });
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
