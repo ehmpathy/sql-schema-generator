@@ -12,6 +12,8 @@ BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;
   DECLARE v_matching_version_id BIGINT;
+  DECLARE v_current_version_id BIGINT;
+  DECLARE v_current_version_id_recorded_in_pointer_table BIGINT;
 
   -- find or create the static entity
   SET v_static_id = (
@@ -54,6 +56,8 @@ BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;
   DECLARE v_matching_version_id BIGINT;
+  DECLARE v_current_version_id BIGINT;
+  DECLARE v_current_version_id_recorded_in_pointer_table BIGINT;
 
   -- find or create the static entity
   SET v_static_id = (
@@ -94,6 +98,40 @@ BEGIN
       (alternative_user_id, name, bio)
       VALUES
       (v_static_id, in_name, in_bio);
+  END IF;
+
+  -- update the current version pointer table, if it is not already up to date
+  SET v_current_version_id = ( -- get the current version id
+    SELECT id
+    FROM alternative_user_version
+    WHERE 1=1
+      AND alternative_user_id = v_static_id -- for this entity
+      AND effective_at = ( -- and is the currently effective version
+        SELECT MAX(effective_at)
+        FROM alternative_user_version ssv
+        WHERE ssv.alternative_user_id = v_static_id
+      )
+  );
+  SET v_current_version_id_recorded_in_pointer_table = ( -- get the version recorded as current for the entity, if any
+    SELECT alternative_user_version_id
+    FROM alternative_user_cvp
+    WHERE 1=1
+      AND alternative_user_id = v_static_id -- for this entity
+  );
+  IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
+    INSERT INTO alternative_user_cvp
+      (alternative_user_id, alternative_user_version_id)
+      VALUES
+      (v_static_id, v_current_version_id);
+    SET v_current_version_id_recorded_in_pointer_table = v_current_version_id; -- and record that the current version recorded is now the real current version
+  END IF;
+  IF (v_current_version_id_recorded_in_pointer_table <> v_current_version_id) THEN -- if they are not exactly equal, update the current version recorded in the pointer tabe
+    UPDATE alternative_user_cvp
+    SET
+      alternative_user_version_id = v_current_version_id,
+      updated_at = NOW(6)
+    WHERE
+    alternative_user_id = v_static_id;
   END IF;
 
   -- return the static entity id

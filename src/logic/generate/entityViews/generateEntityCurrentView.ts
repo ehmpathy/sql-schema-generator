@@ -47,20 +47,8 @@ CREATE VIEW \`${viewName}\` AS
   SELECT
     ${columns.join(',\n    ')}
   FROM ${entity.name} s
-  JOIN ${entity.name}_version v ON v.${entity.name}_id = s.id
-  WHERE 1=1
-    AND v.effective_at = ( -- current version
-      SELECT MAX(ssv.effective_at)
-      FROM ${entity.name}_version ssv
-      WHERE ssv.${entity.name}_id = s.id
-        AND ssv.effective_at <= NOW(6) + INTERVAL 1 SECOND -- one second in the future, to thoroughly ensure that we include things effective NOW(6)
-    )
-    AND v.created_at = ( -- most up to date version (allows overwriting history while maintaining all records: e.g., two versions w/ same effective_at but differing created_at)
-      SELECT MAX(ssv.created_at)
-      FROM ${entity.name}_version ssv
-      WHERE ssv.${entity.name}_id = s.id
-        AND ssv.effective_at = v.effective_at
-    )
+  JOIN ${entity.name}_cvp cvp ON s.id = cvp.${entity.name}_id
+  JOIN ${entity.name}_version v ON v.id = cvp.${entity.name}_version_id;
   `.trim();
   return {
     name: viewName,

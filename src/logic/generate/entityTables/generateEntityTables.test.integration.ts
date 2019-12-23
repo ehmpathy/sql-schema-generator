@@ -55,15 +55,19 @@ describe('generateEntityTables', () => {
       unique: ['cognito_uuid'],
     });
     const tables = await generateEntityTables({ entity: user });
+    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};` });
     await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.version!.name};` });
     await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
     await dbConnection.query({ sql: tables.static.sql });
     await dbConnection.query({ sql: tables.version!.sql });
+    await dbConnection.query({ sql: tables.currentVersionPointer!.sql });
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
     const createStaticSql = await getShowCreateNow({ tableName: tables.static.name });
     expect(createStaticSql).toEqual(tables.static.sql); // should be the exact string
     const createVersionSql = await getShowCreateNow({ tableName: tables.version!.name });
     expect(createVersionSql).toEqual(tables.version!.sql); // should be the exact string
+    const createCurrentVersionPointerSql = await getShowCreateNow({ tableName: tables.currentVersionPointer!.name });
+    expect(createCurrentVersionPointerSql).toEqual(tables.currentVersionPointer!.sql); // should be the exact string
   });
 });

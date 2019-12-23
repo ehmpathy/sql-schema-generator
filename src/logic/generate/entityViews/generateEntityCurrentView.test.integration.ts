@@ -1,10 +1,11 @@
 import uuid from 'uuid/v4';
 import { mysql as prepare } from 'yesql';
+
 import { Entity } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { DatabaseConnection, getDatabaseConnection } from '../_test_utils/databaseConnection';
+import { generateEntityUpsert } from '../entityFunctions/generateEntityUpsert';
 import { generateEntityTables } from '../entityTables/generateEntityTables';
-import { generateEntityUpsert } from '../entityUpsert/generateEntityUpsert';
 import { generateEntityCurrentView } from './generateEntityCurrentView';
 
 describe('generateEntityViewCurrent', () => {
@@ -59,10 +60,12 @@ describe('generateEntityViewCurrent', () => {
     beforeAll(async () => {
       // provision the table
       const tables = await generateEntityTables({ entity: user });
+      await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};` });
       await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.version!.name};` });
       await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
       await dbConnection.query({ sql: tables.static.sql });
       await dbConnection.query({ sql: tables.version!.sql });
+      await dbConnection.query({ sql: tables.currentVersionPointer!.sql });
 
       // provision the upsert method
       const { name, sql: upsertSql } = generateEntityUpsert({ entity: user });

@@ -35,9 +35,20 @@ describe('generateAndRecordEntitySchema', () => {
     const tableVersionSql = await readFile(`${targetDirPath}/tables/${user.name}_version.sql`, 'utf8');
     expect(tableVersionSql).toContain('CREATE TABLE');
 
+    // check that the current version pointer table was created
+    const tableCurrentVersionPointerSql = await readFile(`${targetDirPath}/tables/${user.name}_cvp.sql`, 'utf8');
+    expect(tableCurrentVersionPointerSql).toContain('CREATE TABLE');
+
     // check that the upsert function was created
     const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${user.name}.sql`, 'utf8');
     expect(upsertSql).toContain('CREATE FUNCTION');
+
+    // check that the backfill current version pointer function was created
+    const backfillCurrentVersionPointerSql = await readFile(
+      `${targetDirPath}/functions/backfill_${user.name}_cvp.sql`,
+      'utf8',
+    );
+    expect(backfillCurrentVersionPointerSql).toContain('CREATE FUNCTION');
 
     // check that the _current view was created
     const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${user.name}_current.sql`, 'utf8');

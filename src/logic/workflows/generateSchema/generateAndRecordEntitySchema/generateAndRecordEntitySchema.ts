@@ -1,6 +1,6 @@
 import { Entity } from '../../../../types';
+import { generateEntityFunctions } from '../../../generate/entityFunctions/generateEntityFunctions';
 import { generateEntityTables } from '../../../generate/entityTables/generateEntityTables';
-import { generateEntityUpsert } from '../../../generate/entityUpsert/generateEntityUpsert';
 import { generateEntityCurrentView } from '../../../generate/entityViews/generateEntityCurrentView';
 import { mkdir, writeFile } from './_utils/fileIO';
 
@@ -54,16 +54,52 @@ export const generateAndRecordEntitySchema = async ({
 }) => {
   // 1. generate all resource sql
   const tables = await generateEntityTables({ entity });
-  const upsert = await generateEntityUpsert({ entity });
-  const views = { current: await generateEntityCurrentView({ entity }) }; // TODO: views = the returned object when we add the hydrated view
+  const functions = await generateEntityFunctions({ entity });
+  const views = { current: await generateEntityCurrentView({ entity }) };
 
   // 2. save each resource
-  await saveResource({ sql: tables.static.sql, name: tables.static.name, type: ResourceType.TABLE, targetDirPath });
+  await saveResource({
+    sql: tables.static.sql,
+    name: tables.static.name,
+    type: ResourceType.TABLE,
+    targetDirPath,
+  });
   if (tables.version) {
-    await saveResource({ sql: tables.version.sql, name: tables.version.name, type: ResourceType.TABLE, targetDirPath });
+    await saveResource({
+      sql: tables.version.sql,
+      name: tables.version.name,
+      type: ResourceType.TABLE,
+      targetDirPath,
+    });
   }
-  await await saveResource({ sql: upsert.sql, name: upsert.name, type: ResourceType.FUNCTION, targetDirPath });
+  if (tables.currentVersionPointer) {
+    await saveResource({
+      sql: tables.currentVersionPointer.sql,
+      name: tables.currentVersionPointer.name,
+      type: ResourceType.TABLE,
+      targetDirPath,
+    });
+  }
+  await await saveResource({
+    sql: functions.upsert.sql,
+    name: functions.upsert.name,
+    type: ResourceType.FUNCTION,
+    targetDirPath,
+  });
+  if (functions.backfillCurrentVersionPointers) {
+    await await saveResource({
+      sql: functions.backfillCurrentVersionPointers.sql,
+      name: functions.backfillCurrentVersionPointers.name,
+      type: ResourceType.FUNCTION,
+      targetDirPath,
+    });
+  }
   if (views.current) {
-    await saveResource({ sql: views.current.sql, name: views.current.name, type: ResourceType.VIEW, targetDirPath });
+    await saveResource({
+      sql: views.current.sql,
+      name: views.current.name,
+      type: ResourceType.VIEW,
+      targetDirPath,
+    });
   }
 };

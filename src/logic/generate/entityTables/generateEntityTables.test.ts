@@ -1,6 +1,7 @@
 import { Entity } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { generateEntityTables } from './generateEntityTables';
+import { generateTableForCurrentVersionPointer } from './generateTableForCurrentVersionPointer';
 import { generateTableForStaticProperties } from './generateTableForStaticProperties';
 import { generateTableForUpdateableProperties } from './generateTableForUpdateableProperties';
 
@@ -10,6 +11,13 @@ generateTableForStaticPropertiesMock.mockReturnValue({ name: '__ENTITY_NAME__', 
 
 jest.mock('./generateTableForUpdateableProperties');
 const generateTableForUpdateablePropertiesMock = generateTableForUpdateableProperties as jest.Mock;
+generateTableForUpdateablePropertiesMock.mockReturnValue({
+  name: '__ENTITY_NAME___version',
+  sql: '__VERSIONED_ENTITY_SQL__',
+});
+
+jest.mock('./generateTableForCurrentVersionPointer');
+const generateTableForCurrentVersionPointerMock = generateTableForCurrentVersionPointer as jest.Mock;
 generateTableForUpdateablePropertiesMock.mockReturnValue({
   name: '__ENTITY_NAME___version',
   sql: '__VERSIONED_ENTITY_SQL__',
@@ -51,5 +59,9 @@ describe('generateEntityTables', () => {
         bio: user.properties.bio,
       },
     });
+  });
+  it('should generateTableForCurrentVersionPointer', () => {
+    generateEntityTables({ entity: user });
+    expect(generateTableForCurrentVersionPointerMock.mock.calls.length).toEqual(1);
   });
 });

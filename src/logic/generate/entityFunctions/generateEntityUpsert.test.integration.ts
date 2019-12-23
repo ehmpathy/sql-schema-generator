@@ -6,6 +6,8 @@ import { DatabaseConnection, getDatabaseConnection } from '../_test_utils/databa
 import { generateEntityTables } from '../entityTables/generateEntityTables';
 import { generateEntityUpsert } from './generateEntityUpsert';
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 describe('generateEntityUpsert', () => {
   let dbConnection: DatabaseConnection;
   beforeAll(async () => {
@@ -172,10 +174,12 @@ describe('generateEntityUpsert', () => {
     beforeAll(async () => {
       // provision the table
       const tables = await generateEntityTables({ entity: user });
+      await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};` });
       await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.version!.name};` });
       await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
       await dbConnection.query({ sql: tables.static.sql });
       await dbConnection.query({ sql: tables.version!.sql });
+      await dbConnection.query({ sql: tables.currentVersionPointer!.sql });
     });
     const recreateTheUpsertMethod = async () => {
       const { name, sql: upsertSql } = generateEntityUpsert({ entity: user });
@@ -215,6 +219,14 @@ describe('generateEntityUpsert', () => {
       )) as any;
       return result[0];
     };
+    const getEntityCurrentVersionPointer = async ({ id }: { id: number }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        select * from ${user.name}_cvp where ${user.name}_id = :id
+      `)({ id }),
+      )) as any;
+      return result[0];
+    };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = await recreateTheUpsertMethod();
       const result = (await dbConnection.query({
@@ -243,10 +255,15 @@ describe('generateEntityUpsert', () => {
       expect(versions[0].name).toEqual(props.name);
       expect(versions[0].bio).toEqual(props.bio);
 
+      // check that the current version table is initialized accurately
+      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      expect(currentVersionPointers.length).toEqual(1);
+      expect(currentVersionPointers[0][`${user.name}_version_id`]).toEqual(versions[0].id);
+
       // show an example of the upsert function
       expect(sql).toMatchSnapshot();
     });
-    it('should update the entity if the updateble data changed', async () => {
+    it('should update the entity if the updateable data changed', async () => {
       await recreateTheUpsertMethod();
       const props = {
         cognito_uuid: uuid(),
@@ -263,6 +280,11 @@ describe('generateEntityUpsert', () => {
 
       // expect newest version to have updated name
       expect(versions[1].name).toEqual("Hank's Hill");
+
+      // expect the current version pointer to be pointing to the newest version
+      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      expect(currentVersionPointers.length).toEqual(1);
+      expect(currentVersionPointers[0][`${user.name}_version_id`]).toEqual(versions[1].id);
     });
     it('should be case sensitive in determining updateable data has changed', async () => {
       // mysql is not case sensitive by default, so we must make sure that somehow we meet this condition (options include default encode on table/column, binary on search, and data hashing)
@@ -313,6 +335,36 @@ describe('generateEntityUpsert', () => {
       // expect only one versions
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(1);
+    });
+
+    it('should not update the current version pointer table if a new version was not created', async () => {
+      // i.e., idempotency
+      await recreateTheUpsertMethod();
+      const props = {
+        cognito_uuid: uuid(),
+        name: 'hank hill',
+        bio: 'i sell propane and propane accessories',
+      };
+      const id = await upsertUser(props);
+
+      // check the pointer before the no-op upsert
+      const initialVersionPointers = await getEntityCurrentVersionPointer({ id });
+      expect(initialVersionPointers.length).toEqual(1);
+      const initialVersionPointer = initialVersionPointers[0];
+
+      // make the upsert
+      await sleep(1000); // sleep to make extra sure that if we do update the current_version_pointer table, that the timestamp will be different
+      const idAgain = await upsertUser(props);
+      expect(id).toEqual(idAgain);
+
+      // expect prove its  a no-op
+      const versions = await getEntityVersions({ id });
+      expect(versions.length).toEqual(1);
+
+      // now prove that the current version pointer table was not updated since the initial pointer was defined
+      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      expect(currentVersionPointers.length).toEqual(1);
+      expect(initialVersionPointer.created_at).toEqual(currentVersionPointers[0].created_at); // timestamps should be identical
     });
   });
 });

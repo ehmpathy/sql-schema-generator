@@ -1,9 +1,10 @@
 import { Entity, Property } from '../../../types';
+import { generateTableForCurrentVersionPointer } from './generateTableForCurrentVersionPointer';
 import { generateTableForStaticProperties } from './generateTableForStaticProperties';
 import { generateTableForUpdateableProperties } from './generateTableForUpdateableProperties';
 
 export const generateEntityTables = ({ entity }: { entity: Entity }) => {
-  // 1. seperate static -vs- updatable properties
+  // 1. separate static -vs- updatable properties
   const staticProps = Object.entries(entity.properties).reduce((progress, thisPropEntry) => {
     if (thisPropEntry[1].updatable) return progress; // if updatable, skip this property
     return { ...progress, [thisPropEntry[0]]: thisPropEntry[1] }; // add this property to static properties object
@@ -25,10 +26,14 @@ export const generateEntityTables = ({ entity }: { entity: Entity }) => {
   const entityVersionTable = Object.keys(updatableProps).length
     ? generateTableForUpdateableProperties({ entityName: entity.name, properties: updatableProps })
     : undefined;
+  const entityCurrentVersionPointerTable = Object.keys(updatableProps).length
+    ? generateTableForCurrentVersionPointer({ entityName: entity.name })
+    : undefined;
 
   // 4. remove the string
   return {
     static: entityTable,
     version: entityVersionTable,
+    currentVersionPointer: entityCurrentVersionPointerTable,
   };
 };
