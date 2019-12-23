@@ -4,10 +4,10 @@ schema-generator
 Declarative relational database schema generation. Ensure best practices are followed and abstract away boiler plate sql.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Version](https://img.shields.io/npm/v/schema-control.svg)](https://npmjs.org/package/schema-control)
-[![Codecov](https://codecov.io/gh/uladkasach/schema-control/branch/master/graph/badge.svg)](https://codecov.io/gh/uladkasach/schema-control)
-[![Downloads/week](https://img.shields.io/npm/dw/schema-control.svg)](https://npmjs.org/package/schema-control)
-[![License](https://img.shields.io/npm/l/schema-control.svg)](https://github.com/uladkasach/schema-control/blob/master/package.json)
+[![Version](https://img.shields.io/npm/v/schema-generator.svg)](https://npmjs.org/package/schema-generator)
+[![Codecov](https://codecov.io/gh/uladkasach/schema-generator/branch/master/graph/badge.svg)](https://codecov.io/gh/uladkasach/schema-generator)
+[![Downloads/week](https://img.shields.io/npm/dw/schema-generator.svg)](https://npmjs.org/package/schema-generator)
+[![License](https://img.shields.io/npm/l/schema-generator.svg)](https://github.com/uladkasach/schema-generator/blob/master/package.json)
 
 # Table of Contents
 <!-- toc -->
