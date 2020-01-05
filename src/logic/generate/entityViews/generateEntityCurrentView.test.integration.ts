@@ -1,11 +1,13 @@
 import uuid from 'uuid/v4';
 import { mysql as prepare } from 'yesql';
 
-import { Entity } from '../../../types';
+import { Entity, ValueObject } from '../../../types';
 import * as prop from '../../define/defineProperty';
-import { DatabaseConnection, getDatabaseConnection } from '../_test_utils/databaseConnection';
-import { generateEntityUpsert } from '../entityFunctions/generateEntityUpsert';
-import { generateEntityTables } from '../entityTables/generateEntityTables';
+import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
+import { DatabaseConnection, getDatabaseConnection } from '../__test_utils__/databaseConnection';
+import { dropAndCreateUpsertFunctionForEntity } from '../__test_utils__/dropAndCreateUpsertForEntity';
+import { dropAndCreateViewForEntity } from '../__test_utils__/dropAndCreateViewForEntity';
+import { getEntityFromCurrentView } from '../__test_utils__/getEntityFromCurrentView';
 import { generateEntityCurrentView } from './generateEntityCurrentView';
 
 describe('generateEntityViewCurrent', () => {
@@ -17,122 +19,298 @@ describe('generateEntityViewCurrent', () => {
     await dbConnection.end();
   });
   describe('static entity', () => {
-    const address = new Entity({
-      name: 'alternative_address',
-      properties: {
-        street: prop.VARCHAR(255),
-        suite: {
-          ...prop.VARCHAR(255),
-          nullable: true,
+    describe('without array properties', () => {
+      const address = new Entity({
+        name: 'alternative_address',
+        properties: {
+          street: prop.VARCHAR(255),
+          suite: {
+            ...prop.VARCHAR(255),
+            nullable: true,
+          },
+          city: prop.VARCHAR(255),
+          country: prop.ENUM(['US', 'CA', 'MX']),
+          weekday_found: {
+            // non-unique but static property -> only track the first value
+            ...prop.VARCHAR(15),
+            nullable: true,
+          },
         },
-        city: prop.VARCHAR(255),
-        country: prop.ENUM(['US', 'CA', 'MX']),
-        weekday_found: {
-          // non-unique but static property -> only track the first value
-          ...prop.VARCHAR(15),
-          nullable: true,
-        },
-      },
-      unique: ['street', 'suite', 'city', 'country'],
+        unique: ['street', 'suite', 'city', 'country'],
+      });
+      it('should not create a _current view for static entities without array properties', async () => {
+        const view = generateEntityCurrentView({ entity: address });
+        expect(view).toEqual(null);
+      });
     });
-    it('should not create a _current view for static entities', async () => {
-      const view = generateEntityCurrentView({ entity: address });
-      expect(view).toEqual(null);
+    describe('with array properties', () => {
+      const lock = new ValueObject({
+        name: 'door_lock',
+        properties: {
+          manufacturer: prop.VARCHAR(255),
+          manufacturerId: prop.VARCHAR(255),
+        },
+      });
+      const door = new ValueObject({
+        name: 'door',
+        properties: {
+          color: prop.ENUM(['red', 'green', 'blue']),
+          lock_ids: prop.ARRAY_OF(prop.REFERENCES(lock)), // e.g., can have one lock or two locks
+        },
+      });
+      const upsertLock = async ({ manufacturer, manufacturerId }: { manufacturer: string; manufacturerId: string }) => {
+        const result = (await dbConnection.query(
+          prepare(`
+            SELECT upsert_${lock.name}(
+              :manufacturer,
+              :manufacturerId
+            ) as id;
+        `)({
+            manufacturer,
+            manufacturerId,
+          }),
+        )) as any;
+        return result[0][0].id;
+      };
+      const upsertDoor = async ({ color, lock_ids }: { color: string; lock_ids: string }) => {
+        const result = (await dbConnection.query(
+          prepare(`
+            SELECT upsert_${door.name}(
+              :color,
+              :lock_ids
+            ) as id;
+        `)({
+            color,
+            lock_ids,
+          }),
+        )) as any;
+        return result[0][0].id;
+      };
+      const getEntityFromView = async ({ id }: { id: number }) =>
+        getEntityFromCurrentView({ id, entity: door, dbConnection });
+      beforeAll(async () => {
+        await dropTablesForEntity({ entity: door, dbConnection });
+        await dropTablesForEntity({ entity: lock, dbConnection });
+        await createTablesForEntity({ entity: lock, dbConnection });
+        await createTablesForEntity({ entity: door, dbConnection });
+        await dropAndCreateUpsertFunctionForEntity({ entity: lock, dbConnection });
+        await dropAndCreateUpsertFunctionForEntity({ entity: door, dbConnection });
+      });
+      it('should generate good looking and consistent sql', () => {
+        const view = generateEntityCurrentView({ entity: door });
+        expect(view).not.toEqual(null);
+        expect(view!.sql).toMatchSnapshot(); // review this manually for changes
+      });
+
+      it('should show the entity accurately', async () => {
+        await dropAndCreateViewForEntity({ entity: door, dbConnection });
+        const lockIds = [
+          await upsertLock({ manufacturer: uuid(), manufacturerId: uuid() }),
+          await upsertLock({ manufacturer: uuid(), manufacturerId: uuid() }),
+          await upsertLock({ manufacturer: uuid(), manufacturerId: uuid() }),
+        ].join(',');
+
+        const props = {
+          color: 'red',
+          lock_ids: lockIds,
+        };
+        const id = await upsertDoor(props);
+
+        // // check that the static part was accurate
+        const entity = await getEntityFromView({ id });
+        expect(entity).toMatchObject(props);
+        expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
+        expect(entity.id).toEqual(id);
+      });
     });
   });
   describe('versioned entity', () => {
-    const user = new Entity({
-      name: 'alternative_user',
-      properties: {
-        cognito_uuid: prop.UUID(),
-        name: {
-          ...prop.VARCHAR(255),
-          updatable: true,
+    describe('without array properties', () => {
+      const user = new Entity({
+        name: 'alternative_user',
+        properties: {
+          cognito_uuid: prop.UUID(),
+          name: {
+            ...prop.VARCHAR(255),
+            updatable: true,
+          },
+          bio: {
+            ...prop.TEXT(),
+            updatable: true,
+            nullable: true,
+          },
         },
-        bio: {
-          ...prop.TEXT(),
-          updatable: true,
-          nullable: true,
-        },
-      },
-      unique: ['cognito_uuid'],
-    });
-    beforeAll(async () => {
-      // provision the table
-      const tables = await generateEntityTables({ entity: user });
-      await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};` });
-      await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.version!.name};` });
-      await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
-      await dbConnection.query({ sql: tables.static.sql });
-      await dbConnection.query({ sql: tables.version!.sql });
-      await dbConnection.query({ sql: tables.currentVersionPointer!.sql });
-
-      // provision the upsert method
-      const { name, sql: upsertSql } = generateEntityUpsert({ entity: user });
-      await dbConnection.query({ sql: `DROP FUNCTION IF EXISTS ${name}` });
-      await dbConnection.query({ sql: upsertSql });
-    });
-    const recreateTheView = async () => {
-      const { name, sql: upsertSql } = generateEntityCurrentView({ entity: user })!;
-      await dbConnection.query({ sql: `DROP VIEW IF EXISTS ${name}` });
-      await dbConnection.query({ sql: upsertSql });
-      return { name, sql: upsertSql };
-    };
-    const getEntityFromView = async ({ name, id }: { name: string; id: number }) => {
-      const results = (await dbConnection.execute({ sql: `select * from ${name} where id = ${id}` })) as any;
-      expect(results[0].length).toEqual(1);
-      const entity = results[0][0];
-      return entity;
-    };
-    const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
-      const result = (await dbConnection.query(
-        prepare(`
+        unique: ['cognito_uuid'],
+      });
+      beforeAll(async () => {
+        await dropTablesForEntity({ entity: user, dbConnection });
+        await createTablesForEntity({ entity: user, dbConnection });
+        await dropAndCreateUpsertFunctionForEntity({ entity: user, dbConnection });
+      });
+      const getEntityFromView = async ({ id }: { id: number }) =>
+        getEntityFromCurrentView({ id, entity: user, dbConnection });
+      const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
+        const result = (await dbConnection.query(
+          prepare(`
         SELECT upsert_${user.name}(
           :cognito_uuid,
           :name,
           :bio
         ) as id;
       `)({
-          cognito_uuid,
-          name,
-          bio,
-        }),
-      )) as any;
-      return result[0][0].id;
-    };
-    it('should show the entity accurately', async () => {
-      const { sql, name } = await recreateTheView();
-      const props = {
-        cognito_uuid: uuid(),
-        name: 'hank hill',
-        bio: 'i sell propane and propane accessories',
+            cognito_uuid,
+            name,
+            bio,
+          }),
+        )) as any;
+        return result[0][0].id;
       };
-      const id = await upsertUser(props);
+      it('should generate good looking and consistent sql', () => {
+        const view = generateEntityCurrentView({ entity: user });
+        expect(view).not.toEqual(null);
+        expect(view!.sql).toMatchSnapshot(); // review this manually for changes
+      });
+      it('should show the entity accurately', async () => {
+        await dropAndCreateViewForEntity({ entity: user, dbConnection });
+        const props = {
+          cognito_uuid: uuid(),
+          name: 'hank hill',
+          bio: 'i sell propane and propane accessories',
+        };
+        const id = await upsertUser(props);
 
-      // check that the static part was accurate
-      const entity = await getEntityFromView({ id, name });
-      expect(entity).toMatchObject(props);
-      expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
-      expect(entity.id).toEqual(id);
+        // check that the static part was accurate
+        const entity = await getEntityFromView({ id });
+        expect(entity).toMatchObject(props);
+        expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
+        expect(entity.id).toEqual(id);
+      });
+      it('should always show the current version', async () => {
+        await dropAndCreateViewForEntity({ entity: user, dbConnection });
+        const props = {
+          cognito_uuid: uuid(),
+          name: 'hank hill',
+          bio: 'i sell propane and propane accessories',
+        };
+        const id = await upsertUser(props);
+        const idAgain = await upsertUser({ ...props, name: 'Hank Hillerson' });
+        await upsertUser({ ...props, name: 'Hank Hillbody', bio: undefined });
+        expect(idAgain).toEqual(id);
 
-      // snapshot the resultant sql to log an example
-      expect(sql).toMatchSnapshot();
+        // check that the updated part is still accurate
+        const entity = await getEntityFromView({ id });
+        expect(entity).toMatchObject({ ...props, name: 'Hank Hillbody', bio: null });
+      });
     });
-    it('should always show the current version', async () => {
-      const { name } = await recreateTheView();
-      const props = {
-        cognito_uuid: uuid(),
-        name: 'hank hill',
-        bio: 'i sell propane and propane accessories',
-      };
-      const id = await upsertUser(props);
-      const idAgain = await upsertUser({ ...props, name: 'Hank Hillerson' });
-      await upsertUser({ ...props, name: 'Hank Hillbody', bio: undefined });
-      expect(idAgain).toEqual(id);
+    describe('with array properties', () => {
+      const wheel = new ValueObject({
+        name: 'wheel',
+        properties: {
+          name: prop.VARCHAR(255),
+        },
+      });
+      const vehicle = new Entity({
+        name: 'vehicle',
+        properties: {
+          name: prop.VARCHAR(255),
+          wheel_ids: {
+            ...prop.ARRAY_OF(prop.REFERENCES(wheel)),
+            updatable: true, // the wheels on a vehicle can change
+          },
+        },
+        unique: ['name'],
+      });
+      beforeAll(async () => {
+        await dropTablesForEntity({ entity: vehicle, dbConnection });
+        await dropTablesForEntity({ entity: wheel, dbConnection });
+        await createTablesForEntity({ entity: wheel, dbConnection });
+        await createTablesForEntity({ entity: vehicle, dbConnection });
 
-      // check that the static part was accurate
-      const entity = await getEntityFromView({ id, name });
-      expect(entity).toMatchObject({ ...props, name: 'Hank Hillbody', bio: null });
+        await dropAndCreateUpsertFunctionForEntity({ entity: wheel, dbConnection });
+        await dropAndCreateUpsertFunctionForEntity({ entity: vehicle, dbConnection });
+      });
+      const getEntityFromView = async ({ id }: { id: number }) =>
+        getEntityFromCurrentView({ id, entity: vehicle, dbConnection });
+      const upsertVehicle = async ({ name, wheel_ids }: { name: string; wheel_ids: string }) => {
+        const result = (await dbConnection.query(
+          prepare(`
+          SELECT upsert_${vehicle.name}(
+            :name,
+            :wheel_ids
+          ) as id;
+        `)({
+            name,
+            wheel_ids,
+          }),
+        )) as any;
+        return result[0][0].id;
+      };
+      const upsertWheel = async ({ name }: { name: string }) => {
+        const result = (await dbConnection.query(
+          prepare(`
+          SELECT upsert_${wheel.name}(
+            :name
+          ) as id;
+        `)({
+            name,
+          }),
+        )) as any;
+        return result[0][0].id;
+      };
+      it('should generate good looking and consistent sql', () => {
+        const view = generateEntityCurrentView({ entity: vehicle });
+        expect(view).not.toEqual(null);
+        expect(view!.sql).toMatchSnapshot(); // review this manually for changes
+      });
+      it('should show the entity accurately', async () => {
+        await dropAndCreateViewForEntity({ entity: vehicle, dbConnection });
+        const wheelIds = [
+          await upsertWheel({ name: uuid() }),
+          await upsertWheel({ name: uuid() }),
+          await upsertWheel({ name: uuid() }),
+        ].join(',');
+        const props = {
+          name: uuid(),
+          wheel_ids: wheelIds,
+        };
+        const id = await upsertVehicle(props);
+
+        // check that the static part was accurate
+        const entity = await getEntityFromView({ id });
+        expect(entity).toMatchObject(props);
+        expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
+        expect(entity.id).toEqual(id);
+      });
+      it('should always show the current version', async () => {
+        await dropAndCreateViewForEntity({ entity: vehicle, dbConnection });
+
+        // create original version of entity
+        const wheelIds = [
+          await upsertWheel({ name: uuid() }),
+          await upsertWheel({ name: uuid() }),
+          await upsertWheel({ name: uuid() }),
+        ].join(',');
+        const props = {
+          name: uuid(),
+          wheel_ids: wheelIds,
+        };
+        const id = await upsertVehicle(props);
+
+        // update the entity dynamic properties
+        const updatedProps = {
+          ...props,
+          wheel_ids: wheelIds
+            .split(',')
+            .slice(1, 2)
+            .join(','),
+        };
+        const idAgain = await upsertVehicle(updatedProps);
+        expect(idAgain).toEqual(id);
+
+        // check that the updated part is still accurate
+        const entity = await getEntityFromView({ id });
+        expect(entity).toMatchObject(updatedProps);
+      });
     });
   });
 });

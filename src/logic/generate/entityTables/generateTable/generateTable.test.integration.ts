@@ -1,5 +1,5 @@
 import { DataType, DataTypeName, Property } from '../../../../types';
-import { DatabaseConnection, getDatabaseConnection } from '../../_test_utils/databaseConnection';
+import { DatabaseConnection, getDatabaseConnection } from '../../__test_utils__/databaseConnection';
 import { generateTable } from './generateTable';
 
 /*

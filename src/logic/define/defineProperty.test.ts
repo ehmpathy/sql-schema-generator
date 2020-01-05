@@ -27,7 +27,7 @@ describe('generateProperty', () => {
     });
   });
   describe('use cases', () => {
-    it('should make it convinient to define a real use case', () => {
+    it('should make it convenient to define a real use case', () => {
       const plan = new Entity({
         name: 'plan',
         properties: {
@@ -55,7 +55,7 @@ describe('generateProperty', () => {
       });
       expect(participant.constructor).toEqual(Entity);
     });
-    it('should make it convinient to define another real use case', () => {
+    it('should make it convenient to define another real use case', () => {
       const chat = new Entity({
         name: 'chat',
         properties: {

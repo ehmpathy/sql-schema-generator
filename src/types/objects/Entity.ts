@@ -2,6 +2,11 @@ import Joi from 'joi';
 import SchematicJoiModel from 'schematic-joi-model';
 import { Property } from './Property';
 
+// we define properties here as well, as this is a common type due to the entity
+export interface Properties {
+  [index: string]: Property;
+}
+
 /*
   naming from https://dev.mysql.com/doc/refman/8.0/en/create-table.html
 */
@@ -17,12 +22,12 @@ const entitySchema = Joi.object().keys({
 });
 interface EntityConstructorProps {
   name: string;
-  properties: { [index: string]: Property };
+  properties: Properties;
   unique: string[];
 }
 export class Entity extends SchematicJoiModel<EntityConstructorProps> {
   public name!: string;
-  public properties!: { [index: string]: Property };
+  public properties!: Properties;
   public unique!: string[];
   public static schema = entitySchema;
 }

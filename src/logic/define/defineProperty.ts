@@ -273,3 +273,15 @@ export const REFERENCES = (entity: Entity) =>
     ...BIGINT(), // pk type is always a bigint
     references: entity.name, // name of entity
   });
+
+/**
+ * ARRAY_OF is an alias which sets the array flag to true on a property.
+ *
+ * This flag tells the generator to create a mapping table and to expect to write and read an array of these values
+ *
+ * NOTE: currently only arrays of REFERENCEs are supported, meaning that the data in the array must be normalized into its own table.
+ */
+export const ARRAY_OF = (property: Property) => {
+  if (!property.references) throw new Error('only arrays of REFERENCES are supported');
+  return new Property({ ...property, array: true });
+};

@@ -1,32 +1,47 @@
-import { Entity, prop } from '../module';
+import { Entity, prop, ValueObject } from '../module';
 
-const chat = new Entity({
-  name: 'chat',
+const photo = new ValueObject({
+  name: 'photo',
   properties: {
-    room_uuid: prop.UUID(),
-    started_date: {
-      ...prop.DATETIME(6),
+    url: prop.VARCHAR(255),
+  },
+});
+const user = new Entity({
+  name: 'user',
+  properties: {
+    phone_number: prop.CHAR(10), // only us numbers allowed
+    first_name: prop.VARCHAR(255),
+    last_name: prop.VARCHAR(255),
+    avatar_id: {
+      ...prop.REFERENCES(photo),
       updatable: true,
     },
   },
-  unique: ['room_uuid'],
+  unique: ['phone_number'], // users are identified by their phone number
 });
-const message = new Entity({
-  name: 'message',
+const host = new Entity({
+  name: 'host',
   properties: {
-    chat_id: prop.REFERENCES(chat),
-    content: prop.TEXT(),
-    user_uuid: prop.UUID(),
+    tax_id: prop.VARCHAR(255),
+    owner_id: prop.REFERENCES(user),
+    contact_id: {
+      ...prop.REFERENCES(user),
+      updatable: true,
+    },
   },
-  unique: ['chat_id', 'content', 'user_uuid'],
+  unique: ['tax_id'], // hosts are identified by their tax ids
 });
-const like = new Entity({
-  name: 'like',
+const home = new Entity({
+  name: 'home',
   properties: {
-    message_id: prop.REFERENCES(message),
-    user_uuid: prop.UUID(),
+    name: prop.VARCHAR(255),
+    host_ids: prop.ARRAY_OF(prop.REFERENCES(host)), // one home may have more than one host (for some reason in this example... just go with it)
+    photo_ids: {
+      ...prop.ARRAY_OF(prop.REFERENCES(photo)),
+      updatable: true, // the photos of a home change over time
+    },
   },
-  unique: ['message_id', 'user_uuid'],
+  unique: ['name', 'host_ids'],
 });
 
-export const entities = [chat, message, like];
+export const entities = [photo, user, host, home];

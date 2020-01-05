@@ -3,10 +3,10 @@ import { mysql as prepare } from 'yesql';
 
 import { Entity } from '../../../types';
 import * as prop from '../../define/defineProperty';
-import { DatabaseConnection, getDatabaseConnection } from '../_test_utils/databaseConnection';
+import { DatabaseConnection, getDatabaseConnection } from '../__test_utils__/databaseConnection';
 import { generateEntityTables } from '../entityTables/generateEntityTables';
 import { generateEntityBackfillCurrentVersionPointers } from './generateEntityBackfillCurrentVersionPointers';
-import { generateEntityUpsert } from './generateEntityUpsert';
+import { generateEntityUpsert } from './generateEntityUpsert/generateEntityUpsert';
 
 describe('generateEntityBackfillCurrentVersionPointers', () => {
   let dbConnection: DatabaseConnection;

@@ -1,0 +1,279 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateEntityUpsert entity with array properties should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
+"CREATE FUNCTION \`upsert_movie\`(
+  in_name varchar(255),
+  in_producer_ids varchar(16383),
+  in_language_ids varchar(16383)
+) RETURNS bigint(20)
+BEGIN
+  -- declarations
+  DECLARE v_static_id BIGINT;
+  DECLARE v_matching_version_id BIGINT;
+  DECLARE v_current_version_id BIGINT;
+  DECLARE v_current_version_id_recorded_in_pointer_table BIGINT;
+  DECLARE v_delimited_string_access_index INT;
+  DECLARE v_delimited_string_access_value VARCHAR(255);
+  DECLARE v_can_still_find_values_in_delimited_string BOOLEAN;
+
+  -- find or create the static entity
+  SET v_static_id = (
+    SELECT id
+    FROM movie
+    WHERE 1=1
+      AND (name = BINARY in_name)
+      AND (producer_ids_hash = BINARY SHA2(in_producer_ids, 256))
+  );
+  IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
+    INSERT INTO movie
+      (uuid, name, producer_ids_hash)
+      VALUES
+      (uuid(), in_name, SHA2(in_producer_ids, 256));
+    SET v_static_id = (
+      SELECT id
+      FROM movie
+      WHERE 1=1
+        AND (name = BINARY in_name)
+        AND (producer_ids_hash = BINARY SHA2(in_producer_ids, 256))
+    );
+
+    -- insert a row into the mapping table for each value in the in_producer_ids comma delimited string
+    SET v_can_still_find_values_in_delimited_string = true;
+    SET v_delimited_string_access_index = 0;
+    WHILE (v_can_still_find_values_in_delimited_string) DO
+      SET v_delimited_string_access_value = get_from_delimiter_split_string(in_producer_ids, ',', v_delimited_string_access_index); -- get value from string
+      SET v_delimited_string_access_index = v_delimited_string_access_index + 1;
+      IF (v_delimited_string_access_value = '') THEN
+        SET v_can_still_find_values_in_delimited_string = false; -- no value at this index, stop looping
+      ELSE
+        INSERT INTO movie_to_producer
+          (movie_id, producer_id)
+          VALUES
+          (v_static_id, v_delimited_string_access_value);
+      END IF;
+    END WHILE;
+  END IF;
+
+  -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
+  SET v_matching_version_id = ( -- see if latest version already has this data 
+    SELECT id
+    FROM movie_version
+    WHERE 1=1
+      AND movie_id = v_static_id -- for this entity
+      AND effective_at = ( -- and is the currently effective version
+        SELECT MAX(effective_at)
+        FROM movie_version ssv
+        WHERE ssv.movie_id = v_static_id
+      )
+      AND (language_ids_hash = BINARY SHA2(in_language_ids, 256))
+  );
+  IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
+    INSERT INTO movie_version
+      (movie_id, language_ids_hash)
+      VALUES
+      (v_static_id, SHA2(in_language_ids, 256));
+    SET v_matching_version_id = ( -- find the matching version id to use for mapping, now that its been inserted
+      SELECT id
+      FROM movie_version
+      WHERE 1=1
+        AND movie_id = v_static_id -- for this entity
+        AND effective_at = ( -- and is the currently effective version
+          SELECT MAX(effective_at)
+          FROM movie_version ssv
+          WHERE ssv.movie_id = v_static_id
+        )
+        AND (language_ids_hash = BINARY SHA2(in_language_ids, 256))
+    );
+
+    -- insert a row into the mapping table for each value in the in_language_ids comma delimited string
+    SET v_can_still_find_values_in_delimited_string = true;
+    SET v_delimited_string_access_index = 0;
+    WHILE (v_can_still_find_values_in_delimited_string) DO
+      SET v_delimited_string_access_value = get_from_delimiter_split_string(in_language_ids, ',', v_delimited_string_access_index); -- get value from string
+      SET v_delimited_string_access_index = v_delimited_string_access_index + 1;
+      IF (v_delimited_string_access_value = '') THEN
+        SET v_can_still_find_values_in_delimited_string = false; -- no value at this index, stop looping
+      ELSE
+        INSERT INTO movie_version_to_language
+          (movie_version_id, language_id)
+          VALUES
+          (v_matching_version_id, v_delimited_string_access_value);
+      END IF;
+    END WHILE;
+  END IF;
+
+  -- update the current version pointer table, if it is not already up to date
+  SET v_current_version_id = ( -- get the current version id
+    SELECT id
+    FROM movie_version
+    WHERE 1=1
+      AND movie_id = v_static_id -- for this entity
+      AND effective_at = ( -- and is the currently effective version
+        SELECT MAX(effective_at)
+        FROM movie_version ssv
+        WHERE ssv.movie_id = v_static_id
+      )
+  );
+  SET v_current_version_id_recorded_in_pointer_table = ( -- get the version recorded as current for the entity, if any
+    SELECT movie_version_id
+    FROM movie_cvp
+    WHERE 1=1
+      AND movie_id = v_static_id -- for this entity
+  );
+  IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
+    INSERT INTO movie_cvp
+      (movie_id, movie_version_id)
+      VALUES
+      (v_static_id, v_current_version_id);
+    SET v_current_version_id_recorded_in_pointer_table = v_current_version_id; -- and record that the current version recorded is now the real current version
+  END IF;
+  IF (v_current_version_id_recorded_in_pointer_table <> v_current_version_id) THEN -- if they are not exactly equal, update the current version recorded in the pointer tabe
+    UPDATE movie_cvp
+    SET
+      movie_version_id = v_current_version_id,
+      updated_at = CURRENT_TIMESTAMP(6)
+    WHERE
+    movie_id = v_static_id;
+  END IF;
+
+  -- return the static entity id
+  return v_static_id;
+END"
+`;
+
+exports[`generateEntityUpsert static entity should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
+"CREATE FUNCTION \`upsert_address_2\`(
+  in_street varchar(255),
+  in_suite varchar(255),
+  in_city varchar(255),
+  in_country enum('US','CA','MX'),
+  in_weekday_found varchar(15)
+) RETURNS bigint(20)
+BEGIN
+  -- declarations
+  DECLARE v_static_id BIGINT;
+
+  -- find or create the static entity
+  SET v_static_id = (
+    SELECT id
+    FROM address_2
+    WHERE 1=1
+      AND (street = BINARY in_street)
+      AND (suite = BINARY in_suite OR (suite IS null AND in_suite IS null))
+      AND (city = BINARY in_city)
+      AND (country = BINARY in_country)
+  );
+  IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
+    INSERT INTO address_2
+      (uuid, street, suite, city, country, weekday_found)
+      VALUES
+      (uuid(), in_street, in_suite, in_city, in_country, in_weekday_found);
+    SET v_static_id = (
+      SELECT id
+      FROM address_2
+      WHERE 1=1
+        AND (street = BINARY in_street)
+        AND (suite = BINARY in_suite OR (suite IS null AND in_suite IS null))
+        AND (city = BINARY in_city)
+        AND (country = BINARY in_country)
+    );
+  END IF;
+
+  -- return the static entity id
+  return v_static_id;
+END"
+`;
+
+exports[`generateEntityUpsert versioned entity should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
+"CREATE FUNCTION \`upsert_alternative_user\`(
+  in_cognito_uuid char(36),
+  in_name varchar(255),
+  in_bio text
+) RETURNS bigint(20)
+BEGIN
+  -- declarations
+  DECLARE v_static_id BIGINT;
+  DECLARE v_matching_version_id BIGINT;
+  DECLARE v_current_version_id BIGINT;
+  DECLARE v_current_version_id_recorded_in_pointer_table BIGINT;
+
+  -- find or create the static entity
+  SET v_static_id = (
+    SELECT id
+    FROM alternative_user
+    WHERE 1=1
+      AND (cognito_uuid = BINARY in_cognito_uuid)
+  );
+  IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
+    INSERT INTO alternative_user
+      (uuid, cognito_uuid)
+      VALUES
+      (uuid(), in_cognito_uuid);
+    SET v_static_id = (
+      SELECT id
+      FROM alternative_user
+      WHERE 1=1
+        AND (cognito_uuid = BINARY in_cognito_uuid)
+    );
+  END IF;
+
+  -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
+  SET v_matching_version_id = ( -- see if latest version already has this data 
+    SELECT id
+    FROM alternative_user_version
+    WHERE 1=1
+      AND alternative_user_id = v_static_id -- for this entity
+      AND effective_at = ( -- and is the currently effective version
+        SELECT MAX(effective_at)
+        FROM alternative_user_version ssv
+        WHERE ssv.alternative_user_id = v_static_id
+      )
+      AND (name = BINARY in_name)
+      AND (bio = BINARY in_bio OR (bio IS null AND in_bio IS null))
+  );
+  IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
+    INSERT INTO alternative_user_version
+      (alternative_user_id, name, bio)
+      VALUES
+      (v_static_id, in_name, in_bio);
+    
+  END IF;
+
+  -- update the current version pointer table, if it is not already up to date
+  SET v_current_version_id = ( -- get the current version id
+    SELECT id
+    FROM alternative_user_version
+    WHERE 1=1
+      AND alternative_user_id = v_static_id -- for this entity
+      AND effective_at = ( -- and is the currently effective version
+        SELECT MAX(effective_at)
+        FROM alternative_user_version ssv
+        WHERE ssv.alternative_user_id = v_static_id
+      )
+  );
+  SET v_current_version_id_recorded_in_pointer_table = ( -- get the version recorded as current for the entity, if any
+    SELECT alternative_user_version_id
+    FROM alternative_user_cvp
+    WHERE 1=1
+      AND alternative_user_id = v_static_id -- for this entity
+  );
+  IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
+    INSERT INTO alternative_user_cvp
+      (alternative_user_id, alternative_user_version_id)
+      VALUES
+      (v_static_id, v_current_version_id);
+    SET v_current_version_id_recorded_in_pointer_table = v_current_version_id; -- and record that the current version recorded is now the real current version
+  END IF;
+  IF (v_current_version_id_recorded_in_pointer_table <> v_current_version_id) THEN -- if they are not exactly equal, update the current version recorded in the pointer tabe
+    UPDATE alternative_user_cvp
+    SET
+      alternative_user_version_id = v_current_version_id,
+      updated_at = CURRENT_TIMESTAMP(6)
+    WHERE
+    alternative_user_id = v_static_id;
+  END IF;
+
+  -- return the static entity id
+  return v_static_id;
+END"
+`;

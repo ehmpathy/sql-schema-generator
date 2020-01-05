@@ -1,6 +1,9 @@
-import { Property } from '../../../types';
+import { Properties, Property } from '../../../types';
 import * as prop from '../../define/defineProperty';
+import { castPropertyToColumnName } from '../utils/castPropertyToColumnName';
+import { pickKeysFromObject } from '../utils/pickKeysFromObject';
 import { generateTable } from './generateTable';
+import { castArrayPropertiesToValuesHashProperties } from './utils/castArrayPropertiesToValuesHashProperties';
 
 export const generateTableForStaticProperties = ({
   entityName,
@@ -8,10 +11,20 @@ export const generateTableForStaticProperties = ({
   unique,
 }: {
   entityName: string;
-  properties: { [index: string]: Property };
+  properties: Properties;
   unique: string[];
 }) => {
-  // 0. add metadata properties
+  // 0. split singular and array properties
+  const staticSingularProperties = pickKeysFromObject({
+    object: properties,
+    keep: (property: Property) => !property.array,
+  });
+  const staticArrayProperties = pickKeysFromObject({
+    object: properties,
+    keep: (property: Property) => !!property.array,
+  });
+
+  // 1. add metadata properties
   const staticProps = {
     id: prop.BIGINT(),
     uuid: prop.UUID(),
@@ -19,14 +32,18 @@ export const generateTableForStaticProperties = ({
       ...prop.DATETIME(6),
       default: 'CURRENT_TIMESTAMP(6)',
     }),
-    ...properties,
+    ...staticSingularProperties,
+    ...castArrayPropertiesToValuesHashProperties({ properties: staticArrayProperties }),
   };
 
-  // 1. generate the table
+  // 2. generate the table
   const tableName = entityName;
-  const tableSql = generateTable({ tableName, unique, properties: staticProps });
+  const uniqueColumnNames = unique.map((propertyName) =>
+    castPropertyToColumnName({ name: propertyName, definition: properties[propertyName] }),
+  );
+  const tableSql = generateTable({ tableName, unique: uniqueColumnNames, properties: staticProps });
 
-  // 2. return sql
+  // 3. return sql
   return {
     name: tableName,
     sql: tableSql,

@@ -61,7 +61,7 @@ BEGIN
     ${selectCurrentVersionIdForEntity}
   ) AS e_to_cv ON e_to_cv.id = cvp.${entity.name}_id
   SET
-    updated_at = now(6),
+    updated_at = CURRENT_TIMESTAMP(6),
     cvp.${entity.name}_version_id = e_to_cv.current_version_id -- set pointer table to have current version
   WHERE cvp.${entity.name}_id IN (
     SELECT id FROM ( -- ugly? agreed: https://stackoverflow.com/a/12620023/3068233 - its the best way found so far to limit in an update

@@ -12,6 +12,7 @@ const propertySchema = Joi.object().keys({
   default: Joi.string().optional(),
   updatable: Joi.boolean().optional(),
   nullable: Joi.boolean().optional(),
+  array: Joi.boolean().optional(),
   comment: Joi.string().optional(),
 });
 interface PropertyConstructorProps {
@@ -21,6 +22,7 @@ interface PropertyConstructorProps {
   default?: string;
   updatable?: boolean;
   nullable?: boolean;
+  array?: boolean;
   comment?: string;
 }
 export class Property extends SchematicJoiModel<PropertyConstructorProps> {
@@ -30,6 +32,7 @@ export class Property extends SchematicJoiModel<PropertyConstructorProps> {
   public default?: string;
   public updatable?: boolean;
   public nullable?: boolean;
+  public array?: boolean;
   public comment?: string;
   public static schema = propertySchema;
 }

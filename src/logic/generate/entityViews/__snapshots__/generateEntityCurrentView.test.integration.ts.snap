@@ -1,6 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`generateEntityViewCurrent versioned entity should show the entity accurately 1`] = `
+exports[`generateEntityViewCurrent static entity with array properties should generate good looking and consistent sql 1`] = `
+"CREATE VIEW \`view_door_current\` AS
+  SELECT
+    s.id,
+    s.uuid,
+    s.color,
+    (SELECT GROUP_CONCAT(door_to_door_lock.door_lock_id) FROM door_to_door_lock WHERE door_to_door_lock.door_id = s.id) as lock_ids,
+    s.created_at
+  FROM door s
+  ;"
+`;
+
+exports[`generateEntityViewCurrent versioned entity with array properties should generate good looking and consistent sql 1`] = `
+"CREATE VIEW \`view_vehicle_current\` AS
+  SELECT
+    s.id,
+    s.uuid,
+    s.name,
+    (SELECT GROUP_CONCAT(vehicle_version_to_wheel.wheel_id) FROM vehicle_version_to_wheel WHERE vehicle_version_to_wheel.vehicle_version_id = v.id) as wheel_ids,
+    s.created_at,
+    v.effective_at,
+    v.created_at as updated_at
+  FROM vehicle s
+  JOIN vehicle_cvp cvp ON s.id = cvp.vehicle_id
+  JOIN vehicle_version v ON v.id = cvp.vehicle_version_id;"
+`;
+
+exports[`generateEntityViewCurrent versioned entity without array properties should generate good looking and consistent sql 1`] = `
 "CREATE VIEW \`view_alternative_user_current\` AS
   SELECT
     s.id,

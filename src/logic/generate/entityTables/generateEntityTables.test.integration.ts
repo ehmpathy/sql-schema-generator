@@ -1,6 +1,7 @@
-import { Entity } from '../../../types';
+import { Entity, ValueObject } from '../../../types';
 import * as prop from '../../define/defineProperty';
-import { DatabaseConnection, getDatabaseConnection } from '../_test_utils/databaseConnection';
+import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
+import { DatabaseConnection, getDatabaseConnection } from '../__test_utils__/databaseConnection';
 import { generateEntityTables } from './generateEntityTables';
 
 /*
@@ -18,7 +19,7 @@ describe('generateEntityTables', () => {
     const result = (await dbConnection.query({ sql: `SHOW CREATE TABLE ${tableName}` })) as any;
     return result[0][0]['Create Table'];
   };
-  it('generates tables for a static entity, w/ same sytax as SHOW CREATE', async () => {
+  it('generates tables for a static entity, w/ same syntax as SHOW CREATE', async () => {
     const address = new Entity({
       name: 'address',
       properties: {
@@ -69,5 +70,47 @@ describe('generateEntityTables', () => {
     expect(createVersionSql).toEqual(tables.version!.sql); // should be the exact string
     const createCurrentVersionPointerSql = await getShowCreateNow({ tableName: tables.currentVersionPointer!.name });
     expect(createCurrentVersionPointerSql).toEqual(tables.currentVersionPointer!.sql); // should be the exact string
+  });
+  it('generates tables for an entity with array properties (both updatable and static) and unique on one array, w/ the same syntax as show create', async () => {
+    const photo = new ValueObject({
+      name: 'photo',
+      properties: {
+        url: prop.VARCHAR(255),
+      },
+    });
+    const host = new ValueObject({
+      name: 'host',
+      properties: {
+        name: prop.VARCHAR(255),
+      },
+    });
+    const home = new Entity({
+      name: 'home',
+      properties: {
+        name: prop.VARCHAR(255),
+        host_ids: prop.ARRAY_OF(prop.REFERENCES(host)),
+        photo_ids: {
+          ...prop.ARRAY_OF(prop.REFERENCES(photo)),
+          updatable: true, // the photos of a home change over time
+        },
+      },
+      unique: ['name', 'host_ids'],
+    });
+
+    // provision the actual tables for the "movie" entity
+    await dropTablesForEntity({ entity: home, dbConnection });
+    await dropTablesForEntity({ entity: host, dbConnection });
+    await dropTablesForEntity({ entity: photo, dbConnection });
+    await createTablesForEntity({ entity: photo, dbConnection });
+    await createTablesForEntity({ entity: host, dbConnection });
+    await createTablesForEntity({ entity: home, dbConnection });
+
+    // check syntax is the same as that returned by SHOW CREATE TABLE, for each mapping table
+    const tables = await generateEntityTables({ entity: home });
+    expect(tables.mappings.length).toEqual(2); // two mapping tables, since two array properties
+    const createMappingTableSqlOne = await getShowCreateNow({ tableName: tables.mappings[0]!.name });
+    expect(createMappingTableSqlOne).toEqual(tables.mappings[0]!.sql); // should be the exact string
+    const createMappingTableSqlTwo = await getShowCreateNow({ tableName: tables.mappings[1]!.name });
+    expect(createMappingTableSqlTwo).toEqual(tables.mappings[1]!.sql); // should be the exact string
   });
 });
