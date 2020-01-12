@@ -1,4 +1,5 @@
 import { Entity } from '../../../types';
+import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
 
 export const normalizeDeclarationContents = ({ contents }: { contents: any }) => {
   // 1. check that 'entities' is exported
@@ -10,6 +11,11 @@ export const normalizeDeclarationContents = ({ contents }: { contents: any }) =>
     if (!(entity instanceof Entity)) throw new Error('all exported entities must be of, or extend, class Entity');
   });
 
-  // 3. return the entities now that we've validate them
+  // 3. check that naming conventions are followed
+  entities.forEach((entity: any) => {
+    throwErrorIfNamingConventionsNotFollowed({ entity });
+  });
+
+  // 4. return the entities now that we've validate them
   return { entities };
 };

@@ -1,5 +1,5 @@
 import { Command, flags } from '@oclif/command';
-import { generateSchema } from '../../logic/workflows/generateSchema/generateSchema';
+import { generateSchema } from '../../logic/compose/generateSchema/generateSchema';
 
 export default class Generate extends Command {
   public static description =

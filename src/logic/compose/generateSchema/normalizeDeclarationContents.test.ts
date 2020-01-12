@@ -1,5 +1,10 @@
+import { prop } from '../../../contract/module';
 import { Entity, ValueObject } from '../../../types';
 import { normalizeDeclarationContents } from './normalizeDeclarationContents';
+import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
+
+jest.mock('./throwErrorIfNamingConventionsNotFollowed');
+const throwErrorIfNamingConventionsNotFollowedMock = throwErrorIfNamingConventionsNotFollowed as jest.Mock;
 
 describe('normalizeDeclarationContents', () => {
   it('should throw an error if an entities object is not exported from the source file', () => {
@@ -19,6 +24,13 @@ describe('normalizeDeclarationContents', () => {
     } catch (error) {
       expect(error.message).toEqual('all exported entities must be of, or extend, class Entity');
     }
+  });
+  it("should throw an error if any entity's properties do not follow naming conventions", () => {
+    const exampleEntity = new Entity({ name: 'burrito', properties: { lbs: prop.INT() }, unique: ['lbs'] });
+    const contents = { entities: [exampleEntity] };
+    normalizeDeclarationContents({ contents });
+    expect(throwErrorIfNamingConventionsNotFollowedMock).toHaveBeenCalledTimes(1);
+    expect(throwErrorIfNamingConventionsNotFollowedMock).toHaveBeenCalledWith({ entity: exampleEntity });
   });
   it('should return the entities and value objects found in the contents', () => {
     const contents = {
