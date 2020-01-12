@@ -21,17 +21,18 @@ Declarative relational database schema generation. Ensure best practices are fol
 # Overview
 
 `schema-generator` does two things for us:
-- generates sql for "persisted entities" (both static and updatable) in relational databases, based on a declarative definition of entities
+- **generates sql** for "persisted entities" (both static and updatable) in relational databases, based on a declarative definition of entities
   - i.e., it generates the following resources:
     - to interact with data
       - entity static table
       - entity version table (if updatable properties exist, for an insert-only / event-driven design, per temporal database design)
+      - entity mapping tables (if array properties exist, to define the many-to-many relationship)
       - upsert function (for idempotent inserts)
-      - a `_current` view, to abstract away the versioning pattern
+      - a `_current` view, to abstract away the versioning pattern and mapping tables
     - to improve performance
       - entity current version pointer table (if updatable properties exist, to make looking up the current version fast at scale)
       - backfill_current_version_pointers function (for if changes had to be made manually and to ensure everything is in sync)
-- encodes best practices
+- **encodes best practices**
   - optimal data types
   - case sensitivity by default
   - insert only (using temporal database design to maintain normalized tables and uniqueness constraints)
@@ -71,38 +72,38 @@ Consequently, by utilizing the schema generator:
   ```ts
   // for example: in <root>/schema/entities.ts
 
-  import { Entity, prop } from 'schema-generator';
+  import { Entity, prop, ValueObject } from '../module';
 
-  const chat = new Entity({
-    name: 'chat',
+  const photo = new ValueObject({
+    name: 'photo',
     properties: {
-      room_uuid: prop.UUID(),
-      started_date: {
-        ...prop.DATETIME(6),
-        updatable: true,
-      },
+      url: prop.VARCHAR(255),
     },
-    unique: ['room_uuid'],
   });
-  const message = new Entity({
-    name: 'message',
+  const user = new Entity({
+    name: 'user',
     properties: {
-      chat_id: prop.REFERENCES(chat),
-      content: prop.TEXT(),
-      user_uuid: prop.UUID(),
+      phone_number: prop.CHAR(10), // only us numbers allowed
+      first_name: prop.VARCHAR(255),
+      last_name: prop.VARCHAR(255),
+      avatar_id: { ...prop.REFERENCES(photo), updatable: true, nullable: true },
     },
-    unique: ['chat_id', 'content', 'user_uuid'],
+    unique: ['phone_number'], // users are identified by their phone number
   });
-  const like = new Entity({
-    name: 'like',
+  const home = new Entity({
+    name: 'home',
     properties: {
-      message_id: prop.REFERENCES(message),
-      user_uuid: prop.UUID(),
+      name: prop.VARCHAR(255),
+      owner_id: prop.REFERENCES(user),
+      built: prop.DATETIME(6),
+      bedrooms: prop.INT(),
+      bathrooms: prop.INT(),
+      photo_ids: { ...prop.ARRAY_OF(prop.REFERENCES(photo)), updatable: true }, // array of photos
     },
-    unique: ['message_id', 'user_uuid'],
+    unique: ['name', 'owner_id'],
   });
 
-  export const entities = [chat, message, like];
+  export const entities = [photo, user, home];
   ```
 
 3. Run the generate command

@@ -36,6 +36,9 @@ const home = new Entity({
   properties: {
     name: prop.VARCHAR(255),
     host_ids: prop.ARRAY_OF(prop.REFERENCES(host)), // one home may have more than one host (for some reason in this example... just go with it)
+    built: prop.DATETIME(6),
+    bedrooms: prop.INT(),
+    bathrooms: prop.INT(),
     photo_ids: {
       ...prop.ARRAY_OF(prop.REFERENCES(photo)),
       updatable: true, // the photos of a home change over time
