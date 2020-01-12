@@ -1,3 +1,5 @@
+import indentString from 'indent-string';
+
 import { Entity } from '../../../types';
 
 /*
@@ -13,17 +15,17 @@ note: insert on conflict update was not used because there would be no efficient
 export const generateEntityBackfillCurrentVersionPointers = ({ entity }: { entity: Entity }) => {
   // define select statement for getting current version for entity
   const selectCurrentVersionIdForEntity = `
-    SELECT
-      e.id as id,
-      v.id as current_version_id
-    FROM ${entity.name} e
-    JOIN ${entity.name}_version v ON v.${entity.name}_id = e.id
-    WHERE 1=1
-      AND effective_at = ( -- and is the currently effective version
-        SELECT MAX(effective_at)
-        FROM ${entity.name}_version ssv
-        WHERE ssv.${entity.name}_id = e.id -- for same entity
-      )
+SELECT
+  e.id as id,
+  v.id as current_version_id
+FROM ${entity.name} e
+JOIN ${entity.name}_version v ON v.${entity.name}_id = e.id
+WHERE 1=1
+  AND effective_at = ( -- and is the currently effective version
+    SELECT MAX(effective_at)
+    FROM ${entity.name}_version ssv
+    WHERE ssv.${entity.name}_id = e.id -- for same entity
+  )
   `.trim();
 
   // combine the version and static logic into full upsert function
@@ -43,7 +45,7 @@ BEGIN
     e_to_cv.current_version_id
   FROM ${entity.name} e
   JOIN (
-    ${selectCurrentVersionIdForEntity}
+    ${indentString(selectCurrentVersionIdForEntity, 4).trim()}
   ) AS e_to_cv ON e_to_cv.id = e.id
   WHERE 1=1
     AND NOT EXISTS (
@@ -58,7 +60,7 @@ BEGIN
   -- 2. update every time cvp exists but is out of sync for an entity
   UPDATE ${entity.name}_cvp cvp
   JOIN (
-    ${selectCurrentVersionIdForEntity}
+    ${indentString(selectCurrentVersionIdForEntity, 4).trim()}
   ) AS e_to_cv ON e_to_cv.id = cvp.${entity.name}_id
   SET
     updated_at = CURRENT_TIMESTAMP(6),
@@ -69,10 +71,12 @@ BEGIN
         cvp.${entity.name}_id as id
       FROM ${entity.name}_cvp cvp
       JOIN (
-    ${selectCurrentVersionIdForEntity}
+        ${indentString(selectCurrentVersionIdForEntity, 8).trim()}
       ) AS e_to_cv ON e_to_cv.id = cvp.${entity.name}_id
       WHERE 1=1
-        AND cvp.${entity.name}_version_id <> e_to_cv.current_version_id -- where the pointer table does not already have current version
+        AND cvp.${
+          entity.name
+        }_version_id <> e_to_cv.current_version_id -- where the pointer table does not already have current version
       LIMIT v_remaining_limit
     ) as tmp
   );

@@ -62,17 +62,17 @@ BEGIN
         cvp.car_id as id
       FROM car_cvp cvp
       JOIN (
-    SELECT
-      e.id as id,
-      v.id as current_version_id
-    FROM car e
-    JOIN car_version v ON v.car_id = e.id
-    WHERE 1=1
-      AND effective_at = ( -- and is the currently effective version
-        SELECT MAX(effective_at)
-        FROM car_version ssv
-        WHERE ssv.car_id = e.id -- for same entity
-      )
+        SELECT
+          e.id as id,
+          v.id as current_version_id
+        FROM car e
+        JOIN car_version v ON v.car_id = e.id
+        WHERE 1=1
+          AND effective_at = ( -- and is the currently effective version
+            SELECT MAX(effective_at)
+            FROM car_version ssv
+            WHERE ssv.car_id = e.id -- for same entity
+          )
       ) AS e_to_cv ON e_to_cv.id = cvp.car_id
       WHERE 1=1
         AND cvp.car_version_id <> e_to_cv.current_version_id -- where the pointer table does not already have current version
