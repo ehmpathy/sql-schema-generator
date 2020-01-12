@@ -1,7 +1,10 @@
-import { Entity } from '../../../../types';
+import { Entity } from '../../../../../types';
 
-export const throwErrorIfNamingConventionsNotFollowed = ({ entity }: { entity: Entity }) => {
-  // 1. check that any properties that "reference" an entity have `_id` or `_ids` as their suffix - to be explicit that they are _references_
+/*
+  check that any properties that "reference" an entity have `_id` or `_ids` as their suffix
+    to be explicit that they are _references_
+*/
+export const throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix = ({ entity }: { entity: Entity }) => {
   Object.entries(entity.properties).forEach(([name, definition]) => {
     if (!definition.references) return; // nothing to check here
     const requiredSuffix = definition.array ? '_ids' : '_id';

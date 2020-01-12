@@ -21,7 +21,6 @@ export const normalizeDeclarationContents = ({ contents }: { contents: any }) =>
   entities.forEach((entity: any) => {
     throwErrorIfAnyUniqueIsNotInProperties({ entity });
   });
-  // ------ TODO ----------
 
   // 5. return the entities now that we've validate them
   return { entities };

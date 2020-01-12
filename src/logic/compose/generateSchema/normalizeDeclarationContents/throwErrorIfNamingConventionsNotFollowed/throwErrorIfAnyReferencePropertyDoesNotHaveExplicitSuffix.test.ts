@@ -1,8 +1,8 @@
-import { prop } from '../../../../contract/module';
-import { Entity, ValueObject } from '../../../../types';
-import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
+import { prop } from '../../../../../contract/module';
+import { Entity, ValueObject } from '../../../../../types';
+import { throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix';
 
-describe('throwErrorIfNamingConventionsNotFollowed', () => {
+describe('throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix', () => {
   it('should throw an error if property references another but does not have correct name', () => {
     const photo = new ValueObject({
       name: 'photo',
@@ -14,7 +14,7 @@ describe('throwErrorIfNamingConventionsNotFollowed', () => {
       unique: ['name'],
     });
     try {
-      throwErrorIfNamingConventionsNotFollowed({ entity: user });
+      throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix({ entity: user });
       throw new Error('should not reach here');
     } catch (error) {
       expect(error.message).toEqual(
@@ -33,7 +33,7 @@ describe('throwErrorIfNamingConventionsNotFollowed', () => {
       unique: ['name'],
     });
     try {
-      throwErrorIfNamingConventionsNotFollowed({ entity: user });
+      throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix({ entity: user });
       throw new Error('should not reach here');
     } catch (error) {
       expect(error.message).toEqual(
@@ -55,6 +55,6 @@ describe('throwErrorIfNamingConventionsNotFollowed', () => {
       },
       unique: ['name'],
     });
-    throwErrorIfNamingConventionsNotFollowed({ entity: user });
+    throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix({ entity: user });
   });
 });
