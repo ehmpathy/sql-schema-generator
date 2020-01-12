@@ -1,12 +1,17 @@
-import { prop } from '../../../contract/module';
-import { Entity, ValueObject } from '../../../types';
+import { prop } from '../../../../contract/module';
+import { Entity, ValueObject } from '../../../../types';
 import { normalizeDeclarationContents } from './normalizeDeclarationContents';
+import { throwErrorIfAnyUniqueIsNotInProperties } from './throwErrorIfAnyUniqueIsNotInProperties';
 import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
 
 jest.mock('./throwErrorIfNamingConventionsNotFollowed');
 const throwErrorIfNamingConventionsNotFollowedMock = throwErrorIfNamingConventionsNotFollowed as jest.Mock;
 
+jest.mock('./throwErrorIfAnyUniqueIsNotInProperties');
+const throwErrorIfAnyUniqueIsNotInPropertiesMock = throwErrorIfAnyUniqueIsNotInProperties;
+
 describe('normalizeDeclarationContents', () => {
+  beforeEach(() => jest.clearAllMocks());
   it('should throw an error if an entities object is not exported from the source file', () => {
     const contents = { ontities: [] };
     try {
@@ -31,6 +36,13 @@ describe('normalizeDeclarationContents', () => {
     normalizeDeclarationContents({ contents });
     expect(throwErrorIfNamingConventionsNotFollowedMock).toHaveBeenCalledTimes(1);
     expect(throwErrorIfNamingConventionsNotFollowedMock).toHaveBeenCalledWith({ entity: exampleEntity });
+  });
+  it('should throw an error if any keys the entity is unique on are not defined in its properties', () => {
+    const exampleEntity = new Entity({ name: 'burrito', properties: { lbs: prop.INT() }, unique: ['lbs'] });
+    const contents = { entities: [exampleEntity] };
+    normalizeDeclarationContents({ contents });
+    expect(throwErrorIfAnyUniqueIsNotInPropertiesMock).toHaveBeenCalledTimes(1);
+    expect(throwErrorIfAnyUniqueIsNotInPropertiesMock).toHaveBeenCalledWith({ entity: exampleEntity });
   });
   it('should return the entities and value objects found in the contents', () => {
     const contents = {

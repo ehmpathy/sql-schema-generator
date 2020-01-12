@@ -1,5 +1,5 @@
-import { prop } from '../../../contract/module';
-import { Entity, ValueObject } from '../../../types';
+import { prop } from '../../../../contract/module';
+import { Entity, ValueObject } from '../../../../types';
 import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
 
 describe('throwErrorIfNamingConventionsNotFollowed', () => {
@@ -17,7 +17,9 @@ describe('throwErrorIfNamingConventionsNotFollowed', () => {
       throwErrorIfNamingConventionsNotFollowed({ entity: user });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual("property 'avatar' must end with '_id' since it references another entity.");
+      expect(error.message).toEqual(
+        "property 'avatar' of entity 'user' must end with '_id' since it references another entity.",
+      );
     }
   });
   it('should throw an error if an array property references another but does not have correct name', () => {
@@ -34,7 +36,9 @@ describe('throwErrorIfNamingConventionsNotFollowed', () => {
       throwErrorIfNamingConventionsNotFollowed({ entity: user });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual("property 'pics' must end with '_ids' since it references other entities.");
+      expect(error.message).toEqual(
+        "property 'pics' of entity 'user' must end with '_ids' since it references other entities.",
+      );
     }
   });
   it('should not throw an error for an entity with correctly named reference properties', () => {

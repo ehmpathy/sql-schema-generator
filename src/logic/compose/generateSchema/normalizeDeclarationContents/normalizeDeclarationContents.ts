@@ -1,4 +1,5 @@
-import { Entity } from '../../../types';
+import { Entity } from '../../../../types';
+import { throwErrorIfAnyUniqueIsNotInProperties } from './throwErrorIfAnyUniqueIsNotInProperties';
 import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
 
 export const normalizeDeclarationContents = ({ contents }: { contents: any }) => {
@@ -16,6 +17,12 @@ export const normalizeDeclarationContents = ({ contents }: { contents: any }) =>
     throwErrorIfNamingConventionsNotFollowed({ entity });
   });
 
-  // 4. return the entities now that we've validate them
+  // 4. check that each property named in "unique" is actually a property of the entity
+  entities.forEach((entity: any) => {
+    throwErrorIfAnyUniqueIsNotInProperties({ entity });
+  });
+  // ------ TODO ----------
+
+  // 5. return the entities now that we've validate them
   return { entities };
 };
