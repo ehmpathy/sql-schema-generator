@@ -18,7 +18,12 @@ export const castPropertyToSelector = ({
     const entityReferenceSelector = `${mappingTableKeys.tableName}.${mappingTableKeys.entityReferenceColumnName}`;
     const entityReferenceId = `${entityReferenceTableNameAlias}.id`;
     const mappingTableName = mappingTableKeys.tableName;
-    return `(SELECT GROUP_CONCAT(${arrayValueSelector}) FROM ${mappingTableName} WHERE ${entityReferenceSelector} = ${entityReferenceId}) as ${name}`;
+    return `
+(
+  SELECT GROUP_CONCAT(${arrayValueSelector} ORDER BY ${arrayValueSelector})
+  FROM ${mappingTableName} WHERE ${entityReferenceSelector} = ${entityReferenceId}
+) as ${name}
+    `.trim();
   }
 
   // otherwise, if its an updatable property, its on the version table

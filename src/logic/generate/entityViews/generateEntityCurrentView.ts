@@ -1,3 +1,5 @@
+import indentString from 'indent-string';
+
 import { Entity } from '../../../types';
 import { castPropertyToSelector } from './utils/castPropertyToSelector';
 
@@ -63,7 +65,7 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
   const definition = `
 CREATE VIEW \`${viewName}\` AS
   SELECT
-    ${columns.join(',\n    ')}
+    ${indentString(columns.join(',\n'), 4).trim()}
   FROM ${entity.name} s
   ${joins.join('\n  ')};
   `.trim();
