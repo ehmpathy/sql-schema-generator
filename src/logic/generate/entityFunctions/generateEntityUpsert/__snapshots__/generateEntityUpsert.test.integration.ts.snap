@@ -1,41 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`generateEntityUpsert entity unique on uuid should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
-"CREATE FUNCTION \`upsert_plant_order\`(
-  in_uuid char(36),
-  in_customer_id bigint(20),
-  in_plant_name varchar(255),
-  in_quantity int(11)
-) RETURNS bigint(20)
-BEGIN
-  -- declarations
-  DECLARE v_static_id BIGINT;
-
-  -- find or create the static entity
-  SET v_static_id = (
-    SELECT id
-    FROM plant_order
-    WHERE 1=1
-      AND (uuid = BINARY in_uuid)
-  );
-  IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
-    INSERT INTO plant_order
-      (uuid, customer_id, plant_name, quantity)
-      VALUES
-      (in_uuid, in_customer_id, in_plant_name, in_quantity);
-    SET v_static_id = (
-      SELECT id
-      FROM plant_order
-      WHERE 1=1
-        AND (uuid = BINARY in_uuid)
-    );
-  END IF;
-
-  -- return the static entity id
-  return v_static_id;
-END"
-`;
-
 exports[`generateEntityUpsert entity with array properties should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
 "CREATE FUNCTION \`upsert_movie\`(
   in_name varchar(255),
@@ -177,6 +141,104 @@ BEGIN
 END"
 `;
 
+exports[`generateEntityUpsert fully versioned entity unique on uuid should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
+"CREATE FUNCTION \`upsert_webstore\`(
+  in_uuid char(36),
+  in_name varchar(255),
+  in_phone_number varchar(11),
+  in_email varchar(255),
+  in_logo_url varchar(255)
+) RETURNS bigint(20)
+BEGIN
+  -- declarations
+  DECLARE v_static_id BIGINT;
+  DECLARE v_matching_version_id BIGINT;
+  DECLARE v_current_version_id BIGINT;
+  DECLARE v_current_version_id_recorded_in_pointer_table BIGINT;
+
+  -- find or create the static entity
+  SET v_static_id = (
+    SELECT id
+    FROM webstore
+    WHERE 1=1
+      AND (uuid = BINARY in_uuid)
+  );
+  IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
+    INSERT INTO webstore
+      (uuid)
+      VALUES
+      (in_uuid);
+    SET v_static_id = (
+      SELECT id
+      FROM webstore
+      WHERE 1=1
+        AND (uuid = BINARY in_uuid)
+    );
+  END IF;
+
+  -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
+  SET v_matching_version_id = ( -- see if latest version already has this data 
+    SELECT id
+    FROM webstore_version
+    WHERE 1=1
+      AND webstore_id = v_static_id -- for this entity
+      AND effective_at = ( -- and is the currently effective version
+        SELECT MAX(effective_at)
+        FROM webstore_version ssv
+        WHERE ssv.webstore_id = v_static_id
+      )
+      AND (name = BINARY in_name)
+      AND (phone_number = BINARY in_phone_number)
+      AND (email = BINARY in_email)
+      AND (logo_url = BINARY in_logo_url)
+  );
+  IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
+    INSERT INTO webstore_version
+      (webstore_id, name, phone_number, email, logo_url)
+      VALUES
+      (v_static_id, in_name, in_phone_number, in_email, in_logo_url);
+    
+  END IF;
+
+  -- update the current version pointer table, if it is not already up to date
+  SET v_current_version_id = ( -- get the current version id
+    SELECT id
+    FROM webstore_version
+    WHERE 1=1
+      AND webstore_id = v_static_id -- for this entity
+      AND effective_at = ( -- and is the currently effective version
+        SELECT MAX(effective_at)
+        FROM webstore_version ssv
+        WHERE ssv.webstore_id = v_static_id
+      )
+  );
+  SET v_current_version_id_recorded_in_pointer_table = ( -- get the version recorded as current for the entity, if any
+    SELECT webstore_version_id
+    FROM webstore_cvp
+    WHERE 1=1
+      AND webstore_id = v_static_id -- for this entity
+  );
+  IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
+    INSERT INTO webstore_cvp
+      (webstore_id, webstore_version_id)
+      VALUES
+      (v_static_id, v_current_version_id);
+    SET v_current_version_id_recorded_in_pointer_table = v_current_version_id; -- and record that the current version recorded is now the real current version
+  END IF;
+  IF (v_current_version_id_recorded_in_pointer_table <> v_current_version_id) THEN -- if they are not exactly equal, update the current version recorded in the pointer tabe
+    UPDATE webstore_cvp
+    SET
+      webstore_version_id = v_current_version_id,
+      updated_at = CURRENT_TIMESTAMP(6)
+    WHERE
+    webstore_id = v_static_id;
+  END IF;
+
+  -- return the static entity id
+  return v_static_id;
+END"
+`;
+
 exports[`generateEntityUpsert static entity should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
 "CREATE FUNCTION \`upsert_address_2\`(
   in_street varchar(255),
@@ -212,6 +274,42 @@ BEGIN
         AND (suite = BINARY in_suite OR (suite IS null AND in_suite IS null))
         AND (city = BINARY in_city)
         AND (country = BINARY in_country)
+    );
+  END IF;
+
+  -- return the static entity id
+  return v_static_id;
+END"
+`;
+
+exports[`generateEntityUpsert static entity unique on uuid should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
+"CREATE FUNCTION \`upsert_plant_order\`(
+  in_uuid char(36),
+  in_customer_id bigint(20),
+  in_plant_name varchar(255),
+  in_quantity int(11)
+) RETURNS bigint(20)
+BEGIN
+  -- declarations
+  DECLARE v_static_id BIGINT;
+
+  -- find or create the static entity
+  SET v_static_id = (
+    SELECT id
+    FROM plant_order
+    WHERE 1=1
+      AND (uuid = BINARY in_uuid)
+  );
+  IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
+    INSERT INTO plant_order
+      (uuid, customer_id, plant_name, quantity)
+      VALUES
+      (in_uuid, in_customer_id, in_plant_name, in_quantity);
+    SET v_static_id = (
+      SELECT id
+      FROM plant_order
+      WHERE 1=1
+        AND (uuid = BINARY in_uuid)
     );
   END IF;
 

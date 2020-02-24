@@ -163,97 +163,6 @@ describe('generateEntityUpsert', () => {
     });
   });
 
-  describe('entity unique on uuid', () => {
-    const plantOrder = new Entity({
-      name: 'plant_order',
-      properties: {
-        customer_id: prop.BIGINT(), // really should be a reference - but for simplicity lets leave it as a bigint
-        plant_name: prop.VARCHAR(255),
-        quantity: prop.INT(),
-      },
-      unique: ['uuid'],
-    });
-    beforeAll(async () => {
-      // provision the table
-      await dropTablesForEntity({ entity: plantOrder, dbConnection });
-      await createTablesForEntity({ entity: plantOrder, dbConnection });
-
-      // provision the upsert
-      await dropAndCreateUpsertFunctionForEntity({ entity: plantOrder, dbConnection });
-    });
-    const upsertPlantOrder = async ({
-      uuid,
-      customer_id,
-      plant_name,
-      quantity,
-    }: {
-      uuid: string;
-      customer_id: number;
-      plant_name: string;
-      quantity: number;
-    }) => {
-      const result = (await dbConnection.query(
-        prepare(`
-        SELECT upsert_${plantOrder.name}(
-          :uuid,
-          :customer_id,
-          :plant_name,
-          :quantity
-        ) as id;
-      `)({
-          uuid,
-          customer_id,
-          plant_name,
-          quantity,
-        }),
-      )) as any;
-      return result[0][0].id;
-    };
-    const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
-        prepare(`
-        select * from ${plantOrder.name} where id = :id
-      `)({ id }),
-      )) as any;
-      return result[0][0];
-    };
-    it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
-      const { sql, name } = generateEntityUpsert({ entity: plantOrder });
-      const result = (await dbConnection.query({
-        sql: `SHOW CREATE FUNCTION ${name}`,
-      })) as any;
-      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
-      expect(sql).toEqual(showCreateSql);
-
-      // show an example of the upsert function
-      expect(sql).toMatchSnapshot();
-    });
-    it('should create the entity accurately', async () => {
-      const props = {
-        uuid: uuid(),
-        customer_id: 821,
-        plant_name: 'Monstera deliciosa',
-        quantity: 1,
-      };
-      const id = await upsertPlantOrder(props);
-      const entity = await getEntityStatic({ id });
-      expect(entity.uuid.length).toEqual(36); // uuid was generated
-      expect(entity).toMatchObject(props);
-    });
-    it('should not create a second entity, if unique properties are the same', async () => {
-      // idempotency
-      const props = {
-        uuid: uuid(),
-        customer_id: 821,
-        plant_name: 'Monstera deliciosa',
-        quantity: 1,
-      };
-      const id = await upsertPlantOrder(props);
-      const idAgain = await upsertPlantOrder(props);
-      expect(id).toEqual(idAgain);
-    });
-  });
-
   describe('versioned entity', () => {
     const user = new Entity({
       name: 'alternative_user',
@@ -702,6 +611,218 @@ describe('generateEntityUpsert', () => {
       languageIds.forEach((languageId) => {
         expect(languageMappings.map((mapping: any) => mapping.language_id)).toContainEqual(languageId);
       });
+    });
+  });
+
+  describe('static entity unique on uuid', () => {
+    const plantOrder = new Entity({
+      name: 'plant_order',
+      properties: {
+        customer_id: prop.BIGINT(), // really should be a reference - but for simplicity lets leave it as a bigint
+        plant_name: prop.VARCHAR(255),
+        quantity: prop.INT(),
+      },
+      unique: ['uuid'],
+    });
+    beforeAll(async () => {
+      // provision the table
+      await dropTablesForEntity({ entity: plantOrder, dbConnection });
+      await createTablesForEntity({ entity: plantOrder, dbConnection });
+
+      // provision the upsert
+      await dropAndCreateUpsertFunctionForEntity({ entity: plantOrder, dbConnection });
+    });
+    const upsertPlantOrder = async ({
+      uuid,
+      customer_id,
+      plant_name,
+      quantity,
+    }: {
+      uuid: string;
+      customer_id: number;
+      plant_name: string;
+      quantity: number;
+    }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        SELECT upsert_${plantOrder.name}(
+          :uuid,
+          :customer_id,
+          :plant_name,
+          :quantity
+        ) as id;
+      `)({
+          uuid,
+          customer_id,
+          plant_name,
+          quantity,
+        }),
+      )) as any;
+      return result[0][0].id;
+    };
+    const getEntityStatic = async ({ id }: { id: number }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        select * from ${plantOrder.name} where id = :id
+      `)({ id }),
+      )) as any;
+      return result[0][0];
+    };
+    it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
+      const { sql, name } = generateEntityUpsert({ entity: plantOrder });
+      const result = (await dbConnection.query({
+        sql: `SHOW CREATE FUNCTION ${name}`,
+      })) as any;
+      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      expect(sql).toEqual(showCreateSql);
+
+      // show an example of the upsert function
+      expect(sql).toMatchSnapshot();
+    });
+    it('should create the entity accurately', async () => {
+      const props = {
+        uuid: uuid(),
+        customer_id: 821,
+        plant_name: 'Monstera deliciosa',
+        quantity: 1,
+      };
+      const id = await upsertPlantOrder(props);
+      const entity = await getEntityStatic({ id });
+      expect(entity.uuid.length).toEqual(36); // uuid was generated
+      expect(entity).toMatchObject(props);
+    });
+    it('should not create a second entity, if unique properties are the same', async () => {
+      // idempotency
+      const props = {
+        uuid: uuid(),
+        customer_id: 821,
+        plant_name: 'Monstera deliciosa',
+        quantity: 1,
+      };
+      const id = await upsertPlantOrder(props);
+      const idAgain = await upsertPlantOrder(props);
+      expect(id).toEqual(idAgain);
+    });
+  });
+
+  describe('fully versioned entity unique on uuid', () => {
+    const webstore = new Entity({
+      name: 'webstore',
+      properties: {
+        name: { ...prop.VARCHAR(255), updatable: true },
+        phone_number: { ...prop.CHAR(11), updatable: true },
+        email: { ...prop.VARCHAR(255), updatable: true },
+        logo_url: { ...prop.VARCHAR(255), updatable: true },
+      },
+      unique: ['uuid'],
+    });
+    beforeAll(async () => {
+      // provision the table
+      await dropTablesForEntity({ entity: webstore, dbConnection });
+      await createTablesForEntity({ entity: webstore, dbConnection });
+
+      // provision the upsert
+      await dropAndCreateUpsertFunctionForEntity({ entity: webstore, dbConnection });
+    });
+    const upsertWebstore = async ({
+      uuid,
+      name,
+      phone_number,
+      email,
+      logo_url,
+    }: {
+      uuid: string;
+      name: string;
+      phone_number: string;
+      email: string;
+      logo_url: string;
+    }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        SELECT upsert_${webstore.name}(
+          :uuid,
+          :name,
+          :phone_number,
+          :email,
+          :logo_url
+        ) as id;
+      `)({
+          uuid,
+          name,
+          phone_number,
+          email,
+          logo_url,
+        }),
+      )) as any;
+      return result[0][0].id;
+    };
+    const getEntityStatic = async ({ id }: { id: number }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        select * from ${webstore.name} where id = :id
+      `)({ id }),
+      )) as any;
+      return result[0][0];
+    };
+    const getEntityVersions = async ({ id }: { id: number }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        select * from ${webstore.name}_version where ${webstore.name}_id = :id
+      `)({ id }),
+      )) as any;
+      return result[0];
+    };
+    it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
+      const { sql, name } = generateEntityUpsert({ entity: webstore });
+      const result = (await dbConnection.query({
+        sql: `SHOW CREATE FUNCTION ${name}`,
+      })) as any;
+      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      expect(sql).toEqual(showCreateSql);
+
+      // show an example of the upsert function
+      expect(sql).toMatchSnapshot();
+    });
+    it('should create the entity accurately', async () => {
+      const props = {
+        uuid: uuid(),
+        name: "Donnie's Donuts",
+        phone_number: '15125551234',
+        email: 'hello@donniesdonuts.com',
+        logo_url: 'https://...',
+      };
+      const id = await upsertWebstore(props);
+
+      // check that the static part was accurate
+      const entityStatic = await getEntityStatic({ id });
+      expect(entityStatic.uuid).toEqual(props.uuid); // inserted uuid was used
+
+      // check that the versioned part is accurate
+      const versions = await getEntityVersions({ id });
+      expect(versions.length).toEqual(1);
+      expect(versions[0].name).toEqual(props.name);
+      expect(versions[0].phone_number).toEqual(props.phone_number);
+      expect(versions[0].email).toEqual(props.email);
+      expect(versions[0].logo_url).toEqual(props.logo_url);
+    });
+    it('should update the entity if the updateable data changed', async () => {
+      const props = {
+        uuid: uuid(),
+        name: "Donnie's Donuts",
+        phone_number: '15125551234',
+        email: 'hello@donniesdonuts.com',
+        logo_url: 'https://...',
+      };
+      const id = await upsertWebstore(props);
+      const idAgain = await upsertWebstore({ ...props, name: "Donnie's Donuts and More" }); // Donnie had feature creep
+      expect(id).toEqual(idAgain);
+
+      // expect two versions
+      const versions = await getEntityVersions({ id });
+      expect(versions.length).toEqual(2);
+
+      // expect newest version to have updated name
+      expect(versions[1].name).toEqual("Donnie's Donuts and More");
     });
   });
 });
