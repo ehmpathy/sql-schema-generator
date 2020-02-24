@@ -267,12 +267,18 @@ export const DATETIME = (precision: number) =>
 
 /**
  * REFERENCES creates a column which has a Foreign Key constraint to the `entity`.
+ *
+ * NOTE: if you have a recursive relationship, you can avoid circular dependency errors by doing the following:
+ * - to avoid `Variable '...' is used before being assigned.`, use a function to reference the variable. E.g., `prop.REFERENCES(user)` => `prop.REFERENCES(() => user)`
+ * - to avoid `'...' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.`, the typescript maintainers recommend manually defining the type of what you are creating (https://github.com/microsoft/TypeScript/issues/26623#issuecomment-415832255). E.g., `const user = new Entity({ ... })` => `const user: Entity = new Entity({ ... })`
  */
-export const REFERENCES = (entity: Entity) =>
-  new Property({
+export const REFERENCES = (entityOrGetEntity: Entity | (() => Entity)) => {
+  const entity = entityOrGetEntity instanceof Entity ? entityOrGetEntity : entityOrGetEntity();
+  return new Property({
     ...BIGINT(), // pk type is always a bigint
     references: entity.name, // name of entity
   });
+};
 
 /**
  * ARRAY_OF is an alias which sets the array flag to true on a property.

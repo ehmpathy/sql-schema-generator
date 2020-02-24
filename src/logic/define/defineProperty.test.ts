@@ -82,5 +82,16 @@ describe('generateProperty', () => {
       });
       expect(like.constructor).toEqual(Entity);
     });
+    it('should be possible to declare an entity with a recursive / hierarchial relationship', () => {
+      const person: Entity = new Entity({
+        name: 'person',
+        properties: {
+          birthday: prop.DATETIME(6),
+          mother_id: prop.REFERENCES(() => person),
+          father_id: prop.REFERENCES(() => person),
+        },
+        unique: ['birthday', 'mother_id', 'father_id'],
+      });
+    });
   });
 });
