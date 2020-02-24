@@ -15,7 +15,7 @@ export const generateSchema = async ({ configPath, targetDirPath }: { configPath
   const { entities } = await normalizeDeclarationContents({ contents });
 
   // 2. for each entity: generate and record resources
-  console.log(chalk.bold('Generating tables, upsert, and views...'));
+  console.log(chalk.bold('Generating tables, upsert, and views...')); // tslint:disable-line no-console
   const tasks = entities.map(
     (entity): Listr.ListrTask => ({
       title: `${chalk.bold(entity.name)}`,
@@ -24,6 +24,6 @@ export const generateSchema = async ({ configPath, targetDirPath }: { configPath
   );
   const taskSuite = new Listr(tasks);
   await taskSuite.run().catch((err) => {
-    console.error(err.message);
+    console.error(err.message); // tslint:disable-line no-console
   });
 };

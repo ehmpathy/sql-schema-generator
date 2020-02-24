@@ -68,7 +68,7 @@ describe('generateTableConstraint', () => {
       generateTable({ tableName: 'message', properties: { status: statusProperty }, unique: [] });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual('must have atleast one unique property; otherwise, idempotency is not guarenteed');
+      expect(error.message).toEqual('must have atleast one unique property; otherwise, idempotency is not guaranteed');
     }
   });
 });

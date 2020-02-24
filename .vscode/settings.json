@@ -3,6 +3,7 @@
     "LONGTEXT",
     "MEDIUMINT",
     "MEDIUMTEXT",
+    "Monstera",
     "SMALLINT",
     "TINYINT",
     "TINYTEXT"

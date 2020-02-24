@@ -103,8 +103,18 @@ Consequently, by utilizing the schema generator:
     },
     unique: ['name', 'owner_id'],
   });
+  const listing = new Entity({
+    name: 'listing',
+    properties: {
+      agent_id: prop.REFERENCES(user),
+      home_id: prop.REFERENCES(home),
+      description: { ...prop.TEXT(), updatable: true },
+      price: { ...prop.DECIMAL(10, 2), updatable: true },
+    },
+    unique: [], // because the same agent can list the same home more than once, there is nothing unique about a listing
+  })
 
-  export const entities = [photo, user, home];
+  export const entities = [photo, user, home, listing];
   ```
 
 3. Run the generate command

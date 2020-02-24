@@ -1,5 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`generateEntityUpsert entity unique on uuid should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
+"CREATE FUNCTION \`upsert_plant_order\`(
+  in_uuid char(36),
+  in_customer_id bigint(20),
+  in_plant_name varchar(255),
+  in_quantity int(11)
+) RETURNS bigint(20)
+BEGIN
+  -- declarations
+  DECLARE v_static_id BIGINT;
+
+  -- find or create the static entity
+  SET v_static_id = (
+    SELECT id
+    FROM plant_order
+    WHERE 1=1
+      
+  );
+  IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
+    INSERT INTO plant_order
+      (uuid, customer_id, plant_name, quantity)
+      VALUES
+      (in_uuid, in_customer_id, in_plant_name, in_quantity);
+    SET v_static_id = (
+      SELECT id
+      FROM plant_order
+      WHERE 1=1
+        
+    );
+  END IF;
+
+  -- return the static entity id
+  return v_static_id;
+END"
+`;
+
 exports[`generateEntityUpsert entity with array properties should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
 "CREATE FUNCTION \`upsert_movie\`(
   in_name varchar(255),

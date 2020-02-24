@@ -1,9 +1,9 @@
 import { Entity } from '../../../../types';
 import { defineDeclarations } from './defineDeclarations';
 import { defineFindOrCreateStaticEntityLogic } from './defineFindOrCreateStaticEntityLogic';
+import { defineInputDefinitions } from './defineInputDefinitions';
 import { defineInsertVersionIfDynamicDataChangedLogic } from './defineInsertVersionIfDynamicDataChangedLogic';
 import { defineUpsertCurrentVersionPointerIfNeededLogic } from './defineUpsertCurrentVersionPointerIfNeededLogic';
-import { castPropertyToFunctionInputDefinition } from './utils/castPropertyToFunctionInputDefinition';
 
 /*
 1. define procedure / function (try function if possible)
@@ -88,9 +88,7 @@ import { castPropertyToFunctionInputDefinition } from './utils/castPropertyToFun
 
 export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
   // define the input definitions
-  const inputDefinitions = Object.entries(entity.properties).map((entry) =>
-    castPropertyToFunctionInputDefinition({ name: entry[0], definition: entry[1] }),
-  );
+  const inputDefinitions = defineInputDefinitions({ entity });
 
   // define the declarations
   const declarations = defineDeclarations({ entity });

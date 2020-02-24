@@ -13,7 +13,7 @@ export const generateTable = ({
 }) => {
   // 0. validate input
   if (unique.length === 0) {
-    throw new Error('must have atleast one unique property; otherwise, idempotency is not guarenteed');
+    throw new Error('must have atleast one unique property; otherwise, idempotency is not guaranteed');
   }
 
   // 1. define sql per column
@@ -33,7 +33,7 @@ export const generateTable = ({
   const contents = [
     ...columnSqls, // all of the columns (one per property)
     'PRIMARY KEY (`id`)', // primary key definition
-    `UNIQUE KEY \`${tableName}_ux1\` (${uniqueColumnArray})`, // unique key defintion; required since it is required for idempotency
+    `UNIQUE KEY \`${tableName}_ux1\` (${uniqueColumnArray})`, // unique key definition; required since it is required for idempotency
     ...foreignKeyKeySqls, // indexes defined for FKs
     ...foreignKeyConstraintSqls, // constraints defined for FKs
   ];

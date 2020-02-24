@@ -38,6 +38,24 @@ describe('generateEntityTables', () => {
     const createStaticSql = await getShowCreateNow({ tableName: tables.static.name });
     expect(createStaticSql).toEqual(tables.static.sql); // should be the exact string
   });
+  it('generates tables for a static entity that is unique on uuid, w/ same syntax as SHOW CREATE', async () => {
+    const order = new Entity({
+      name: 'purchase_order',
+      properties: {
+        value: prop.DECIMAL(5, 2),
+        customer_id: prop.BIGINT(), // should be references, but to make it simple
+      },
+      unique: ['uuid'], // unique on uuid because same order can be placed many different times, so uuid is the only unique attribute
+    });
+    const tables = await generateEntityTables({ entity: order });
+    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
+    await dbConnection.query({ sql: tables.static.sql });
+    expect(tables.version).toEqual(undefined);
+
+    // check syntax is the same as that returned by SHOW CREATE TABLE
+    const createStaticSql = await getShowCreateNow({ tableName: tables.static.name });
+    expect(createStaticSql).toEqual(tables.static.sql); // should be the exact string
+  });
   it('generates tables for a versioned entity, w/ same syntax as SHOW CREATE', async () => {
     const user = new Entity({
       name: 'user',

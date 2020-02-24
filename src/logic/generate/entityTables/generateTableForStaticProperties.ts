@@ -25,7 +25,7 @@ export const generateTableForStaticProperties = ({
   });
 
   // 1. add metadata properties
-  const staticProps = {
+  const staticProps: Properties = {
     id: prop.BIGINT(),
     uuid: prop.UUID(),
     created_at: new Property({
@@ -39,7 +39,9 @@ export const generateTableForStaticProperties = ({
   // 2. generate the table
   const tableName = entityName;
   const uniqueColumnNames = unique.map((propertyName) =>
-    castPropertyToColumnName({ name: propertyName, definition: properties[propertyName] }),
+    propertyName === 'uuid'
+      ? 'uuid' // uuid is special case as we can be unique on it without user specifying it explicitly - so, if its uuid, we know its not going to need a name change
+      : castPropertyToColumnName({ name: propertyName, definition: properties[propertyName] }),
   );
   const tableSql = generateTable({ tableName, unique: uniqueColumnNames, properties: staticProps });
 
