@@ -1,5 +1,5 @@
-import { prop } from '../../../../../contract/module';
 import { Property } from '../../../../../types';
+import { prop } from '../../../../define';
 import { extractMysqlTypeDefinitionFromProperty } from '../../../utils/extractMysqlTypeDefinitionFromProperty';
 import { castPropertyToInputVariableName } from './castPropertyToInputVariableName';
 

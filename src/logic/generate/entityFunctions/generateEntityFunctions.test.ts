@@ -1,4 +1,5 @@
-import { Entity, prop, ValueObject } from '../../../contract/module';
+import { Entity, ValueObject } from '../../../types';
+import { prop } from '../../define';
 import { generateEntityFunctions } from './generateEntityFunctions';
 
 describe('generateEntityFunctions', () => {

@@ -1,4 +1,5 @@
-import { prop, Property } from '../../../contract/module';
+import { Property } from '../../../types';
+import { prop } from '../../define';
 import { generateMappingTablesForArrayProperties } from './generateMappingTablesForArrayProperties';
 import { generateTable } from './generateTable';
 

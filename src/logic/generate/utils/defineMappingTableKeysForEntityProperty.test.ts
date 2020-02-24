@@ -1,4 +1,4 @@
-import { prop } from '../../../contract/module';
+import { prop } from '../../define';
 import { defineMappingTableKeysForEntityProperty } from './defineMappingTableKeysForEntityProperty';
 
 describe('defineMappingTableNameForEntityProperty', () => {

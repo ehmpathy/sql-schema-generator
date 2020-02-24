@@ -1,5 +1,5 @@
-import { prop } from '../../../../contract/module';
 import { Entity } from '../../../../types';
+import { prop } from '../../../define';
 import { throwErrorIfAnyUniqueIsNotInProperties } from './throwErrorIfAnyUniqueIsNotInProperties';
 
 describe('throwErrorIfAnyUniqueIsNotInProperties', () => {

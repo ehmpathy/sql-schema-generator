@@ -1,11 +1,11 @@
 import { Entity } from '../../../../types';
+import { prop } from '../../../define';
 import { castPropertyToColumnName } from '../../utils/castPropertyToColumnName';
 import { pickKeysFromObject } from '../../utils/pickKeysFromObject';
 import { defineMappingTableInsertsForArrayProperty } from './defineMappingTableInsertsForArrayProperty';
 import { castPropertyToInputVariableName } from './utils/castPropertyToInputVariableName';
 import { castPropertyToTableColumnValueReference } from './utils/castPropertyToTableColumnValueReference';
 import { castPropertyToWhereClauseConditional } from './utils/castPropertyToWhereClauseConditional';
-import { prop } from '../../../../contract/module';
 
 export const defineFindOrCreateStaticEntityLogic = ({ entity }: { entity: Entity }) => {
   // define whether the entity is unique on uuid alone

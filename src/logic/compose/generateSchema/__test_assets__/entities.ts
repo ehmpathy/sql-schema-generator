@@ -1,4 +1,5 @@
-import { Entity, prop } from '../../../../contract/module'; // import from module, since this is what we expose to users
+import { Entity } from '../../../../types';
+import { prop } from '../../../define'; // import from module, since this is what we expose to users
 
 const chat = new Entity({
   name: 'chat',

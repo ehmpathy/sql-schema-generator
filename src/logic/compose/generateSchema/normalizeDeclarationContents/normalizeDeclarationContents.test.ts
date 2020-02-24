@@ -1,5 +1,5 @@
-import { prop } from '../../../../contract/module';
 import { Entity, ValueObject } from '../../../../types';
+import { prop } from '../../../define';
 import { normalizeDeclarationContents } from './normalizeDeclarationContents';
 import { throwErrorIfAnyReservedPropertyNamesAreUsed } from './throwErrorIfAnyReservedPropertyNamesAreUsed';
 import { throwErrorIfAnyUniqueIsNotInProperties } from './throwErrorIfAnyUniqueIsNotInProperties';

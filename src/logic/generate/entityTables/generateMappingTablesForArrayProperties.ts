@@ -1,5 +1,5 @@
-import { prop } from '../../../contract/module';
 import { Property } from '../../../types';
+import { prop } from '../../define';
 import { defineMappingTableKeysForEntityProperty } from '../utils/defineMappingTableKeysForEntityProperty';
 import { generateTable } from './generateTable';
 

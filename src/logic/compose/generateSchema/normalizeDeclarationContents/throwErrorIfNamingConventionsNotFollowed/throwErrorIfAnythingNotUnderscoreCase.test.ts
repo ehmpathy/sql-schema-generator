@@ -1,5 +1,5 @@
-import { prop } from '../../../../../contract/module';
 import { Entity } from '../../../../../types';
+import { prop } from '../../../../define';
 import { throwErrorIfAnythingNotUnderscoreCase } from './throwErrorIfAnythingNotUnderscoreCase';
 
 describe('throwErrorIfAnythingNotUnderscoreCase', () => {

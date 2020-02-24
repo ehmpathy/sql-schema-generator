@@ -1,4 +1,5 @@
-import { prop, ValueObject } from '../../../../../contract/module';
+import { ValueObject } from '../../../../../types';
+import { prop } from '../../../../define';
 import { castPropertyToFunctionInputDefinition } from './castPropertyToFunctionInputDefinition';
 
 describe('castPropertyToFunctionInputDefinition', () => {
