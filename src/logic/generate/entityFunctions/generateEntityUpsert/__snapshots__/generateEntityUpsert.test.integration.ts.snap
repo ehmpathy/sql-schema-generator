@@ -16,7 +16,7 @@ BEGIN
     SELECT id
     FROM plant_order
     WHERE 1=1
-      
+      AND (uuid = BINARY in_uuid)
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO plant_order
@@ -27,7 +27,7 @@ BEGIN
       SELECT id
       FROM plant_order
       WHERE 1=1
-        
+        AND (uuid = BINARY in_uuid)
     );
   END IF;
 
