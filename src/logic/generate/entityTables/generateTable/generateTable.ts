@@ -42,7 +42,7 @@ export const generateTable = ({
   const sql = `
 CREATE TABLE \`${tableName}\` (
   ${contents.join(',\n  ')}
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
   `.trim();
 
   // 3. return the sql

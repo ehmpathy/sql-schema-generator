@@ -24,7 +24,7 @@ export const generateColumn = ({ columnName, property }: { columnName: string; p
 
     extractMysqlTypeDefinitionFromProperty({ property }), // e.g., property => bigint(20)
 
-    textTypes.includes(property.type.name) ? 'COLLATE utf8_bin' : '', // coalate if its a string type; collate to Case Sensitive by default
+    textTypes.includes(property.type.name) ? 'COLLATE utf8mb4_bin' : '', // collate if its a string type
 
     property.nullable ? '' : 'NOT NULL', // if not nullable, then NOT NULL
 

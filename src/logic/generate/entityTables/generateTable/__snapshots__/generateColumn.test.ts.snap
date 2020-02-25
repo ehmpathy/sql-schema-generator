@@ -4,7 +4,7 @@ exports[`generateColumn should be able to specify a comment 1`] = `"\`user_id\` 
 
 exports[`generateColumn should be able to specify a default value 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ NOT NULL DEFAULT CURRENT_TIMESTAMP(6)"`;
 
-exports[`generateColumn should be able to specify a default value while nullable 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ COLLATE utf8_bin DEFAULT CURRENT_TIMESTAMP(6)"`;
+exports[`generateColumn should be able to specify a default value while nullable 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ COLLATE utf8mb4_bin DEFAULT CURRENT_TIMESTAMP(6)"`;
 
 exports[`generateColumn should define column name accurately 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ NOT NULL"`;
 

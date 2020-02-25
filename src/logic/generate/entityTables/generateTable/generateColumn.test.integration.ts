@@ -20,7 +20,7 @@ describe('generateColumn', () => {
       sql: `
       CREATE TABLE generate_table_column_test_table (
         ${columnSql}
-      ) DEFAULT CHARSET=utf8 COLLATE=utf8_bin
+      ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
     `,
     });
   };
