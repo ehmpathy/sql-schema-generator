@@ -46,18 +46,19 @@ export const defineInsertVersionIfDynamicDataChangedLogic = ({ entity }: { entit
     FROM ${entity.name}_version
     WHERE 1=1
       AND ${entity.name}_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the currently effective version
+      AND effective_at = ( -- and is the version effective at the time of "v_effective_at"
         SELECT MAX(effective_at)
         FROM ${entity.name}_version ssv
         WHERE ssv.${entity.name}_id = v_static_id
+          AND effective_at <= v_effective_at
       )
       ${indentString(updateablePropertyWhereClauseConditionals.join('\n'), 6).trim()}
   );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO ${entity.name}_version
-      (${entity.name}_id, ${updatablePropertyColumnNames.join(', ')})
+      (${entity.name}_id, created_at, effective_at, ${updatablePropertyColumnNames.join(', ')})
       VALUES
-      (v_static_id, ${updatablePropertyColumnValueReferences.join(', ')});
+      (v_static_id, v_created_at, v_effective_at, ${updatablePropertyColumnValueReferences.join(', ')});
     SET v_matching_version_id = (
       SELECT last_insert_id()
     );${

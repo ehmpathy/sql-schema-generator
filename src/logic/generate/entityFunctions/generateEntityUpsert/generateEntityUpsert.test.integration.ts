@@ -361,6 +361,26 @@ describe('generateEntityUpsert', () => {
       expect(currentVersionPointers.length).toEqual(1);
       expect(initialVersionPointer.created_at).toEqual(currentVersionPointers[0].created_at); // timestamps should be identical
     });
+
+    it('should have the same exact created_at timestamp on both the static and version rows, on first insert', async () => {
+      const props = {
+        cognito_uuid: uuid(),
+        name: 'hank hill',
+        bio: 'i sell propane and propane accessories',
+      };
+      const id = await upsertUser(props);
+
+      // grab the data
+      const entityStatic = await getEntityStatic({ id });
+      const versions = await getEntityVersions({ id });
+      expect(versions.length).toEqual(1);
+      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      expect(currentVersionPointers.length).toEqual(1);
+
+      // check that all have same timestamp
+      expect(versions[0].created_at).toEqual(entityStatic.created_at);
+      expect(currentVersionPointers[0].updated_at).toEqual(entityStatic.created_at);
+    });
   });
 
   describe('entity with array properties', () => {
@@ -611,6 +631,39 @@ describe('generateEntityUpsert', () => {
       languageIds.forEach((languageId) => {
         expect(languageMappings.map((mapping: any) => mapping.language_id)).toContainEqual(languageId);
       });
+    });
+    it('should have the same exact created_at timestamp on both the static, version, and mapping rows, on first insert', async () => {
+      const producerIds = [await upsertProducer({ name: uuid() }), await upsertProducer({ name: uuid() })];
+      const languageIds = [
+        await upsertLanguage({ name: uuid() }),
+        await upsertLanguage({ name: uuid() }),
+        await upsertLanguage({ name: uuid() }),
+      ];
+      const movieProps = {
+        name: uuid(),
+        producer_ids: producerIds,
+        language_ids: languageIds,
+      };
+
+      // create the movie
+      const id = await upsertMovie(movieProps);
+
+      // grab the data
+      const entityStatic = await getEntityStatic({ id });
+      const versions = await getEntityVersions({ id });
+      expect(versions.length).toEqual(1);
+      const producerMappings = await getProducerMappingTableEntries({ id });
+      expect(producerMappings.length).toEqual(producerIds.length);
+      const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
+      expect(languageMappings.length).toEqual(languageIds.length);
+      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      expect(currentVersionPointers.length).toEqual(1);
+
+      // check that they all have same timestamp
+      expect(versions[0].created_at).toEqual(entityStatic.created_at);
+      producerMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
+      languageMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
+      expect(currentVersionPointers[0].updated_at).toEqual(entityStatic.created_at);
     });
   });
 

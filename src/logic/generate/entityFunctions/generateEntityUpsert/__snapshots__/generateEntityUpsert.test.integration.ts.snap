@@ -9,9 +9,11 @@ exports[`generateEntityUpsert entity with array properties should produce the sa
 BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;
+  DECLARE v_created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6); -- define a common created_at timestamp to use
   DECLARE v_matching_version_id BIGINT;
-  DECLARE v_current_version_id BIGINT;
+  DECLARE v_effective_at DATETIME(6) DEFAULT v_created_at; -- define the effective_at to equal created_at by default (i.e., effective _now_)
   DECLARE v_current_version_id_recorded_in_pointer_table BIGINT;
+  DECLARE v_effective_at_of_current_version_recorded_in_pointer_table DATETIME(6);
   DECLARE v_delimited_string_access_index INT;
   DECLARE v_delimited_string_access_value VARCHAR(255);
   DECLARE v_can_still_find_values_in_delimited_string BOOLEAN;
@@ -26,9 +28,9 @@ BEGIN
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO movie
-      (uuid, name, producer_ids_hash)
+      (uuid, created_at, name, producer_ids_hash)
       VALUES
-      (uuid(), in_name, SHA2(in_producer_ids, 256));
+      (uuid(), v_created_at, in_name, SHA2(in_producer_ids, 256));
     SET v_static_id = (
       SELECT last_insert_id()
     );
@@ -43,9 +45,9 @@ BEGIN
         SET v_can_still_find_values_in_delimited_string = false; -- no value at this index, stop looping
       ELSE
         INSERT INTO movie_to_producer
-          (movie_id, producer_id)
+          (created_at, movie_id, producer_id)
           VALUES
-          (v_static_id, v_delimited_string_access_value);
+          (v_created_at, v_static_id, v_delimited_string_access_value);
       END IF;
     END WHILE;
   END IF;
@@ -56,18 +58,19 @@ BEGIN
     FROM movie_version
     WHERE 1=1
       AND movie_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the currently effective version
+      AND effective_at = ( -- and is the version effective at the time of \\"v_effective_at\\"
         SELECT MAX(effective_at)
         FROM movie_version ssv
         WHERE ssv.movie_id = v_static_id
+          AND effective_at <= v_effective_at
       )
       AND (language_ids_hash = BINARY SHA2(in_language_ids, 256))
   );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO movie_version
-      (movie_id, language_ids_hash)
+      (movie_id, created_at, effective_at, language_ids_hash)
       VALUES
-      (v_static_id, SHA2(in_language_ids, 256));
+      (v_static_id, v_created_at, v_effective_at, SHA2(in_language_ids, 256));
     SET v_matching_version_id = (
       SELECT last_insert_id()
     );
@@ -82,25 +85,14 @@ BEGIN
         SET v_can_still_find_values_in_delimited_string = false; -- no value at this index, stop looping
       ELSE
         INSERT INTO movie_version_to_language
-          (movie_version_id, language_id)
+          (created_at, movie_version_id, language_id)
           VALUES
-          (v_matching_version_id, v_delimited_string_access_value);
+          (v_created_at, v_matching_version_id, v_delimited_string_access_value);
       END IF;
     END WHILE;
   END IF;
 
   -- update the current version pointer table, if it is not already up to date
-  SET v_current_version_id = ( -- get the current version id
-    SELECT id
-    FROM movie_version
-    WHERE 1=1
-      AND movie_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the currently effective version
-        SELECT MAX(effective_at)
-        FROM movie_version ssv
-        WHERE ssv.movie_id = v_static_id
-      )
-  );
   SET v_current_version_id_recorded_in_pointer_table = ( -- get the version recorded as current for the entity, if any
     SELECT movie_version_id
     FROM movie_cvp
@@ -109,18 +101,25 @@ BEGIN
   );
   IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
     INSERT INTO movie_cvp
-      (movie_id, movie_version_id)
+      (updated_at, movie_id, movie_version_id)
       VALUES
-      (v_static_id, v_current_version_id);
-    SET v_current_version_id_recorded_in_pointer_table = v_current_version_id; -- and record that the current version recorded is now the real current version
+      (v_created_at, v_static_id, v_matching_version_id);
+    SET v_current_version_id_recorded_in_pointer_table = v_matching_version_id; -- and record that the current version recorded is now the real current version
   END IF;
-  IF (v_current_version_id_recorded_in_pointer_table <> v_current_version_id) THEN -- if they are not exactly equal, update the current version recorded in the pointer tabe
-    UPDATE movie_cvp
-    SET
-      movie_version_id = v_current_version_id,
-      updated_at = CURRENT_TIMESTAMP(6)
-    WHERE
-    movie_id = v_static_id;
+  IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
+    SET v_effective_at_of_current_version_recorded_in_pointer_table = ( -- grab the effective_at value of the recorded current version
+      SELECT effective_at
+      FROM movie_version
+      WHERE id = v_current_version_id_recorded_in_pointer_table
+    );
+    IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
+      UPDATE movie_cvp
+      SET
+        movie_version_id = v_matching_version_id,
+        updated_at = v_created_at
+      WHERE
+      movie_id = v_static_id;
+    END IF;
   END IF;
 
   -- return the static entity id
@@ -139,9 +138,11 @@ exports[`generateEntityUpsert fully versioned entity unique on uuid should produ
 BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;
+  DECLARE v_created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6); -- define a common created_at timestamp to use
   DECLARE v_matching_version_id BIGINT;
-  DECLARE v_current_version_id BIGINT;
+  DECLARE v_effective_at DATETIME(6) DEFAULT v_created_at; -- define the effective_at to equal created_at by default (i.e., effective _now_)
   DECLARE v_current_version_id_recorded_in_pointer_table BIGINT;
+  DECLARE v_effective_at_of_current_version_recorded_in_pointer_table DATETIME(6);
 
   -- find or create the static entity
   SET v_static_id = (
@@ -152,9 +153,9 @@ BEGIN
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO webstore
-      (uuid)
+      (uuid, created_at)
       VALUES
-      (in_uuid);
+      (in_uuid, v_created_at);
     SET v_static_id = (
       SELECT last_insert_id()
     );
@@ -166,10 +167,11 @@ BEGIN
     FROM webstore_version
     WHERE 1=1
       AND webstore_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the currently effective version
+      AND effective_at = ( -- and is the version effective at the time of \\"v_effective_at\\"
         SELECT MAX(effective_at)
         FROM webstore_version ssv
         WHERE ssv.webstore_id = v_static_id
+          AND effective_at <= v_effective_at
       )
       AND (name = BINARY in_name)
       AND (phone_number = BINARY in_phone_number)
@@ -178,26 +180,15 @@ BEGIN
   );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO webstore_version
-      (webstore_id, name, phone_number, email, logo_url)
+      (webstore_id, created_at, effective_at, name, phone_number, email, logo_url)
       VALUES
-      (v_static_id, in_name, in_phone_number, in_email, in_logo_url);
+      (v_static_id, v_created_at, v_effective_at, in_name, in_phone_number, in_email, in_logo_url);
     SET v_matching_version_id = (
       SELECT last_insert_id()
     );
   END IF;
 
   -- update the current version pointer table, if it is not already up to date
-  SET v_current_version_id = ( -- get the current version id
-    SELECT id
-    FROM webstore_version
-    WHERE 1=1
-      AND webstore_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the currently effective version
-        SELECT MAX(effective_at)
-        FROM webstore_version ssv
-        WHERE ssv.webstore_id = v_static_id
-      )
-  );
   SET v_current_version_id_recorded_in_pointer_table = ( -- get the version recorded as current for the entity, if any
     SELECT webstore_version_id
     FROM webstore_cvp
@@ -206,18 +197,25 @@ BEGIN
   );
   IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
     INSERT INTO webstore_cvp
-      (webstore_id, webstore_version_id)
+      (updated_at, webstore_id, webstore_version_id)
       VALUES
-      (v_static_id, v_current_version_id);
-    SET v_current_version_id_recorded_in_pointer_table = v_current_version_id; -- and record that the current version recorded is now the real current version
+      (v_created_at, v_static_id, v_matching_version_id);
+    SET v_current_version_id_recorded_in_pointer_table = v_matching_version_id; -- and record that the current version recorded is now the real current version
   END IF;
-  IF (v_current_version_id_recorded_in_pointer_table <> v_current_version_id) THEN -- if they are not exactly equal, update the current version recorded in the pointer tabe
-    UPDATE webstore_cvp
-    SET
-      webstore_version_id = v_current_version_id,
-      updated_at = CURRENT_TIMESTAMP(6)
-    WHERE
-    webstore_id = v_static_id;
+  IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
+    SET v_effective_at_of_current_version_recorded_in_pointer_table = ( -- grab the effective_at value of the recorded current version
+      SELECT effective_at
+      FROM webstore_version
+      WHERE id = v_current_version_id_recorded_in_pointer_table
+    );
+    IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
+      UPDATE webstore_cvp
+      SET
+        webstore_version_id = v_matching_version_id,
+        updated_at = v_created_at
+      WHERE
+      webstore_id = v_static_id;
+    END IF;
   END IF;
 
   -- return the static entity id
@@ -236,6 +234,7 @@ exports[`generateEntityUpsert static entity should produce the same syntax as th
 BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;
+  DECLARE v_created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6); -- define a common created_at timestamp to use
 
   -- find or create the static entity
   SET v_static_id = (
@@ -249,9 +248,9 @@ BEGIN
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO address_2
-      (uuid, street, suite, city, country, weekday_found)
+      (uuid, created_at, street, suite, city, country, weekday_found)
       VALUES
-      (uuid(), in_street, in_suite, in_city, in_country, in_weekday_found);
+      (uuid(), v_created_at, in_street, in_suite, in_city, in_country, in_weekday_found);
     SET v_static_id = (
       SELECT last_insert_id()
     );
@@ -272,6 +271,7 @@ exports[`generateEntityUpsert static entity unique on uuid should produce the sa
 BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;
+  DECLARE v_created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6); -- define a common created_at timestamp to use
 
   -- find or create the static entity
   SET v_static_id = (
@@ -282,9 +282,9 @@ BEGIN
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO plant_order
-      (uuid, customer_id, plant_name, quantity)
+      (uuid, created_at, customer_id, plant_name, quantity)
       VALUES
-      (in_uuid, in_customer_id, in_plant_name, in_quantity);
+      (in_uuid, v_created_at, in_customer_id, in_plant_name, in_quantity);
     SET v_static_id = (
       SELECT last_insert_id()
     );
@@ -304,9 +304,11 @@ exports[`generateEntityUpsert versioned entity should produce the same syntax as
 BEGIN
   -- declarations
   DECLARE v_static_id BIGINT;
+  DECLARE v_created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6); -- define a common created_at timestamp to use
   DECLARE v_matching_version_id BIGINT;
-  DECLARE v_current_version_id BIGINT;
+  DECLARE v_effective_at DATETIME(6) DEFAULT v_created_at; -- define the effective_at to equal created_at by default (i.e., effective _now_)
   DECLARE v_current_version_id_recorded_in_pointer_table BIGINT;
+  DECLARE v_effective_at_of_current_version_recorded_in_pointer_table DATETIME(6);
 
   -- find or create the static entity
   SET v_static_id = (
@@ -317,9 +319,9 @@ BEGIN
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO alternative_user
-      (uuid, cognito_uuid)
+      (uuid, created_at, cognito_uuid)
       VALUES
-      (uuid(), in_cognito_uuid);
+      (uuid(), v_created_at, in_cognito_uuid);
     SET v_static_id = (
       SELECT last_insert_id()
     );
@@ -331,36 +333,26 @@ BEGIN
     FROM alternative_user_version
     WHERE 1=1
       AND alternative_user_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the currently effective version
+      AND effective_at = ( -- and is the version effective at the time of \\"v_effective_at\\"
         SELECT MAX(effective_at)
         FROM alternative_user_version ssv
         WHERE ssv.alternative_user_id = v_static_id
+          AND effective_at <= v_effective_at
       )
       AND (name = BINARY in_name)
       AND (bio = BINARY in_bio OR (bio IS null AND in_bio IS null))
   );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO alternative_user_version
-      (alternative_user_id, name, bio)
+      (alternative_user_id, created_at, effective_at, name, bio)
       VALUES
-      (v_static_id, in_name, in_bio);
+      (v_static_id, v_created_at, v_effective_at, in_name, in_bio);
     SET v_matching_version_id = (
       SELECT last_insert_id()
     );
   END IF;
 
   -- update the current version pointer table, if it is not already up to date
-  SET v_current_version_id = ( -- get the current version id
-    SELECT id
-    FROM alternative_user_version
-    WHERE 1=1
-      AND alternative_user_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the currently effective version
-        SELECT MAX(effective_at)
-        FROM alternative_user_version ssv
-        WHERE ssv.alternative_user_id = v_static_id
-      )
-  );
   SET v_current_version_id_recorded_in_pointer_table = ( -- get the version recorded as current for the entity, if any
     SELECT alternative_user_version_id
     FROM alternative_user_cvp
@@ -369,18 +361,25 @@ BEGIN
   );
   IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
     INSERT INTO alternative_user_cvp
-      (alternative_user_id, alternative_user_version_id)
+      (updated_at, alternative_user_id, alternative_user_version_id)
       VALUES
-      (v_static_id, v_current_version_id);
-    SET v_current_version_id_recorded_in_pointer_table = v_current_version_id; -- and record that the current version recorded is now the real current version
+      (v_created_at, v_static_id, v_matching_version_id);
+    SET v_current_version_id_recorded_in_pointer_table = v_matching_version_id; -- and record that the current version recorded is now the real current version
   END IF;
-  IF (v_current_version_id_recorded_in_pointer_table <> v_current_version_id) THEN -- if they are not exactly equal, update the current version recorded in the pointer tabe
-    UPDATE alternative_user_cvp
-    SET
-      alternative_user_version_id = v_current_version_id,
-      updated_at = CURRENT_TIMESTAMP(6)
-    WHERE
-    alternative_user_id = v_static_id;
+  IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
+    SET v_effective_at_of_current_version_recorded_in_pointer_table = ( -- grab the effective_at value of the recorded current version
+      SELECT effective_at
+      FROM alternative_user_version
+      WHERE id = v_current_version_id_recorded_in_pointer_table
+    );
+    IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
+      UPDATE alternative_user_cvp
+      SET
+        alternative_user_version_id = v_matching_version_id,
+        updated_at = v_created_at
+      WHERE
+      alternative_user_id = v_static_id;
+    END IF;
   END IF;
 
   -- return the static entity id

@@ -34,9 +34,9 @@ export const defineMappingTableInsertsForArrayProperty = ({
         SET v_can_still_find_values_in_delimited_string = false; -- no value at this index, stop looping
       ELSE
         INSERT INTO ${mappingTableKeys.tableName}
-          (${mappingTableKeys.entityReferenceColumnName}, ${mappingTableKeys.mappedEntityReferenceColumnName})
+          (created_at, ${mappingTableKeys.entityReferenceColumnName}, ${mappingTableKeys.mappedEntityReferenceColumnName})
           VALUES
-          (${mappingTableEntityReferenceVariable}, v_delimited_string_access_value);
+          (v_created_at, ${mappingTableEntityReferenceVariable}, v_delimited_string_access_value);
       END IF;
     END WHILE;
   `.trim();

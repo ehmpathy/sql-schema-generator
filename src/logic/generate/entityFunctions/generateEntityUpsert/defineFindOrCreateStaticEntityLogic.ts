@@ -61,9 +61,9 @@ export const defineFindOrCreateStaticEntityLogic = ({ entity }: { entity: Entity
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO ${entity.name}
-      (${['uuid', ...staticPropertyColumnNames].join(', ')})
+      (${['uuid', 'created_at', ...staticPropertyColumnNames].join(', ')})
       VALUES
-      (${[uuidValueReference, ...staticPropertyColumnValueReferences].join(', ')});
+      (${[uuidValueReference, 'v_created_at', ...staticPropertyColumnValueReferences].join(', ')});
     SET v_static_id = (
       SELECT last_insert_id()
     );${
