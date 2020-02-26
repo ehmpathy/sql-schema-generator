@@ -878,4 +878,127 @@ describe('generateEntityUpsert', () => {
       expect(versions[1].name).toEqual("Donnie's Donuts and More");
     });
   });
+
+  describe('entity that references another entity by version', () => {
+    const vehicle = new Entity({
+      name: 'tracked_vehicle',
+      properties: {
+        make: prop.VARCHAR(255),
+        model: prop.VARCHAR(255),
+        year: prop.CHAR(4),
+        software_version: { ...prop.VARCHAR(255), updatable: true }, // over the air updates -> updatable
+      },
+      unique: ['make', 'model', 'year'],
+    });
+    const crashReport = new ValueObject({
+      name: 'crash_report',
+      properties: {
+        location_id: prop.BIGINT(), // this should reference a real "location" value object, but for this example lets just leave it as a bigint
+        vehicle_version_id: prop.REFERENCES_VERSION(vehicle), // reference the specific vehicle version, as maybe a software glitch is causing the crashes
+      },
+    });
+    beforeAll(async () => {
+      // provision the tables
+      await dropTablesForEntity({ entity: crashReport, dbConnection });
+      await dropTablesForEntity({ entity: vehicle, dbConnection });
+      await createTablesForEntity({ entity: vehicle, dbConnection });
+      await createTablesForEntity({ entity: crashReport, dbConnection });
+
+      // provision the upserts
+      await provisionGetFromDelimiterSplitStringFunction({ dbConnection });
+      await dropAndCreateUpsertFunctionForEntity({ entity: vehicle, dbConnection });
+      await dropAndCreateUpsertFunctionForEntity({ entity: crashReport, dbConnection });
+    });
+    const upsertVehicle = async ({
+      make,
+      model,
+      year,
+      software_version,
+    }: {
+      make: string;
+      model: string;
+      year: string;
+      software_version: string;
+    }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        SELECT upsert_${vehicle.name}(
+          :make,
+          :model,
+          :year,
+          :software_version
+        ) as id;
+      `)({
+          make,
+          model,
+          year,
+          software_version,
+        }),
+      )) as any;
+      return result[0][0].id as number;
+    };
+    const upsertCrashReport = async ({
+      location_id,
+      vehicle_version_id,
+    }: {
+      location_id: number;
+      vehicle_version_id: number;
+    }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        SELECT upsert_${crashReport.name}(
+          :location_id,
+          :vehicle_version_id
+        ) as id;
+      `)({
+          location_id,
+          vehicle_version_id,
+        }),
+      )) as any;
+      return result[0][0].id as number;
+    };
+    const getEntityStatic = async ({ id }: { id: number }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        select * from ${crashReport.name} where id = :id
+      `)({ id }),
+      )) as any;
+      return result[0][0];
+    };
+    const getVehicleEntityVersions = async ({ id }: { id: number }) => {
+      const result = (await dbConnection.query(
+        prepare(`
+        select * from ${vehicle.name}_version where ${vehicle.name}_id = :id
+      `)({ id }),
+      )) as any;
+      return result[0];
+    };
+    it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
+      const { sql } = generateEntityUpsert({ entity: crashReport });
+      const result = (await dbConnection.query({
+        sql: `SHOW CREATE FUNCTION upsert_${crashReport.name}`,
+      })) as any;
+      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      expect(sql).toEqual(showCreateSql);
+      expect(sql).toMatchSnapshot();
+    });
+    it('should define the values properly', async () => {
+      const vehicleId = await upsertVehicle({
+        make: 'honda',
+        model: 'odyssey',
+        year: '2002',
+        software_version: '0.7.3',
+      });
+      const vehicleVersionId = (await getVehicleEntityVersions({ id: vehicleId }))[0].id;
+      const crashReportProps = {
+        location_id: 721,
+        vehicle_version_id: vehicleVersionId,
+      };
+      const id = await upsertCrashReport(crashReportProps);
+
+      // check that it succeeded accurately
+      const entityStatic = await getEntityStatic({ id });
+      expect(entityStatic.vehicle_version_id).toEqual(crashReportProps.vehicle_version_id);
+    });
+  });
 });

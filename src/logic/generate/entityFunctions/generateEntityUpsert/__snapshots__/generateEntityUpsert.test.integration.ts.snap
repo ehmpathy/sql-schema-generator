@@ -1,5 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`generateEntityUpsert entity that references another entity by version should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
+"CREATE FUNCTION \`upsert_crash_report\`(
+  in_location_id bigint(20),
+  in_vehicle_version_id bigint(20)
+) RETURNS bigint(20)
+BEGIN
+  -- declarations
+  DECLARE v_static_id BIGINT;
+  DECLARE v_created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6); -- define a common created_at timestamp to use
+
+  -- find or create the static entity
+  SET v_static_id = (
+    SELECT id
+    FROM crash_report
+    WHERE 1=1
+      AND (location_id = BINARY in_location_id)
+      AND (vehicle_version_id = BINARY in_vehicle_version_id)
+  );
+  IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
+    INSERT INTO crash_report
+      (uuid, created_at, location_id, vehicle_version_id)
+      VALUES
+      (uuid(), v_created_at, in_location_id, in_vehicle_version_id);
+    SET v_static_id = (
+      SELECT last_insert_id()
+    );
+  END IF;
+
+  -- return the static entity id
+  return v_static_id;
+END"
+`;
+
 exports[`generateEntityUpsert entity with array properties should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
 "CREATE FUNCTION \`upsert_movie\`(
   in_name varchar(255),

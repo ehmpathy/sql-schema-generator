@@ -21,7 +21,7 @@ export const generateTable = ({
     generateColumn({ columnName: entry[0], property: entry[1] }),
   );
   const foreignKeySqls = Object.entries(properties)
-    .filter((entity) => !!entity[1].references)
+    .filter((entry) => !!entry[1].references)
     .map((entry, index) =>
       generateConstraintForeignKey({ index, columnName: entry[0], tableName, property: entry[1] }),
     );

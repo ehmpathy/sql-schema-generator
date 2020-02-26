@@ -89,6 +89,50 @@ describe('generateEntityTables', () => {
     const createCurrentVersionPointerSql = await getShowCreateNow({ tableName: tables.currentVersionPointer!.name });
     expect(createCurrentVersionPointerSql).toEqual(tables.currentVersionPointer!.sql); // should be the exact string
   });
+  it('generates tables for an entity that references other entities - including by version', async () => {
+    const wikiUser = new Entity({
+      name: 'wiki_user',
+      properties: {
+        name: prop.VARCHAR(255),
+        phone_number: prop.VARCHAR(255),
+      },
+      unique: ['phone_number'], // for this example, lets assume users cant change phone numbers
+    });
+    const wikiPage = new Entity({
+      name: 'wiki_page',
+      properties: {
+        title: { ...prop.VARCHAR(255), updatable: true },
+        content: { ...prop.TEXT(), updatable: true },
+      },
+      unique: ['uuid'], // unique on uuid as everything is updatable, so no natural keys
+    });
+    const wikiEdit = new Entity({
+      name: 'wiki_edit',
+      properties: {
+        wiki_page_id: prop.REFERENCES(wikiPage),
+        editor_id: prop.REFERENCES(wikiUser),
+        final_text: { ...prop.VARCHAR(255), updatable: true },
+        status: { ...prop.ENUM(['APPROVED', 'CHANGES_REQUESTED', 'REJECTED']), nullable: true, updatable: true },
+        produced_wiki_page_version: { ...prop.REFERENCES_VERSION(wikiPage), nullable: true, updatable: true }, // i.e., what version it produced
+      },
+      unique: ['uuid'], // unique on uuid alone since the same user can edit the same page many times, so no natural keys
+    });
+
+    // provision the actual tables for the entity
+    await dropTablesForEntity({ entity: wikiEdit, dbConnection });
+    await dropTablesForEntity({ entity: wikiPage, dbConnection });
+    await dropTablesForEntity({ entity: wikiUser, dbConnection });
+    await createTablesForEntity({ entity: wikiUser, dbConnection });
+    await createTablesForEntity({ entity: wikiPage, dbConnection });
+    await createTablesForEntity({ entity: wikiEdit, dbConnection });
+
+    // check syntax is the same as that returned by SHOW CREATE TABLE
+    const tables = await generateEntityTables({ entity: wikiEdit });
+    const createStaticTable = await getShowCreateNow({ tableName: tables.static.name });
+    expect(createStaticTable).toEqual(tables.static.sql); // should be the exact string
+    const createVersionTable = await getShowCreateNow({ tableName: tables.version!.name });
+    expect(createVersionTable).toEqual(tables.version!.sql); // should be the exact string
+  });
   it('generates tables for an entity with array properties (both updatable and static) and unique on one array, w/ the same syntax as show create', async () => {
     const photo = new ValueObject({
       name: 'photo',
@@ -115,7 +159,7 @@ describe('generateEntityTables', () => {
       unique: ['name', 'host_ids'],
     });
 
-    // provision the actual tables for the "movie" entity
+    // provision the actual tables for the entity
     await dropTablesForEntity({ entity: home, dbConnection });
     await dropTablesForEntity({ entity: host, dbConnection });
     await dropTablesForEntity({ entity: photo, dbConnection });

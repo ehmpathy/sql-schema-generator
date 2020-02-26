@@ -271,8 +271,24 @@ export const DATETIME = (precision: number) =>
 export const REFERENCES = (entity: Entity) =>
   new Property({
     ...BIGINT(), // pk type is always a bigint
-    references: entity.name, // name of entity
+    references: entity.name, // name of entity's table
   });
+
+/**
+ * REFERENCES_VERSION creates a column which has a Foreign Key constraint to the `entity_version`.
+ *
+ * NOTE: this is only valid if the referenced entity has updatable properties, as otherwise there will not be a version table for the entity.
+ */
+export const REFERENCES_VERSION = (entity: Entity) => {
+  const referencedEntityHasUpdatableProperties = Object.values(entity.properties).some((prop) => !!prop.updatable);
+  if (!referencedEntityHasUpdatableProperties) {
+    throw new Error('REFERENCES_VERSION can only be applied to an entity that has updatable properties');
+  }
+  return new Property({
+    ...BIGINT(), // pk type is always a bigint
+    references: `${entity.name}_version`, // name of entity's version table
+  });
+};
 
 /**
  * ARRAY_OF is an alias which sets the array flag to true on a property.

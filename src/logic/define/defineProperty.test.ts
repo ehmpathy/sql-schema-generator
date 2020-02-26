@@ -1,4 +1,4 @@
-import { DataTypeName, Entity, Property } from '../../types';
+import { DataTypeName, Entity, Property, ValueObject } from '../../types';
 import * as prop from './defineProperty';
 
 describe('generateProperty', () => {
@@ -25,6 +25,22 @@ describe('generateProperty', () => {
       name: DataTypeName.VARCHAR,
       precision: 255,
     });
+  });
+  it('should throw an error if entity REFERENCES_VERSION of a non-updatable entity', () => {
+    const apple = new ValueObject({
+      name: 'apple',
+      properties: {
+        name: prop.VARCHAR(255), // e.g., Granny Smith
+      },
+    });
+    try {
+      prop.REFERENCES_VERSION(apple);
+      throw new Error('should not reach here');
+    } catch (error) {
+      expect(error.message).toEqual(
+        'REFERENCES_VERSION can only be applied to an entity that has updatable properties',
+      );
+    }
   });
   describe('use cases', () => {
     it('should make it convenient to define a real use case', () => {
