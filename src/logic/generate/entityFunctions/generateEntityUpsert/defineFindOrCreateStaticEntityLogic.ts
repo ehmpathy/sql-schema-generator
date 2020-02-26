@@ -65,10 +65,7 @@ export const defineFindOrCreateStaticEntityLogic = ({ entity }: { entity: Entity
       VALUES
       (${[uuidValueReference, ...staticPropertyColumnValueReferences].join(', ')});
     SET v_static_id = (
-      SELECT id
-      FROM ${entity.name}
-      WHERE 1=1
-        ${uniqueStaticPropertyWhereClauseConditionals.join('\n        ')}
+      SELECT last_insert_id()
     );${
       // ensure that no newlines are added if no mapping table inserts are needed
       mappingTableInserts.length ? ['', ...mappingTableInserts].join('\n\n    ') : ''

@@ -30,11 +30,7 @@ BEGIN
       VALUES
       (uuid(), in_name, SHA2(in_producer_ids, 256));
     SET v_static_id = (
-      SELECT id
-      FROM movie
-      WHERE 1=1
-        AND (name = BINARY in_name)
-        AND (producer_ids_hash = BINARY SHA2(in_producer_ids, 256))
+      SELECT last_insert_id()
     );
 
     -- insert a row into the mapping table for each value in the in_producer_ids comma delimited string
@@ -55,7 +51,7 @@ BEGIN
   END IF;
 
   -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
-  SET v_matching_version_id = ( -- see if latest version already has this data 
+  SET v_matching_version_id = ( -- see if latest version already has this data
     SELECT id
     FROM movie_version
     WHERE 1=1
@@ -72,17 +68,8 @@ BEGIN
       (movie_id, language_ids_hash)
       VALUES
       (v_static_id, SHA2(in_language_ids, 256));
-    SET v_matching_version_id = ( -- find the matching version id to use for mapping, now that its been inserted
-      SELECT id
-      FROM movie_version
-      WHERE 1=1
-        AND movie_id = v_static_id -- for this entity
-        AND effective_at = ( -- and is the currently effective version
-          SELECT MAX(effective_at)
-          FROM movie_version ssv
-          WHERE ssv.movie_id = v_static_id
-        )
-        AND (language_ids_hash = BINARY SHA2(in_language_ids, 256))
+    SET v_matching_version_id = (
+      SELECT last_insert_id()
     );
 
     -- insert a row into the mapping table for each value in the in_language_ids comma delimited string
@@ -169,15 +156,12 @@ BEGIN
       VALUES
       (in_uuid);
     SET v_static_id = (
-      SELECT id
-      FROM webstore
-      WHERE 1=1
-        AND (uuid = BINARY in_uuid)
+      SELECT last_insert_id()
     );
   END IF;
 
   -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
-  SET v_matching_version_id = ( -- see if latest version already has this data 
+  SET v_matching_version_id = ( -- see if latest version already has this data
     SELECT id
     FROM webstore_version
     WHERE 1=1
@@ -197,7 +181,9 @@ BEGIN
       (webstore_id, name, phone_number, email, logo_url)
       VALUES
       (v_static_id, in_name, in_phone_number, in_email, in_logo_url);
-    
+    SET v_matching_version_id = (
+      SELECT last_insert_id()
+    );
   END IF;
 
   -- update the current version pointer table, if it is not already up to date
@@ -267,13 +253,7 @@ BEGIN
       VALUES
       (uuid(), in_street, in_suite, in_city, in_country, in_weekday_found);
     SET v_static_id = (
-      SELECT id
-      FROM address_2
-      WHERE 1=1
-        AND (street = BINARY in_street)
-        AND (suite = BINARY in_suite OR (suite IS null AND in_suite IS null))
-        AND (city = BINARY in_city)
-        AND (country = BINARY in_country)
+      SELECT last_insert_id()
     );
   END IF;
 
@@ -306,10 +286,7 @@ BEGIN
       VALUES
       (in_uuid, in_customer_id, in_plant_name, in_quantity);
     SET v_static_id = (
-      SELECT id
-      FROM plant_order
-      WHERE 1=1
-        AND (uuid = BINARY in_uuid)
+      SELECT last_insert_id()
     );
   END IF;
 
@@ -344,15 +321,12 @@ BEGIN
       VALUES
       (uuid(), in_cognito_uuid);
     SET v_static_id = (
-      SELECT id
-      FROM alternative_user
-      WHERE 1=1
-        AND (cognito_uuid = BINARY in_cognito_uuid)
+      SELECT last_insert_id()
     );
   END IF;
 
   -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
-  SET v_matching_version_id = ( -- see if latest version already has this data 
+  SET v_matching_version_id = ( -- see if latest version already has this data
     SELECT id
     FROM alternative_user_version
     WHERE 1=1
@@ -370,7 +344,9 @@ BEGIN
       (alternative_user_id, name, bio)
       VALUES
       (v_static_id, in_name, in_bio);
-    
+    SET v_matching_version_id = (
+      SELECT last_insert_id()
+    );
   END IF;
 
   -- update the current version pointer table, if it is not already up to date

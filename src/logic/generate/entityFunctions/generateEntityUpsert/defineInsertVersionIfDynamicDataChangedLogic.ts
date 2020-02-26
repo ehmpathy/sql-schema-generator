@@ -38,46 +38,31 @@ export const defineInsertVersionIfDynamicDataChangedLogic = ({ entity }: { entit
     defineMappingTableInsertsForArrayProperty({ name, definition, entityName: entity.name }),
   );
 
-  // define the "find version" clause reusably, to not duplicate logic
-  const findMatchingVersionSql = ({ comment, indent }: { comment: string; indent: number }) =>
-    indentString(
-      `
-SET v_matching_version_id = ( -- ${comment}
-  SELECT id
-  FROM ${entity.name}_version
-  WHERE 1=1
-    AND ${entity.name}_id = v_static_id -- for this entity
-    AND effective_at = ( -- and is the currently effective version
-      SELECT MAX(effective_at)
-      FROM ${entity.name}_version ssv
-      WHERE ssv.${entity.name}_id = v_static_id
-    )
-    ${indentString(updateablePropertyWhereClauseConditionals.join('\n'), indent + 2).trim()}
-);
-  `,
-      indent,
-    ).trim();
-
+  // return the sql
   return `
   -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
-  ${findMatchingVersionSql({ comment: 'see if latest version already has this data ', indent: 2 })}
+  SET v_matching_version_id = ( -- see if latest version already has this data
+    SELECT id
+    FROM ${entity.name}_version
+    WHERE 1=1
+      AND ${entity.name}_id = v_static_id -- for this entity
+      AND effective_at = ( -- and is the currently effective version
+        SELECT MAX(effective_at)
+        FROM ${entity.name}_version ssv
+        WHERE ssv.${entity.name}_id = v_static_id
+      )
+      ${indentString(updateablePropertyWhereClauseConditionals.join('\n'), 6).trim()}
+  );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO ${entity.name}_version
       (${entity.name}_id, ${updatablePropertyColumnNames.join(', ')})
       VALUES
       (v_static_id, ${updatablePropertyColumnValueReferences.join(', ')});
-    ${
+    SET v_matching_version_id = (
+      SELECT last_insert_id()
+    );${
       // ensure that no newlines are added if no mapping table inserts are needed
-      mappingTableInserts.length
-        ? [
-            // NOTE: we only include this second find by if we have mapping tables, as otherwise it is unused
-            findMatchingVersionSql({
-              comment: 'find the matching version id to use for mapping, now that its been inserted',
-              indent: 4,
-            }),
-            ...mappingTableInserts,
-          ].join('\n\n    ')
-        : ''
+      mappingTableInserts.length ? ['', ...mappingTableInserts].join('\n\n    ') : ''
     }
   END IF;
 `.trim();
