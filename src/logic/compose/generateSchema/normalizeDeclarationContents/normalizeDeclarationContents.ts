@@ -2,6 +2,7 @@ import { Entity } from '../../../../types';
 import { throwErrorIfAnyReservedPropertyNamesAreUsed } from './throwErrorIfAnyReservedPropertyNamesAreUsed';
 import { throwErrorIfAnyUniqueIsNotInProperties } from './throwErrorIfAnyUniqueIsNotInProperties';
 import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
+import { throwErrorIfNotUniqueOnAnything } from './throwErrorIfNotUniqueOnAnything';
 
 export const normalizeDeclarationContents = ({ contents }: { contents: any }) => {
   // 1. check that 'entities' is exported
@@ -28,17 +29,11 @@ export const normalizeDeclarationContents = ({ contents }: { contents: any }) =>
     throwErrorIfAnyUniqueIsNotInProperties({ entity });
   });
 
-  // 5. set entity to be unique on "uuid" if it is unique on nothing
-  const entitiesWithNormalizedUniqueness = entities.map((entity) => {
-    // if unique on nothing, then set it to be unique on uuid
-    if (entity.unique.length === 0) {
-      return new Entity({ ...entity, unique: ['uuid'] });
-    }
-
-    // otherwise, change nothing
-    return entity;
+  // 5. check that the entity is unique on _something_
+  entities.forEach((entity: Entity) => {
+    throwErrorIfNotUniqueOnAnything({ entity });
   });
 
   // 6. return the entities now that we've validate them
-  return { entities: entitiesWithNormalizedUniqueness };
+  return { entities };
 };

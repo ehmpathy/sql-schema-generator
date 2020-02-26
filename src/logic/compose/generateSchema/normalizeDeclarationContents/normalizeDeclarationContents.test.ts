@@ -4,6 +4,7 @@ import { normalizeDeclarationContents } from './normalizeDeclarationContents';
 import { throwErrorIfAnyReservedPropertyNamesAreUsed } from './throwErrorIfAnyReservedPropertyNamesAreUsed';
 import { throwErrorIfAnyUniqueIsNotInProperties } from './throwErrorIfAnyUniqueIsNotInProperties';
 import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
+import { throwErrorIfNotUniqueOnAnything } from './throwErrorIfNotUniqueOnAnything';
 
 jest.mock('./throwErrorIfAnyReservedPropertyNamesAreUsed');
 const throwErrorIfAnyReservedPropertyNamesAreUsedMock = throwErrorIfAnyReservedPropertyNamesAreUsed as jest.Mock;
@@ -13,6 +14,9 @@ const throwErrorIfNamingConventionsNotFollowedMock = throwErrorIfNamingConventio
 
 jest.mock('./throwErrorIfAnyUniqueIsNotInProperties');
 const throwErrorIfAnyUniqueIsNotInPropertiesMock = throwErrorIfAnyUniqueIsNotInProperties;
+
+jest.mock('./throwErrorIfNotUniqueOnAnything');
+const throwErrorIfNotUniqueOnAnythingMock = throwErrorIfNotUniqueOnAnything;
 
 describe('normalizeDeclarationContents', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -55,12 +59,12 @@ describe('normalizeDeclarationContents', () => {
     expect(throwErrorIfAnyUniqueIsNotInPropertiesMock).toHaveBeenCalledTimes(1);
     expect(throwErrorIfAnyUniqueIsNotInPropertiesMock).toHaveBeenCalledWith({ entity: exampleEntity });
   });
-  it("should set entities to be unique on uuid if they're unique on nothing", () => {
-    const contents = {
-      entities: [new Entity({ name: 'job', properties: {}, unique: [] })],
-    };
-    const { entities } = normalizeDeclarationContents({ contents });
-    expect(entities[0].unique).toEqual(['uuid']);
+  it('should throw an error if entity is unique on nothing', () => {
+    const exampleEntity = new Entity({ name: 'burrito', properties: { lbs: prop.INT() }, unique: ['lbs'] });
+    const contents = { entities: [exampleEntity] };
+    normalizeDeclarationContents({ contents });
+    expect(throwErrorIfNotUniqueOnAnythingMock).toHaveBeenCalledTimes(1);
+    expect(throwErrorIfNotUniqueOnAnythingMock).toHaveBeenCalledWith({ entity: exampleEntity });
   });
   it('should return the entities and value objects found in the contents', () => {
     const plant = new ValueObject({ name: 'plant', properties: { genus: prop.VARCHAR(255) } });
@@ -73,7 +77,7 @@ describe('normalizeDeclarationContents', () => {
     const order = new Entity({
       name: 'order',
       properties: { customer_id: prop.REFERENCES(customer), vase_id: prop.REFERENCES(vase) },
-      unique: [], // logically unique on nothing - same order can be placed many times! -> we'll require the user to pass in a uuid for idempotency
+      unique: ['uuid'], // logically unique on nothing - same order can be placed many times! -> we'll require the user to pass in a uuid for idempotency
     });
     const contents = {
       entities: [plant, vase, customer, order],
@@ -81,11 +85,6 @@ describe('normalizeDeclarationContents', () => {
     const { entities } = normalizeDeclarationContents({ contents });
 
     // check that we return everything as expected
-    expect(entities).toEqual([
-      plant,
-      vase,
-      customer,
-      new Entity({ ...order, unique: ['uuid'] }), // cast order to be unique on uuid, since we normalize this
-    ]);
+    expect(entities).toEqual([plant, vase, customer, order]);
   });
 });
