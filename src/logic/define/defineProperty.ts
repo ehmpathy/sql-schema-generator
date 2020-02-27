@@ -243,6 +243,8 @@ export const LONGTEXT = () =>
   });
 
 /**
+ * BINARY(n) requires n bytes of storage. Precision, n, defines the maximum number of bytes you want to store. Range of precision: [0, 255].
+ *
  * https://dev.mysql.com/doc/refman/5.7/en/binary-varbinary.html
  */
 export const BINARY = (precision: number) =>
@@ -297,7 +299,7 @@ export const REFERENCES_VERSION = (entity: Entity) => {
 /**
  * ARRAY_OF is an alias which sets the array flag to true on a property.
  *
- * This flag tells the generator to create a mapping table and to expect to write and read an array of these values. It results in the addition of a CHAR(64) column to the base table on which uniqueness can be defined.
+ * This flag tells the generator to create a mapping table and to expect to write and read an array of these values. It results in the addition of a BINARY(32) column to the base table on which uniqueness can be defined.
  *
  * NOTE: currently only arrays of REFERENCEs are supported, meaning that the data in the array must be normalized into its own table.
  */

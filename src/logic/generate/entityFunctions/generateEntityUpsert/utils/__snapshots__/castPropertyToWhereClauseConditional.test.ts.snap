@@ -1,5 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`castPropertyToWhereClauseConditional should define the conditional accurately for a array property 1`] = `"AND (participant_ids_hash = BINARY SHA2(in_participant_ids, 256))"`;
+exports[`castPropertyToWhereClauseConditional should define the conditional accurately for a array property 1`] = `"AND (participant_ids_hash = BINARY UNHEX(SHA2(in_participant_ids, 256)))"`;
 
 exports[`castPropertyToWhereClauseConditional should define the conditional accurately for a unit property 1`] = `"AND (creator_id = BINARY in_creator_id)"`;

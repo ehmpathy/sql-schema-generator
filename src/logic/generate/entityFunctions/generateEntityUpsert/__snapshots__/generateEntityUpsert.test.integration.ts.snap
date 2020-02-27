@@ -57,13 +57,13 @@ BEGIN
     FROM movie
     WHERE 1=1
       AND (name = BINARY in_name)
-      AND (producer_ids_hash = BINARY SHA2(in_producer_ids, 256))
+      AND (producer_ids_hash = BINARY UNHEX(SHA2(in_producer_ids, 256)))
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO movie
       (uuid, created_at, name, producer_ids_hash)
       VALUES
-      (uuid(), v_created_at, in_name, SHA2(in_producer_ids, 256));
+      (uuid(), v_created_at, in_name, UNHEX(SHA2(in_producer_ids, 256)));
     SET v_static_id = (
       SELECT last_insert_id()
     );
@@ -97,13 +97,13 @@ BEGIN
         WHERE ssv.movie_id = v_static_id
           AND effective_at <= v_effective_at
       )
-      AND (language_ids_hash = BINARY SHA2(in_language_ids, 256))
+      AND (language_ids_hash = BINARY UNHEX(SHA2(in_language_ids, 256)))
   );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO movie_version
       (movie_id, created_at, effective_at, language_ids_hash)
       VALUES
-      (v_static_id, v_created_at, v_effective_at, SHA2(in_language_ids, 256));
+      (v_static_id, v_created_at, v_effective_at, UNHEX(SHA2(in_language_ids, 256)));
     SET v_matching_version_id = (
       SELECT last_insert_id()
     );

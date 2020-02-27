@@ -61,7 +61,7 @@ describe('generateTableForStaticProperties', () => {
     expect(generateTableMock).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
-          testProp_hash: prop.CHAR(64), // 64 since SHA256 HEX is 64 char long
+          testProp_hash: prop.BINARY(32), // 32 since SHA256 binary string is 32 char long
         }),
       }),
     );
@@ -77,7 +77,7 @@ describe('generateTableForStaticProperties', () => {
       expect.objectContaining({
         unique: ['testProp_hash'], // note: it _must_ pass the "hash" suffix, in order for the "create table" logic to find the correct column
         properties: expect.objectContaining({
-          testProp_hash: prop.CHAR(64), // 64 since SHA256 HEX is 64 char long
+          testProp_hash: prop.BINARY(32), // 32 since SHA256 binary string is 32 char long
         }),
       }),
     );

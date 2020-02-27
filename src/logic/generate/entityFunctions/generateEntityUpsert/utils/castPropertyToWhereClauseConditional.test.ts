@@ -21,7 +21,7 @@ describe('castPropertyToWhereClauseConditional', () => {
       name: 'participant_ids',
       definition: plan.properties.participant_ids,
     });
-    expect(definition).toContain('SHA2('); // it should include a hashing function
+    expect(definition).toContain('UNHEX(SHA2('); // it should include a hashing function and unhex it to convert to binary
     expect(definition).toMatchSnapshot();
   });
 });

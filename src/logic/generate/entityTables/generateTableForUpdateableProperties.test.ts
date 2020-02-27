@@ -64,7 +64,7 @@ describe('generateTableForUpdateableProperties', () => {
     expect(generateTableMock).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
-          testProp_hash: prop.CHAR(64), // 64 since SHA256 HEX is 64 char long
+          testProp_hash: prop.BINARY(32), // 32 since SHA256 binary string is 32 bytes long
         }),
       }),
     );

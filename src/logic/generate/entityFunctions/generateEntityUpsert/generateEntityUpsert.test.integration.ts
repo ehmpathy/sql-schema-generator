@@ -537,12 +537,12 @@ describe('generateEntityUpsert', () => {
       // check that the static part was accurate
       const entityStatic = await getEntityStatic({ id });
       expect(entityStatic.uuid.length).toEqual(36); // uuid was generated
-      expect(entityStatic.producer_ids_hash).toEqual(sha256.sync(movieProps.producer_ids.join(',')));
+      expect(entityStatic.producer_ids_hash.toString('hex')).toEqual(sha256.sync(movieProps.producer_ids.join(',')));
 
       // check that the versioned part is accurate
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(1);
-      expect(versions[0].language_ids_hash).toEqual(sha256.sync(movieProps.language_ids.join(',')));
+      expect(versions[0].language_ids_hash.toString('hex')).toEqual(sha256.sync(movieProps.language_ids.join(',')));
 
       // check that the current version table is initialized accurately
       const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
@@ -587,7 +587,9 @@ describe('generateEntityUpsert', () => {
       expect(versions.length).toEqual(2);
 
       // check that new version data is accurate
-      expect(versions[1].language_ids_hash).toEqual(sha256.sync(movieProps.language_ids.slice(0, 1).join(',')));
+      expect(versions[1].language_ids_hash.toString('hex')).toEqual(
+        sha256.sync(movieProps.language_ids.slice(0, 1).join(',')),
+      );
 
       // check that the current version table is pointing to the right version
       const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
