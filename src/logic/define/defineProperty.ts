@@ -157,7 +157,9 @@ export const ENUM = (values: string[]) =>
   });
 
 /**
- * CHAR(n) requires n bytes. Precision defines the maximum number of characters you want to store. Range of precision: [0, 255].
+ * CHAR(n) uses a fixed storage size. Precision, n, defines the maximum number of characters you want to store. Range of precision: [0, 255].
+ *
+ * Each character will take up to 4 bytes to store with a full charset like utf8mb4. This means `total bytes used = n * 4`.
  *
  * When CHAR values are stored, they are right-padded with spaces to the specified length. When CHAR values are retrieved, trailing spaces are removed unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled.
  *
@@ -174,9 +176,11 @@ export const CHAR = (precision: number) =>
   });
 
 /**
- * VARCHAR requires a variable storage size. Precision defines the maximum number of characters you want to store. Range of precision: [0, 65,535].
+ * VARCHAR(n) requires a variable storage size. Precision, n, defines the maximum number of characters you want to store. Range of precision: [0, 65,535].
  *
  * VARCHAR values are stored as a 1-byte or 2-byte length prefix plus data. The length prefix indicates the number of bytes in the value. A column uses one length byte if values require no more than 255 bytes, two length bytes if values may require more than 255 bytes.
+ *
+ * Each character will take up 4 bytes to store with a full charset like utf8mb4. This means `total bytes used = precision * 4 + prefix_length`.
  *
  * WARNING: If strict SQL mode is not enabled and you assign a value to a VARCHAR column that exceeds the column's maximum length, the value is truncated to fit and a warning is generated.
  *
