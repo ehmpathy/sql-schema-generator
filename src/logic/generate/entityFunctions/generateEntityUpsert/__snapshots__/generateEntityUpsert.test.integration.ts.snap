@@ -15,8 +15,8 @@ BEGIN
     SELECT id
     FROM crash_report
     WHERE 1=1
-      AND (location_id = BINARY in_location_id)
-      AND (vehicle_version_id = BINARY in_vehicle_version_id)
+      AND (location_id = in_location_id)
+      AND (vehicle_version_id = in_vehicle_version_id)
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO crash_report
@@ -56,8 +56,8 @@ BEGIN
     SELECT id
     FROM movie
     WHERE 1=1
-      AND (name = BINARY in_name)
-      AND (producer_ids_hash = BINARY UNHEX(SHA2(in_producer_ids, 256)))
+      AND (name = in_name)
+      AND (producer_ids_hash = UNHEX(SHA2(in_producer_ids, 256)))
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO movie
@@ -97,7 +97,7 @@ BEGIN
         WHERE ssv.movie_id = v_static_id
           AND effective_at <= v_effective_at
       )
-      AND (language_ids_hash = BINARY UNHEX(SHA2(in_language_ids, 256)))
+      AND (language_ids_hash = UNHEX(SHA2(in_language_ids, 256)))
   );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO movie_version
@@ -182,7 +182,7 @@ BEGIN
     SELECT id
     FROM webstore
     WHERE 1=1
-      AND (uuid = BINARY in_uuid)
+      AND (uuid = in_uuid)
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO webstore
@@ -206,10 +206,10 @@ BEGIN
         WHERE ssv.webstore_id = v_static_id
           AND effective_at <= v_effective_at
       )
-      AND (name = BINARY in_name)
-      AND (phone_number = BINARY in_phone_number)
-      AND (email = BINARY in_email)
-      AND (logo_url = BINARY in_logo_url)
+      AND (name = in_name)
+      AND (phone_number = in_phone_number)
+      AND (email = in_email)
+      AND (logo_url = in_logo_url)
   );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO webstore_version
@@ -274,10 +274,10 @@ BEGIN
     SELECT id
     FROM address_2
     WHERE 1=1
-      AND (street = BINARY in_street)
-      AND (suite = BINARY in_suite OR (suite IS null AND in_suite IS null))
-      AND (city = BINARY in_city)
-      AND (country = BINARY in_country)
+      AND (street = in_street)
+      AND (suite = in_suite OR (suite IS null AND in_suite IS null))
+      AND (city = in_city)
+      AND (country = in_country)
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO address_2
@@ -311,7 +311,7 @@ BEGIN
     SELECT id
     FROM plant_order
     WHERE 1=1
-      AND (uuid = BINARY in_uuid)
+      AND (uuid = in_uuid)
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO plant_order
@@ -348,7 +348,7 @@ BEGIN
     SELECT id
     FROM alternative_user
     WHERE 1=1
-      AND (cognito_uuid = BINARY in_cognito_uuid)
+      AND (cognito_uuid = in_cognito_uuid)
   );
   IF (v_static_id IS NULL) THEN -- if entity could not be found originally, create the static entity
     INSERT INTO alternative_user
@@ -372,8 +372,8 @@ BEGIN
         WHERE ssv.alternative_user_id = v_static_id
           AND effective_at <= v_effective_at
       )
-      AND (name = BINARY in_name)
-      AND (bio = BINARY in_bio OR (bio IS null AND in_bio IS null))
+      AND (name = in_name)
+      AND (bio = in_bio OR (bio IS null AND in_bio IS null))
   );
   IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
     INSERT INTO alternative_user_version
