@@ -1,13 +1,13 @@
-schema-generator
+sql-schema-generator
 ==============
 
 Declarative relational database schema generation. Ensure best practices are followed and abstract away boiler plate sql.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Version](https://img.shields.io/npm/v/schema-generator.svg)](https://npmjs.org/package/schema-generator)
-[![Codecov](https://codecov.io/gh/uladkasach/schema-generator/branch/master/graph/badge.svg)](https://codecov.io/gh/uladkasach/schema-generator)
-[![Downloads/week](https://img.shields.io/npm/dw/schema-generator.svg)](https://npmjs.org/package/schema-generator)
-[![License](https://img.shields.io/npm/l/schema-generator.svg)](https://github.com/uladkasach/schema-generator/blob/master/package.json)
+[![Version](https://img.shields.io/npm/v/sql-schema-generator.svg)](https://npmjs.org/package/sql-schema-generator)
+[![Codecov](https://codecov.io/gh/uladkasach/sql-schema-generator/branch/master/graph/badge.svg)](https://codecov.io/gh/uladkasach/sql-schema-generator)
+[![Downloads/week](https://img.shields.io/npm/dw/sql-schema-generator.svg)](https://npmjs.org/package/sql-schema-generator)
+[![License](https://img.shields.io/npm/l/sql-schema-generator.svg)](https://github.com/uladkasach/sql-schema-generator/blob/master/package.json)
 
 # Table of Contents
 <!-- toc -->
@@ -20,7 +20,7 @@ Declarative relational database schema generation. Ensure best practices are fol
 
 # Overview
 
-`schema-generator` does two things for us:
+`sql-schema-generator` does two things for us:
 - **generates sql** for "persisted entities" (both static and updatable) in relational databases, based on a declarative definition of entities
   - i.e., it generates the following resources:
     - to interact with data
@@ -46,7 +46,7 @@ Note: the user has complete flexibility to update the generated sql to suite any
 
 ### Motivation
 
-The motivation of `schema-generator` is to:
+The motivation of `sql-schema-generator` is to:
 - abstract away the boilerplate and complexity of persisting data in a relational database with "best practices"
 - reduce work required to setup and maintain resources required for persisting data in relational database
 - define one source of truth for best practices in relational database resources
@@ -66,7 +66,7 @@ Consequently, by utilizing the schema generator:
 
 1. Save the package as a dev dependency
   ```sh
-  npm install --save-dev schema-generator
+  npm install --save-dev sql-schema-generator
   ```
 
 2. Declare your entities, somewhere in your VCS repo
@@ -119,7 +119,7 @@ Consequently, by utilizing the schema generator:
 
 3. Run the generate command
   ```sh
-  npx schema-generator generate -d schema/entities.ts -t schema/generated
+  npx sql-schema-generator generate -d schema/entities.ts -t schema/generated
   ```
 
 4. Check the generated into your VCS
@@ -135,16 +135,16 @@ Consequently, by utilizing the schema generator:
 
 # Commands
 <!-- commands -->
-* [`schema-generator generate`](#schema-generator-generate)
-* [`schema-generator help [COMMAND]`](#schema-generator-help-command)
+* [`sql-schema-generator generate`](#sql-schema-generator-generate)
+* [`sql-schema-generator help [COMMAND]`](#sql-schema-generator-help-command)
 
-## `schema-generator generate`
+## `sql-schema-generator generate`
 
 generate sql schema for immutable and mutable entities: tables, upsert method, and views
 
 ```
 USAGE
-  $ schema-generator generate
+  $ sql-schema-generator generate
 
 OPTIONS
   -d, --declarations=declarations  (required) [default: declarations.ts] path to config file, containing entity
@@ -155,15 +155,13 @@ OPTIONS
   -t, --target=target              (required) [default: generated] target directory to record generated schema into
 ```
 
-_See code: [dist/contract/commands/generate.ts](https://github.com/uladkasach/schema-generator/blob/v1.0.0/dist/contract/commands/generate.ts)_
+## `sql-schema-generator help [COMMAND]`
 
-## `schema-generator help [COMMAND]`
-
-display help for schema-generator
+display help for sql-schema-generator
 
 ```
 USAGE
-  $ schema-generator help [COMMAND]
+  $ sql-schema-generator help [COMMAND]
 
 ARGUMENTS
   COMMAND  command to show help for

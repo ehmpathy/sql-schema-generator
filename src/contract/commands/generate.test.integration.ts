@@ -1,8 +1,8 @@
-import SchemaGenerator from './generate';
+import Generate from './generate';
 
 describe('command', () => {
   it('should be able to generate schema for valid entities declaration', async () => {
-    await SchemaGenerator.run([
+    await Generate.run([
       '-d',
       `${__dirname}/../__test_assets__/entities.ts`,
       '-t',
