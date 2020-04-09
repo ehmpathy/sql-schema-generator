@@ -23,11 +23,13 @@ export const defineMappingTableKeysForEntityProperty = ({
   const tableName = `${entityReferenceTableName}_to_${mappedEntityReferenceTableName}`;
   const entityReferenceColumnName = `${entityReferenceTableName}_id`;
   const mappedEntityReferenceColumnName = `${mappedEntityReferenceTableName}_id`;
+  const arrayOrderIndexColumnName = 'array_order_index'; // purpose: be self evident to people who will be seeing this for the first time
   return {
     tableName,
     entityReferenceColumnName,
     mappedEntityReferenceColumnName,
     entityReferenceTableName,
     mappedEntityReferenceTableName,
+    arrayOrderIndexColumnName,
   };
 };

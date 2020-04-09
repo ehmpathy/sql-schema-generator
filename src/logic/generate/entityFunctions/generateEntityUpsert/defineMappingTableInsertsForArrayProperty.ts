@@ -29,15 +29,15 @@ export const defineMappingTableInsertsForArrayProperty = ({
     SET v_delimited_string_access_index = 0;
     WHILE (v_can_still_find_values_in_delimited_string) DO
       SET v_delimited_string_access_value = get_from_delimiter_split_string(${inputVariableName}, ',', v_delimited_string_access_index); -- get value from string
-      SET v_delimited_string_access_index = v_delimited_string_access_index + 1;
       IF (v_delimited_string_access_value = '') THEN
         SET v_can_still_find_values_in_delimited_string = false; -- no value at this index, stop looping
       ELSE
         INSERT INTO ${mappingTableKeys.tableName}
-          (created_at, ${mappingTableKeys.entityReferenceColumnName}, ${mappingTableKeys.mappedEntityReferenceColumnName})
+          (created_at, ${mappingTableKeys.entityReferenceColumnName}, ${mappingTableKeys.mappedEntityReferenceColumnName}, ${mappingTableKeys.arrayOrderIndexColumnName})
           VALUES
-          (v_created_at, ${mappingTableEntityReferenceVariable}, v_delimited_string_access_value);
+          (v_created_at, ${mappingTableEntityReferenceVariable},v_delimited_string_access_value, v_delimited_string_access_index);
       END IF;
+      SET v_delimited_string_access_index = v_delimited_string_access_index + 1;
     END WHILE;
   `.trim();
 };

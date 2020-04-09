@@ -174,5 +174,8 @@ describe('generateEntityTables', () => {
     expect(createMappingTableSqlOne).toEqual(tables.mappings[0]!.sql); // should be the exact string
     const createMappingTableSqlTwo = await getShowCreateNow({ tableName: tables.mappings[1]!.name });
     expect(createMappingTableSqlTwo).toEqual(tables.mappings[1]!.sql); // should be the exact string
+
+    // record a snapshot to confirm aesthetic acceptability
+    expect(tables).toMatchSnapshot();
   });
 });

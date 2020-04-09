@@ -17,6 +17,7 @@ describe('defineMappingTableNameForEntityProperty', () => {
       mappedEntityReferenceColumnName: 'diameter_id',
       entityReferenceTableName: 'wrench',
       mappedEntityReferenceTableName: 'diameter',
+      arrayOrderIndexColumnName: 'array_order_index',
     });
   });
   it('should generate a mapping table per updatable property accurately', async () => {
@@ -33,6 +34,7 @@ describe('defineMappingTableNameForEntityProperty', () => {
       mappedEntityReferenceColumnName: 'tag_id',
       entityReferenceTableName: 'wrench_version',
       mappedEntityReferenceTableName: 'tag',
+      arrayOrderIndexColumnName: 'array_order_index',
     });
   });
 });

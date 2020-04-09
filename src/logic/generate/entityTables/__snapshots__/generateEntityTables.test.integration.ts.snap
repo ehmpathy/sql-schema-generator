@@ -1,0 +1,81 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateEntityTables generates tables for an entity with array properties (both updatable and static) and unique on one array, w/ the same syntax as show create 1`] = `
+Object {
+  "currentVersionPointer": Object {
+    "name": "home_cvp",
+    "sql": "CREATE TABLE \`home_cvp\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  \`home_id\` bigint(20) NOT NULL,
+  \`home_version_id\` bigint(20) NOT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`home_cvp_ux1\` (\`home_id\`),
+  KEY \`home_cvp_fk0\` (\`home_id\`),
+  KEY \`home_cvp_fk1\` (\`home_version_id\`),
+  CONSTRAINT \`home_cvp_fk0\` FOREIGN KEY (\`home_id\`) REFERENCES \`home\` (\`id\`),
+  CONSTRAINT \`home_cvp_fk1\` FOREIGN KEY (\`home_version_id\`) REFERENCES \`home_version\` (\`id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin",
+  },
+  "mappings": Array [
+    Object {
+      "name": "home_to_host",
+      "sql": "CREATE TABLE \`home_to_host\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  \`home_id\` bigint(20) NOT NULL,
+  \`host_id\` bigint(20) NOT NULL,
+  \`array_order_index\` tinyint(4) NOT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`home_to_host_ux1\` (\`home_id\`,\`array_order_index\`),
+  KEY \`home_to_host_fk0\` (\`home_id\`),
+  KEY \`home_to_host_fk1\` (\`host_id\`),
+  CONSTRAINT \`home_to_host_fk0\` FOREIGN KEY (\`home_id\`) REFERENCES \`home\` (\`id\`),
+  CONSTRAINT \`home_to_host_fk1\` FOREIGN KEY (\`host_id\`) REFERENCES \`host\` (\`id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin",
+    },
+    Object {
+      "name": "home_version_to_photo",
+      "sql": "CREATE TABLE \`home_version_to_photo\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  \`home_version_id\` bigint(20) NOT NULL,
+  \`photo_id\` bigint(20) NOT NULL,
+  \`array_order_index\` tinyint(4) NOT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`home_version_to_photo_ux1\` (\`home_version_id\`,\`array_order_index\`),
+  KEY \`home_version_to_photo_fk0\` (\`home_version_id\`),
+  KEY \`home_version_to_photo_fk1\` (\`photo_id\`),
+  CONSTRAINT \`home_version_to_photo_fk0\` FOREIGN KEY (\`home_version_id\`) REFERENCES \`home_version\` (\`id\`),
+  CONSTRAINT \`home_version_to_photo_fk1\` FOREIGN KEY (\`photo_id\`) REFERENCES \`photo\` (\`id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin",
+    },
+  ],
+  "static": Object {
+    "name": "home",
+    "sql": "CREATE TABLE \`home\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`uuid\` char(36) COLLATE utf8mb4_bin NOT NULL,
+  \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  \`name\` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  \`host_ids_hash\` binary(32) NOT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`home_ux1\` (\`name\`,\`host_ids_hash\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin",
+  },
+  "version": Object {
+    "name": "home_version",
+    "sql": "CREATE TABLE \`home_version\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`home_id\` bigint(20) NOT NULL,
+  \`effective_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  \`photo_ids_hash\` binary(32) NOT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`home_version_ux1\` (\`home_id\`,\`effective_at\`,\`created_at\`),
+  KEY \`home_version_fk0\` (\`home_id\`),
+  CONSTRAINT \`home_version_fk0\` FOREIGN KEY (\`home_id\`) REFERENCES \`home\` (\`id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin",
+  },
+}
+`;

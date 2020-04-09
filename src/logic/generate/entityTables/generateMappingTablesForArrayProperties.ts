@@ -36,11 +36,12 @@ const generateMappingTableForArrayProperty = ({
       ...prop.BIGINT(),
       references: mappingTableKeys.mappedEntityReferenceTableName,
     }),
+    [mappingTableKeys.arrayOrderIndexColumnName]: prop.TINYINT(), // if someone needs more than 255 properties in an array, there is probably an alternative better way to model the problem
   };
 
   // 4. build the table
   const tableName = mappingTableKeys.tableName;
-  const unique = [mappingTableKeys.entityReferenceColumnName, mappingTableKeys.mappedEntityReferenceColumnName]; // unique on the two fk's
+  const unique = [mappingTableKeys.entityReferenceColumnName, mappingTableKeys.arrayOrderIndexColumnName]; // unique on the index per entity (note: we explicitly allow the same mapped entity to be repeated in the array)
   const tableSql = generateTable({ tableName, unique, properties: mappingTableProps });
 
   // 5. return the table definition

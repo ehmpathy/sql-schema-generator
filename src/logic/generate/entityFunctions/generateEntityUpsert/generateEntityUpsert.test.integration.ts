@@ -552,13 +552,15 @@ describe('generateEntityUpsert', () => {
       // check that the mapping tables are accurate
       const producerMappings = await getProducerMappingTableEntries({ id });
       expect(producerMappings.length).toEqual(producerIds.length);
-      producerIds.forEach((producerId) => {
-        expect(producerMappings.map((mapping: any) => mapping.producer_id)).toContainEqual(producerId);
+      producerIds.forEach((producerId, index) => {
+        expect(producerMappings[index].producer_id).toEqual(producerId); // at the expected index
+        expect(producerMappings[index].array_order_index).toEqual(index); // explicitly tracked
       });
       const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
       expect(languageMappings.length).toEqual(languageIds.length);
-      languageIds.forEach((languageId) => {
-        expect(languageMappings.map((mapping: any) => mapping.language_id)).toContainEqual(languageId);
+      languageIds.forEach((languageId, index) => {
+        expect(languageMappings[index].language_id).toEqual(languageId); // at the expected index
+        expect(languageMappings[index].array_order_index).toEqual(index); // explicitly tracked
       });
     });
     it('should update the entity if the updateable array has changed', async () => {
@@ -578,7 +580,7 @@ describe('generateEntityUpsert', () => {
       const id = await upsertMovie(movieProps);
 
       // alter the languages its in and upsert it again
-      const updatedLanguageIds = movieProps.language_ids.slice(0, 1);
+      const updatedLanguageIds = [languageIds[2], languageIds[0]]; // drop middle, swap first and last
       const idAgain = await upsertMovie({ ...movieProps, language_ids: updatedLanguageIds });
       expect(id).toEqual(idAgain); // should update the same entity
 
@@ -587,9 +589,7 @@ describe('generateEntityUpsert', () => {
       expect(versions.length).toEqual(2);
 
       // check that new version data is accurate
-      expect(versions[1].language_ids_hash.toString('hex')).toEqual(
-        sha256.sync(movieProps.language_ids.slice(0, 1).join(',')),
-      );
+      expect(versions[1].language_ids_hash.toString('hex')).toEqual(sha256.sync(updatedLanguageIds.join(',')));
 
       // check that the current version table is pointing to the right version
       const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
@@ -599,8 +599,9 @@ describe('generateEntityUpsert', () => {
       // check that the mapping tables are accurate
       const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[1].id });
       expect(languageMappings.length).toEqual(updatedLanguageIds.length);
-      updatedLanguageIds.forEach((languageId) => {
-        expect(languageMappings.map((mapping: any) => mapping.language_id)).toContainEqual(languageId);
+      updatedLanguageIds.forEach((languageId, index) => {
+        expect(languageMappings[index].language_id).toEqual(languageId); // at the expected index
+        expect(languageMappings[index].array_order_index).toEqual(index); // explicitly tracked
       });
     });
     it('should not create a new version if the updateable array did not change', async () => {

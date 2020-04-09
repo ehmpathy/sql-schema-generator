@@ -15,12 +15,13 @@ export const castPropertyToSelector = ({
     const mappingTableKeys = defineMappingTableKeysForEntityProperty({ entityName, propertyDefinition: definition });
     const entityReferenceTableNameAlias = definition.updatable ? 'v' : 's';
     const arrayValueSelector = `${mappingTableKeys.tableName}.${mappingTableKeys.mappedEntityReferenceColumnName}`;
+    const arrayIndexSelector = `${mappingTableKeys.tableName}.${mappingTableKeys.arrayOrderIndexColumnName}`;
     const entityReferenceSelector = `${mappingTableKeys.tableName}.${mappingTableKeys.entityReferenceColumnName}`;
     const entityReferenceId = `${entityReferenceTableNameAlias}.id`;
     const mappingTableName = mappingTableKeys.tableName;
     return `
 (
-  SELECT GROUP_CONCAT(${arrayValueSelector} ORDER BY ${arrayValueSelector})
+  SELECT GROUP_CONCAT(${arrayValueSelector} ORDER BY ${arrayIndexSelector})
   FROM ${mappingTableName} WHERE ${entityReferenceSelector} = ${entityReferenceId}
 ) as ${name}
     `.trim();
