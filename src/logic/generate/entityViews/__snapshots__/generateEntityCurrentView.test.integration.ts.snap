@@ -7,7 +7,7 @@ exports[`generateEntityViewCurrent static entity with array properties should ge
     s.uuid,
     s.color,
     (
-      SELECT GROUP_CONCAT(door_to_door_lock.door_lock_id ORDER BY door_to_door_lock.array_order_index)
+      SELECT GROUP_CONCAT(door_to_door_lock.door_lock_id ORDER BY door_to_door_lock.array_order_index ASC SEPARATOR ',')
       FROM door_to_door_lock WHERE door_to_door_lock.door_id = s.id
     ) as lock_ids,
     s.created_at
@@ -22,7 +22,7 @@ exports[`generateEntityViewCurrent versioned entity with array properties should
     s.uuid,
     s.name,
     (
-      SELECT GROUP_CONCAT(vehicle_version_to_wheel.wheel_id ORDER BY vehicle_version_to_wheel.array_order_index)
+      SELECT GROUP_CONCAT(vehicle_version_to_wheel.wheel_id ORDER BY vehicle_version_to_wheel.array_order_index ASC SEPARATOR ',')
       FROM vehicle_version_to_wheel WHERE vehicle_version_to_wheel.vehicle_version_id = v.id
     ) as wheel_ids,
     s.created_at,
