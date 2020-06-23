@@ -2,11 +2,12 @@ import { DataTypeName } from '../constants';
 import { DataType } from './DataType';
 
 describe('DataType', () => {
-  it('should be instantiatable', () => {
+  it('should be instantiable', () => {
     const type = new DataType({
-      name: DataTypeName.ENUM,
-      values: ['a', 'b', 'c'],
+      name: DataTypeName.NUMERIC,
+      precision: 5,
+      scale: 2,
     });
-    expect(type.name).toEqual(DataTypeName.ENUM);
+    expect(type.name).toEqual(DataTypeName.NUMERIC);
   });
 });
