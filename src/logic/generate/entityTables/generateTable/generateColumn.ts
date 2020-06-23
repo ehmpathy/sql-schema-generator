@@ -1,38 +1,15 @@
-import { DataTypeName, Property } from '../../../../types';
-import { extractMysqlTypeDefinitionFromProperty } from '../../utils/extractMysqlTypeDefinitionFromProperty';
+import { Property } from '../../../../types';
+import { extractDataTypeDefinitionFromProperty } from '../../utils/extractDataTypeDefinitionFromProperty';
 
-/*
-  // TODO: generalize w/ adapter pattern to other languages
-*/
-const textTypes = [
-  DataTypeName.CHAR,
-  DataTypeName.VARCHAR,
-  DataTypeName.TINYTEXT,
-  DataTypeName.TEXT,
-  DataTypeName.MEDIUMTEXT,
-  DataTypeName.LONGTEXT,
-  DataTypeName.ENUM,
-];
 export const generateColumn = ({ columnName, property }: { columnName: string; property: Property }) => {
-  // define default over-rides
-  let defaultNullRelation = property.nullable ? 'DEFAULT NULL' : ''; // if nullable, then the "default" default is "null"; else, nothing
-  if (property.type.name === DataTypeName.TEXT) defaultNullRelation = ''; // if its varchar, then even if nullable don't show default as null; // TODO: discover why SHOW CREATE has this exception
-
-  // define the full column definition
   const modifiers = [
-    `\`${columnName}\``,
+    columnName,
 
-    extractMysqlTypeDefinitionFromProperty({ property }), // e.g., property => bigint(20)
+    extractDataTypeDefinitionFromProperty({ property }), // e.g., property => bigint(20)
 
-    textTypes.includes(property.type.name) ? 'COLLATE utf8mb4_bin' : '', // collate if its a string type
+    property.default ? `DEFAULT ${property.default}` : '', // if default is set, use it; otherwise, no default
 
-    property.nullable ? '' : 'NOT NULL', // if not nullable, then NOT NULL
-
-    property.default ? `DEFAULT ${property.default}` : defaultNullRelation, // if default is set, use it; otherwise, no default
-
-    property.comment ? `COMMENT '${property.comment}'` : '', // empty string if comment not defined
-
-    columnName === 'id' ? 'AUTO_INCREMENT' : '',
+    property.nullable ? 'NULL' : 'NOT NULL', // if not nullable, then NOT NULL
   ];
   return modifiers
     .filter((modifier) => !!modifier) // filter out null

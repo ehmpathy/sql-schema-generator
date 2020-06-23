@@ -1,6 +1,6 @@
 import { Property } from '../../../../../types';
 import { prop } from '../../../../define';
-import { extractMysqlTypeDefinitionFromProperty } from '../../../utils/extractMysqlTypeDefinitionFromProperty';
+import { extractMysqlTypeDefinitionFromProperty } from '../../../utils/extractDataTypeDefinitionFromProperty';
 import { castPropertyToInputVariableName } from './castPropertyToInputVariableName';
 
 /*

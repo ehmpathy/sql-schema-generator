@@ -1,6 +1,6 @@
+import { DatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { Entity } from '../../../types';
 import { generateEntityTables } from '../entityTables/generateEntityTables';
-import { DatabaseConnection } from './databaseConnection';
 
 export const createTablesForEntity = async ({
   entity,

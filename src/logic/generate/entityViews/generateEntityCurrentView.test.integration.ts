@@ -1,10 +1,10 @@
 import uuid from 'uuid/v4';
 import { mysql as prepare } from 'yesql';
 
+import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { Entity, ValueObject } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
-import { DatabaseConnection, getDatabaseConnection } from '../__test_utils__/databaseConnection';
 import { dropAndCreateUpsertFunctionForEntity } from '../__test_utils__/dropAndCreateUpsertForEntity';
 import { dropAndCreateViewForEntity } from '../__test_utils__/dropAndCreateViewForEntity';
 import { getEntityFromCurrentView } from '../__test_utils__/getEntityFromCurrentView';

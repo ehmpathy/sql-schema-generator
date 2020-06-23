@@ -1,6 +1,6 @@
+import { DatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { Entity } from '../../../types';
 import { generateEntityCurrentView } from '../entityViews/generateEntityCurrentView';
-import { DatabaseConnection } from './databaseConnection';
 
 export const getEntityFromCurrentView = async ({
   id,
@@ -13,7 +13,7 @@ export const getEntityFromCurrentView = async ({
 }) => {
   const view = generateEntityCurrentView({ entity });
   const name = view!.name;
-  const results = (await dbConnection.execute({ sql: `select * from ${name} where id = ${id}` })) as any;
+  const results = (await dbConnection.query({ sql: `select * from ${name} where id = ${id}` })) as any;
   expect(results[0].length).toEqual(1);
   const entityData = results[0][0];
   return entityData;

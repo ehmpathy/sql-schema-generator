@@ -1,4 +1,4 @@
-import { DatabaseConnection, getDatabaseConnection } from '../../__test_utils__/databaseConnection';
+import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
 import { generateGetFromDelimiterSplitString } from './generateGetFromDelimiterSplitString';
 
 describe('generateGetValueFromDelimiterSplitString', () => {
@@ -13,7 +13,7 @@ describe('generateGetValueFromDelimiterSplitString', () => {
   const recreateUtilFunction = async () => {
     const { sql, name } = generateGetFromDelimiterSplitString();
     await dbConnection.query({ sql: `DROP FUNCTION IF EXISTS ${name}` });
-    dbConnection.query(sql);
+    dbConnection.query({ sql });
     return { sql, name };
   };
   it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {

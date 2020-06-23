@@ -1,9 +1,9 @@
 import uuid from 'uuid/v4';
 import { mysql as prepare } from 'yesql';
 
+import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { Entity } from '../../../types';
 import * as prop from '../../define/defineProperty';
-import { DatabaseConnection, getDatabaseConnection } from '../__test_utils__/databaseConnection';
 import { generateEntityTables } from '../entityTables/generateEntityTables';
 import { generateEntityBackfillCurrentVersionPointers } from './generateEntityBackfillCurrentVersionPointers';
 import { generateEntityUpsert } from './generateEntityUpsert/generateEntityUpsert';
@@ -27,7 +27,7 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
           nullable: true, // i.e., some people don't name their cars
         },
         wheels: {
-          ...prop.TINYINT(),
+          ...prop.SMALLINT(),
           updatable: true,
         },
       },

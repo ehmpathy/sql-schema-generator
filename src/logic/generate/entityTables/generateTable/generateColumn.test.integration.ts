@@ -1,6 +1,9 @@
+import { normalizeCreateTableDdl } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/normalizeCreateTableDdl';
+import { provisionShowCreateTableFunction } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/provisionShowCreateTableFunction';
+import { showCreateTable } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable';
+import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
 import { DataType, DataTypeName, Property } from '../../../../types';
 import { prop } from '../../../define';
-import { DatabaseConnection, getDatabaseConnection } from '../../__test_utils__/databaseConnection';
 import { generateColumn } from './generateColumn';
 
 /*
@@ -20,21 +23,20 @@ describe('generateColumn', () => {
       sql: `
       CREATE TABLE generate_table_column_test_table (
         ${columnSql}
-      ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+      )
     `,
     });
   };
   const getShowCreateNow = async () => {
-    const result = (await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_column_test_table' })) as any;
-    return result[0][0]['Create Table'];
+    await provisionShowCreateTableFunction({ dbConnection });
+    const ddl = await showCreateTable({ dbConnection, schema: 'public', table: 'generate_table_column_test_table' });
+    return normalizeCreateTableDdl({ ddl });
   };
   it('can create a table with basic column definition, w/ same syntax as from SHOW CREATE TABLE', async () => {
     const property = new Property({
       type: new DataType({
         name: DataTypeName.INT,
-        precision: 11,
       }),
-      comment: 'hope this clarifies things for ya',
       nullable: true,
     });
     const sql = generateColumn({ columnName: 'user_id', property });
@@ -42,13 +44,23 @@ describe('generateColumn', () => {
     const createTableSQL = await getShowCreateNow();
     expect(createTableSQL).toContain(sql); // should contain the exact string
   });
+  it('can create a table with bigserial definition, w/ same syntax as show create table', async () => {
+    const property = new Property({
+      type: new DataType({
+        name: DataTypeName.BIGSERIAL,
+      }),
+    });
+    const sql = generateColumn({ columnName: 'id', property });
+    await testColumnIsCreatable({ columnSql: sql });
+    const createTableSQL = await getShowCreateNow();
+    expect(createTableSQL).toContain(sql); // should contain the exact string
+  });
   it('can create a table with enum definition, w/ same syntax as from SHOW CREATE TABLE', async () => {
     const property = new Property({
       type: new DataType({
-        name: DataTypeName.ENUM,
-        values: ['option_one', 'option_two'],
+        name: DataTypeName.VARCHAR,
       }),
-      comment: 'hope this clarifies things for ya',
+      check: "($COLUMN_NAME IN ('option_one','option_two')",
       nullable: true,
       default: "'option_one'",
     });
@@ -78,31 +90,27 @@ describe('generateColumn', () => {
     describe('exhaustive check - every property exposed in contract with helper should be creatable', () => {
       const propertiesToCheck = [
         // integers
-        { name: 'TINYINT', args: [] },
         { name: 'SMALLINT', args: [] },
-        { name: 'MEDIUMINT', args: [] },
         { name: 'INT', args: [] },
         { name: 'BIGINT', args: [] },
 
+        // serials
+        { name: 'BIGSERIAL', args: [] },
+
         // exact numbers
-        { name: 'DECIMAL', args: [5, 2] },
+        { name: 'NUMERIC', args: [5, 2] },
 
         // floating point
-        { name: 'FLOAT', args: [] },
-        { name: 'DOUBLE', args: [] },
+        { name: 'REAL', args: [] },
+        { name: 'DOUBLE_PRECISION', args: [] },
 
-        // bit type
-        { name: 'BIT', args: [8] },
+        // binary string
+        { name: 'BYTEA', args: [21] },
 
         // text types
-        { name: 'ENUM', args: [['a', 'b', 'c', 'd', 'f']] },
-        { name: 'BINARY', args: [21] },
-        { name: 'CHAR', args: [21] },
         { name: 'VARCHAR', args: [21] },
-        { name: 'TINYTEXT', args: [] },
         { name: 'TEXT', args: [] },
-        { name: 'MEDIUMTEXT', args: [] },
-        { name: 'LONGTEXT', args: [] },
+        { name: 'CHAR', args: [21] },
       ];
       propertiesToCheck.forEach((propertyKey) => {
         const testName = `should be able to create ${JSON.stringify(
@@ -111,7 +119,7 @@ describe('generateColumn', () => {
         it(testName, async () => {
           const property = (prop as any)[propertyKey.name](...propertyKey.args);
           const sql = generateColumn({ columnName: 'test_column', property });
-          expect(sql.toLowerCase()).toContain(propertyKey.name.toLowerCase()); // it should have the prop name in there
+          expect(sql.toLowerCase()).toContain(propertyKey.name.toLowerCase().replace(/_/g, ' ')); // it should have the prop name in there
           await testColumnIsCreatable({ columnSql: sql });
           const createTableSQL = await getShowCreateNow();
           expect(createTableSQL).toContain(sql); // should contain the exact string

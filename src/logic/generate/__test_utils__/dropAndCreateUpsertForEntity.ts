@@ -1,6 +1,6 @@
+import { DatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { Entity } from '../../../types';
 import { generateEntityUpsert } from '../entityFunctions/generateEntityUpsert';
-import { DatabaseConnection } from './databaseConnection';
 import { provisionGetFromDelimiterSplitStringFunction } from './provisionGetFromDelimiterSplitStringFunction';
 
 export const dropAndCreateUpsertFunctionForEntity = async ({

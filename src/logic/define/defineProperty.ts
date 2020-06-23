@@ -36,12 +36,27 @@ export const BIGINT = () =>
   new Property({
     type: new DataType({
       name: DataTypeName.BIGINT,
-      precision: 20,
     }),
   });
 
 /**
- * The DECIMAL type stores exact numeric data values. These types are used when it is important to preserve exact precision, for example with monetary data.
+ * BIGSERIAL: requires 8 bytes of storage. Range [0, 2^63-1].
+ *
+ * The postgres SERIAL datatype provides a convenient way to define auto incrementing columns, for use as unique ids.
+ *
+ * Only the BIGSERIAL type is exposed by this library, as it is best practice in the large majority of use cases to simply always use a BIGINT for auto incrementing ids.
+ *
+ * https://www.postgresql.org/docs/9.5/datatype-numeric.html
+ */
+export const BIGSERIAL = () =>
+  new Property({
+    type: new DataType({
+      name: DataTypeName.BIGSERIAL,
+    }),
+  });
+
+/**
+ * The NUMERIC type stores exact numeric data values. These types are used when it is important to preserve exact precision.
  *
  * Precision represents the number of significant digits that are stored in total. Scale represents the number of digits following the decimal point.
  *
@@ -49,10 +64,10 @@ export const BIGINT = () =>
  *
  * https://www.postgresql.org/docs/9.5/datatype-numeric.html
  */
-export const DECIMAL = (precision: number, scale: number) =>
+export const NUMERIC = (precision: number, scale: number) =>
   new Property({
     type: new DataType({
-      name: DataTypeName.DECIMAL,
+      name: DataTypeName.NUMERIC,
       precision,
       scale,
     }),

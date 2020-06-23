@@ -1,11 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`generateColumn should be able to specify a comment 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ NOT NULL COMMENT 'hey there'"`;
+exports[`generateColumn should be able to specify a check constraint 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NOT NULL CHECK (user_id IN ('this','or','that')"`;
 
-exports[`generateColumn should be able to specify a default value 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ NOT NULL DEFAULT CURRENT_TIMESTAMP(6)"`;
+exports[`generateColumn should be able to specify a comment 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NOT NULL COMMENT 'hey there'"`;
 
-exports[`generateColumn should be able to specify a default value while nullable 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ COLLATE utf8mb4_bin DEFAULT CURRENT_TIMESTAMP(6)"`;
+exports[`generateColumn should be able to specify a default value 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NOT NULL DEFAULT NOW(6)"`;
 
-exports[`generateColumn should define column name accurately 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ NOT NULL"`;
+exports[`generateColumn should define column name accurately 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NOT NULL"`;
 
-exports[`generateColumn should specify NOT NULL by default 1`] = `"\`user_id\` __MOCKED_TYPE_DEFINITION__ NOT NULL"`;
+exports[`generateColumn should specify NOT NULL by default 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NOT NULL"`;
+
+exports[`generateColumn should specify NULL if nullable 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NULL DEFAULT NULL"`;

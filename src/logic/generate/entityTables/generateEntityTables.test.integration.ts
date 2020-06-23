@@ -1,7 +1,7 @@
+import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { Entity, ValueObject } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
-import { DatabaseConnection, getDatabaseConnection } from '../__test_utils__/databaseConnection';
 import { generateEntityTables } from './generateEntityTables';
 
 /*
