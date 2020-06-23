@@ -24,9 +24,8 @@ export enum DataTypeName {
 
   // https://www.postgresql.org/docs/10/datatype-datetime.html
   TIMESTAMP = 'timestamp',
-  TIMESTAMP_WITH_TIME_ZONE = 'timestamptz',
+  TIMESTAMPTZ = 'timestamptz',
   TIME = 'time',
-  TIME_WITH_TIME_ZONE = 'timetz',
   DATE = 'date',
 
   // https://www.postgresql.org/docs/10/datatype-boolean.html

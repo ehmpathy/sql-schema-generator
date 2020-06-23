@@ -4,61 +4,33 @@
 import { DataType, DataTypeName, Entity, Property } from '../../types';
 
 /**
- * TINYINT: requires 1 byte of storage. Unsigned range [-128, 127]. Signed range [0, 255].
+ * SMALLINT: requires 2 bytes of storage. Range [-32,768, 32,768].
  *
- * https://dev.mysql.com/doc/refman/5.7/en/integer-types.html
- */
-export const TINYINT = () =>
-  new Property({
-    type: new DataType({
-      name: DataTypeName.TINYINT,
-      precision: 4,
-    }),
-  });
-
-/**
- * SMALLINT: requires 2 bytes of storage. Unsigned range [-32,768, 32,768]. Signed range [0, 65,535].
- *
- * https://dev.mysql.com/doc/refman/5.7/en/integer-types.html
+ * https://www.postgresql.org/docs/9.5/datatype-numeric.html
  */
 export const SMALLINT = () =>
   new Property({
     type: new DataType({
       name: DataTypeName.SMALLINT,
-      precision: 6,
     }),
   });
 
 /**
- * MEDIUMINT: requires 3 bytes of storage. Unsigned range [-8,388,608, 8,388,607]. Signed range [0, 16,777,215].
+ * INT: requires 4 bytes of storage. Range [-2,147,483,648, 2,147,483,647].
  *
- * https://dev.mysql.com/doc/refman/5.7/en/integer-types.html
- */
-export const MEDIUMINT = () =>
-  new Property({
-    type: new DataType({
-      name: DataTypeName.MEDIUMINT,
-      precision: 9,
-    }),
-  });
-
-/**
- * INT: requires 4 bytes of storage. Unsigned range [-2,147,483,648, 2,147,483,647]. Signed range [0, 4,294,967,295].
- *
- * https://dev.mysql.com/doc/refman/5.7/en/integer-types.html
+ * https://www.postgresql.org/docs/9.5/datatype-numeric.html
  */
 export const INT = () =>
   new Property({
     type: new DataType({
       name: DataTypeName.INT,
-      precision: 11,
     }),
   });
 
 /**
- * BIGINT: requires 8 bytes of storage. Unsigned range [-2^63, 2^63-1]. Signed range [0, 2^64-1].
+ * BIGINT: requires 8 bytes of storage. Range [-2^63, 2^63-1].
  *
- * https://dev.mysql.com/doc/refman/5.7/en/integer-types.html
+ * https://www.postgresql.org/docs/9.5/datatype-numeric.html
  */
 export const BIGINT = () =>
   new Property({
@@ -75,7 +47,7 @@ export const BIGINT = () =>
  *
  * Example: the range of DECIMAL(5,2) is [-999.99, 999.99], since 5 is the precision and 2 is the scale.
  *
- * https://dev.mysql.com/doc/refman/5.7/en/fixed-point-types.html
+ * https://www.postgresql.org/docs/9.5/datatype-numeric.html
  */
 export const DECIMAL = (precision: number, scale: number) =>
   new Property({
@@ -87,104 +59,62 @@ export const DECIMAL = (precision: number, scale: number) =>
   });
 
 /**
- * The FLOAT type represents approximate numeric data values.
+ * The REAL type represents approximate numeric data values.
  *
- * FLOAT requires 4 bytes.
+ * REAL requires 4 bytes.
  *
- * https://dev.mysql.com/doc/refman/5.7/en/floating-point-types.html
+ * On most platforms, the REAL type has a range of at least 1E-37 to 1E+37 with a precision of at least 6 decimal digits.
+ *
+ * https://www.postgresql.org/docs/9.5/datatype-numeric.html
  */
-export const FLOAT = () =>
+export const REAL = () =>
   new Property({
     type: new DataType({
-      name: DataTypeName.FLOAT,
+      name: DataTypeName.REAL,
     }),
   });
 
 /**
- * The DOUBLE type represents approximate numeric data values.
+ * The DOUBLE_PRECISION type represents approximate numeric data values.
  *
- * DOUBLE requires 8 bytes.
+ * DOUBLE_PRECISION requires 8 bytes.
  *
- * https://dev.mysql.com/doc/refman/5.7/en/floating-point-types.html
+ * On most platforms, the DOUBLE_PRECISION type has a range of around 1E-307 to 1E+308 with a precision of at least 15 digits.
+ *
+ * https://www.postgresql.org/docs/9.5/datatype-numeric.html
  */
-export const DOUBLE = () =>
+export const DOUBLE_PRECISION = () =>
   new Property({
     type: new DataType({
-      name: DataTypeName.DOUBLE,
+      name: DataTypeName.DOUBLE_PRECISION,
     }),
   });
 
 /**
- * The BIT data type is used to store bit values. A type of BIT(M) enables storage of M-bit values. M can range from 1 to 64.
+ * UUID: requires 16 bytes of storage
  *
- * If you assign a value to a BIT(M) column that is less than M bits long, the value is padded on the left with zeros. For example, assigning a value of b'101' to a BIT(6) column is, in effect, the same as assigning b'000101'.
+ * Note: this is half the size of CHAR(36) (36 bytes), which would otherwise be required to store a uuid
  *
- * https://dev.mysql.com/doc/refman/5.7/en/bit-type.html
- */
-export const BIT = (precision: number) =>
-  new Property({
-    type: new DataType({
-      name: DataTypeName.BIT,
-      precision,
-    }),
-  });
-
-/**
- * UUID is an alias for CHAR(36)
+ * https://stackoverflow.com/a/29882952/3068233
+ * https://www.postgresql.org/docs/10/datatype-uuid.html
  */
 export const UUID = () =>
   new Property({
     type: new DataType({
-      name: DataTypeName.CHAR,
-      precision: 36,
-    }),
-    // TODO: add check for proper uuid format
-  });
-
-/**
- * An ENUM is a string object with a value chosen from a list of permitted values that are enumerated explicitly in the column specification at table creation time.
- *
- * WARNING: An enumeration value can also be the empty string ('') or NULL under certain circumstances, per MySQL documentation (!). Only if strict SQL mode is enabled, attempts to insert invalid ENUM values result in an error.
- *
- * https://dev.mysql.com/doc/refman/5.7/en/enum.html
- */
-export const ENUM = (values: string[]) =>
-  new Property({
-    type: new DataType({
-      name: DataTypeName.ENUM,
-      values,
+      name: DataTypeName.UUID,
     }),
   });
 
 /**
- * CHAR(n) uses a fixed storage size. Precision, n, defines the maximum number of characters you want to store. Range of precision: [0, 255].
+ * VARCHAR(n) requires a variable storage size. Precision, n, defines the maximum number of characters you want to store.
  *
- * Each character will take up to 4 bytes to store with a full charset like utf8mb4. This means `total bytes used = n * 4`.
+ * If you dont need to limit the size of strings in this column, use the TEXT type instead.
  *
- * When CHAR values are stored, they are right-padded with spaces to the specified length. When CHAR values are retrieved, trailing spaces are removed unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled.
+ * VARCHAR values are stored with a 1-byte prefix plus data, if they're up to 126 bytes. Strings larger than this will have a 4 byte prefix. Long strings are compressed automatically, so physical requirement on disk may be less.
  *
- * WARNING: If strict SQL mode is not enabled and you assign a value to a CHAR column that exceeds the column's maximum length, the value is truncated to fit and a warning is generated.
+ * The longest possible string that can be stored is about 1GB.
  *
- * https://dev.mysql.com/doc/refman/5.7/en/char.html
- */
-export const CHAR = (precision: number) =>
-  new Property({
-    type: new DataType({
-      name: DataTypeName.VARCHAR,
-      precision,
-    }),
-  });
-
-/**
- * VARCHAR(n) requires a variable storage size. Precision, n, defines the maximum number of characters you want to store. Range of precision: [0, 65,535].
- *
- * VARCHAR values are stored as a 1-byte or 2-byte length prefix plus data. The length prefix indicates the number of bytes in the value. A column uses one length byte if values require no more than 255 bytes, two length bytes if values may require more than 255 bytes.
- *
- * Each character will take up 4 bytes to store with a full charset like utf8mb4. This means `total bytes used = precision * 4 + prefix_length`.
- *
- * WARNING: If strict SQL mode is not enabled and you assign a value to a VARCHAR column that exceeds the column's maximum length, the value is truncated to fit and a warning is generated.
- *
- * https://dev.mysql.com/doc/refman/5.7/en/char.html
+ * https://www.postgresql.org/docs/10/datatype-character.html
  */
 export const VARCHAR = (precision: number) =>
   new Property({
@@ -195,21 +125,13 @@ export const VARCHAR = (precision: number) =>
   });
 
 /**
- * TINYTEXT requires L + 1 bytes, where L < 2^8. (2^8 = 256)
+ * TEXT requires a variable storage size.
  *
- * https://dev.mysql.com/doc/refman/5.7/en/blob.html
- */
-export const TINYTEXT = () =>
-  new Property({
-    type: new DataType({
-      name: DataTypeName.TINYTEXT,
-    }),
-  });
-
-/**
- * TEXT requires L + 2 bytes, where L < 2^16. (2^16 = 65,536)
+ * TEXT values are stored with a 1-byte prefix plus data, if they're up to 126 bytes. Strings larger than this will have a 4 byte prefix. Long strings are compressed automatically, so physical requirement on disk may be less.
  *
- * https://dev.mysql.com/doc/refman/5.7/en/blob.html
+ * The longest possible string that can be stored is about 1GB.
+ *
+ * https://www.postgresql.org/docs/10/datatype-character.html
  */
 export const TEXT = () =>
   new Property({
@@ -219,55 +141,119 @@ export const TEXT = () =>
   });
 
 /**
- * TEXT requires L + 3 bytes, where L < 2^24. (2^32 = 16,777,216)
+ * CHAR is implemented in this library as an alias for VARCHAR.
  *
- * https://dev.mysql.com/doc/refman/5.7/en/blob.html
+ * This is because, per the postgres docs, using CHAR in postgres does not help with storage costs and  actually hurts performance:
+ * > While character(n) has performance advantages in some other database systems, there is no such advantage in PostgreSQL; in fact character(n) is usually the slowest of the three because of its additional storage costs. In most situations text or character varying should be used instead.
+ *
+ * VARCHAR values are stored with a 1-byte prefix plus data, if they're up to 126 bytes. Strings larger than this will have a 4 byte prefix. Long strings are compressed automatically, so physical requirement on disk may be less.
+ *
+ * https://www.postgresql.org/docs/10/datatype-character.html
  */
-export const MEDIUMTEXT = () =>
+export const CHAR = (precision: number) =>
   new Property({
     type: new DataType({
-      name: DataTypeName.MEDIUMTEXT,
-    }),
-  });
-
-/**
- * TEXT requires L + 4 bytes, where L < 2^32. (2^32 = 4,294,967,296)
- *
- * https://dev.mysql.com/doc/refman/5.7/en/blob.html
- */
-export const LONGTEXT = () =>
-  new Property({
-    type: new DataType({
-      name: DataTypeName.LONGTEXT,
-    }),
-  });
-
-/**
- * BINARY(n) requires n bytes of storage. Precision, n, defines the maximum number of bytes you want to store. Range of precision: [0, 255].
- *
- * https://dev.mysql.com/doc/refman/5.7/en/binary-varbinary.html
- */
-export const BINARY = (precision: number) =>
-  new Property({
-    type: new DataType({
-      name: DataTypeName.BINARY,
+      name: DataTypeName.VARCHAR,
       precision,
     }),
   });
 
 /**
- * The DATETIME type is used for values that contain both date and time parts. MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD hh:mm:ss' format. The supported range is '1000-01-01 00:00:00' to '9999-12-31 23:59:59'.
+ * ENUM is implemented in this library as an alias for VARCHAR with a check constraint to enforce that values are in the enum
  *
- * DATETIME requires 8 bytes of storage.
- *
- * https://dev.mysql.com/doc/refman/5.7/en/datetime.html
- * https://dev.mysql.com/doc/refman/5.7/en/storage-requirements.html
+ * Although postgres supports enum types natively, this we recommend using a check constraint for easier maintenance.
  */
-export const DATETIME = (precision: number) =>
+export const ENUM = (values: string[]) =>
   new Property({
     type: new DataType({
-      name: DataTypeName.DATETIME,
+      name: DataTypeName.VARCHAR,
+    }),
+    check: `($COLUMN_NAME IN (${values.map((value) => `'${value}'`).join(',')}))`, // $COLUMN_NAME is replaced with the name of the column, at DDL output time
+  });
+
+/**
+ * BYTEA, aka byte array, allows storage of binary strings.
+ *
+ * BYTEA requires a variable storage size.
+ *
+ * BYTEA values are stored with a 1-byte or 4-byte prefix plus data.
+ *
+ * https://www.postgresql.org/docs/10/datatype-binary.html
+ */
+export const BYTEA = () =>
+  new Property({
+    type: new DataType({
+      name: DataTypeName.BYTEA,
+    }),
+  });
+
+/**
+ * TIMESTAMP stores both date and time (no time zone). Range: [4713 BC, 294276 AD]. Resolution: 1 microsecond.
+ *
+ * TIMESTAMP supports an optional precision value p which specifies the number of fractional digits retained in the seconds field. By default, there is no explicit bound on precision. The allowed range of p is from 0 to 6.
+ *
+ * TIMESTAMP requires 8 bytes of storage.
+ *
+ * https://www.postgresql.org/docs/10/datatype-datetime.html
+ */
+export const TIMESTAMP = (precision?: number) =>
+  new Property({
+    type: new DataType({
+      name: DataTypeName.TIMESTAMP,
       precision,
+    }),
+  });
+
+/**
+ * TIMESTAMPTZ stores both date and time (with time zone). Range: [4713 BC, 294276 AD]. Resolution: 1 microsecond.
+ *
+ * TIMESTAMPTZ is an alias for TIMESTAMP WITH TIME ZONE.
+ *
+ * TIMESTAMPTZ values are stored in UTC:
+ * > For timestamp with time zone, the internally stored value is always in UTC (Universal Coordinated Time, traditionally known as Greenwich Mean Time, GMT). An input value that has an explicit time zone specified is converted to UTC using the appropriate offset for that time zone. If no time zone is stated in the input string, then it is assumed to be in the time zone indicated by the system's TimeZone parameter, and is converted to UTC using the offset for the timezone zone.
+ *
+ * TIMESTAMPTZ values are returned in the local timezone:
+ * > When a timestamp with time zone value is output, it is always converted from UTC to the current timezone zone, and displayed as local time in that zone. To see the time in another time zone, either change timezone or use the AT TIME ZONE construct (see Section 9.9.3).
+ *
+ * TIMESTAMPTZ supports an optional precision value p which specifies the number of fractional digits retained in the seconds field. By default, there is no explicit bound on precision. The allowed range of p is from 0 to 6.
+ *
+ * TIMESTAMPTZ requires 8 bytes of storage.
+ *
+ * https://www.postgresql.org/docs/10/datatype-datetime.html
+ */
+export const TIMESTAMPTZ = (precision?: number) =>
+  new Property({
+    type: new DataType({
+      name: DataTypeName.TIMESTAMPTZ,
+      precision,
+    }),
+  });
+
+/**
+ * TIME stores the time of day (no date). Range: [00:00:00, 24:00:00]. Resolution: 1 microsecond.
+ *
+ * TIME requires 4 bytes of storage.
+ *
+ * TIME supports an optional precision value p which specifies the number of fractional digits retained in the seconds field. By default, there is no explicit bound on precision. The allowed range of p is from 0 to 6.
+ *
+ */
+export const TIME = (precision?: number) =>
+  new Property({
+    type: new DataType({
+      name: DataTypeName.TIME,
+      precision,
+    }),
+  });
+
+/**
+ * DATE stores the date (no time of day). Range: [4713 BC, 5874897 AD]. Resolution: 1 day.
+ *
+ * DATE requires 4 bytes of storage.
+ */
+export const DATE = () =>
+  new Property({
+    type: new DataType({
+      name: DataTypeName.DATE,
     }),
   });
 
