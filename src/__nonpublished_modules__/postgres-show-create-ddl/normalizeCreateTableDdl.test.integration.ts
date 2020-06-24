@@ -19,7 +19,8 @@ describe('showCreateTable', () => {
 CREATE TABLE test_tb_for_show_create_on (
   id BIGSERIAL PRIMARY KEY,
   name VARCHAR(150),
-  level VARCHAR(50) CHECK (level IN ('info', 'warn', 'error'))
+  level VARCHAR(50) CHECK (level IN ('info', 'warn', 'error')),
+  description TEXT NOT NULL DEFAULT 'hello there!'
 )
     `.trim(),
     });

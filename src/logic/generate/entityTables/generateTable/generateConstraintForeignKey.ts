@@ -1,10 +1,5 @@
 import { Property } from '../../../../types';
 
-/*
-  // TODO: generalize w/ adapter pattern to other languages
-
-  NOTE: in mysql generating a FK constraint automatically generates a 'key' on the referential column, so this util defines both of those to be explicit
-*/
 export const generateConstraintForeignKey = ({
   index,
   tableName,
@@ -18,14 +13,15 @@ export const generateConstraintForeignKey = ({
 }) => {
   const constraintName = `${tableName}_fk${index}`;
   const constraintSql = `
-CONSTRAINT \`${constraintName}\` FOREIGN KEY (\`${columnName}\`) REFERENCES \`${property.references!}\` (\`id\`)
+CONSTRAINT ${constraintName} FOREIGN KEY (${columnName}) REFERENCES ${property.references!}(id)
   `.trim();
-  const keySql = `
-KEY \`${constraintName}\` (\`${columnName}\`)
+
+  const indexSql = `
+CREATE INDEX ${constraintName}_ix ON ${tableName} USING btree (${columnName});
   `.trim();
 
   return {
-    key: keySql,
+    index: indexSql,
     constraint: constraintSql,
   };
 };

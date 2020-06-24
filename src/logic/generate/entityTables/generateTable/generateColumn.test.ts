@@ -51,17 +51,6 @@ describe('generateColumn', () => {
     expect(sql).not.toContain('NOT NULL');
     expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
   });
-  it('should be able to specify a comment', () => {
-    const property = new Property({
-      type: new DataType({
-        name: DataTypeName.INT,
-      }),
-      comment: 'hey there',
-    });
-    const sql = generateColumn({ columnName: 'user_id', property });
-    expect(sql).toContain("COMMENT 'hey there'");
-    expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
-  });
   it('should be able to specify a default value', () => {
     const property = new Property({
       type: new DataType({
@@ -71,17 +60,6 @@ describe('generateColumn', () => {
     });
     const sql = generateColumn({ columnName: 'user_id', property });
     expect(sql).toContain('DEFAULT NOW(6)');
-    expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
-  });
-  it('should be able to specify a check constraint', () => {
-    const property = new Property({
-      type: new DataType({
-        name: DataTypeName.VARCHAR,
-      }),
-      check: "($COLUMN_NAME IN ('this','or','that')",
-    });
-    const sql = generateColumn({ columnName: 'user_id', property });
-    expect(sql).toContain("CHECK (user_id IN ('this','or','that')");
     expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
   });
 });

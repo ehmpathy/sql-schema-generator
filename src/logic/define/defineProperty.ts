@@ -183,7 +183,7 @@ export const ENUM = (values: string[]) =>
     type: new DataType({
       name: DataTypeName.VARCHAR,
     }),
-    check: `($COLUMN_NAME IN (${values.map((value) => `'${value}'`).join(',')}))`, // $COLUMN_NAME is replaced with the name of the column, at DDL output time
+    check: `($COLUMN_NAME IN (${values.map((value) => `'${value}'`).join(', ')}))`, // $COLUMN_NAME is replaced with the name of the column, at DDL output time
   });
 
 /**

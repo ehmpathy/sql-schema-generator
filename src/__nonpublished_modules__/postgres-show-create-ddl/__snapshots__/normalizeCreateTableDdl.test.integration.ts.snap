@@ -5,15 +5,8 @@ exports[`showCreateTable should be possible to get create statement of table 1`]
   id bigserial NOT NULL,
   name varchar(150) NULL,
   level varchar(50) NULL,
-  CONSTRAINT test_tb_for_show_create_on_level_check CHECK (
-    (
-      (level) = ANY (
-        (
-          ARRAY ['info', 'warn', 'error']
-        )
-      )
-    )
-  ),
-  CONSTRAINT test_tb_for_show_create_on_pkey PRIMARY KEY (id)
+  description text NOT NULL DEFAULT 'hello there!',
+  CONSTRAINT test_tb_for_show_create_on_pkey PRIMARY KEY (id),
+  CONSTRAINT test_tb_for_show_create_on_level_check CHECK (level IN ('info', 'warn', 'error'))
 );"
 `;

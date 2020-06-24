@@ -7,9 +7,9 @@ export const generateColumn = ({ columnName, property }: { columnName: string; p
 
     extractDataTypeDefinitionFromProperty({ property }), // e.g., property => bigint(20)
 
-    property.default ? `DEFAULT ${property.default}` : '', // if default is set, use it; otherwise, no default
-
     property.nullable ? 'NULL' : 'NOT NULL', // if not nullable, then NOT NULL
+
+    property.default ? `DEFAULT ${property.default}` : '', // if default is set, use it; otherwise, no default
   ];
   return modifiers
     .filter((modifier) => !!modifier) // filter out null

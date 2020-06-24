@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateTable can create a table with basic column definition, w/ same syntax as from SHOW CREATE TABLE 1`] = `
+"CREATE TABLE generate_table_test (
+  id bigint NOT NULL,
+  reference_id bigint NOT NULL,
+  second_reference_id bigint NOT NULL,
+  status varchar NOT NULL,
+  CONSTRAINT generate_table_test_pk PRIMARY KEY (id),
+  CONSTRAINT generate_table_test_ux1 UNIQUE (reference_id),
+  CONSTRAINT generate_table_test_fk0 FOREIGN KEY (reference_id) REFERENCES generate_table_test_referenced(id),
+  CONSTRAINT generate_table_test_fk1 FOREIGN KEY (second_reference_id) REFERENCES generate_table_test_referenced(id),
+  CONSTRAINT generate_table_test_status_check CHECK (status IN ('QUEUED', 'ATTEMPTED', 'FULFILLED'))
+);
+CREATE INDEX generate_table_test_fk0_ix ON generate_table_test USING btree (reference_id);
+CREATE INDEX generate_table_test_fk1_ix ON generate_table_test USING btree (second_reference_id);"
+`;

@@ -1,6 +1,8 @@
 import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
+import { getShowCreateTable } from '../../../../__test_utils__/getShowCreateTable';
 import { DataType, DataTypeName, Property } from '../../../../types';
 import { generateTable } from './generateTable';
+import { prop } from '../../../define';
 
 /*
   we test an example of every variation against the database to ensure we are defining valid sql
@@ -14,8 +16,14 @@ describe('generateTable', () => {
     await dbConnection.end();
   });
   const testTableIsCreateable = async ({ createTableSql }: { createTableSql: string }) => {
-    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test;' });
-    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test_referenced;' });
+    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test CASCADE;' });
+
+    // await dbConnection.query({ sql: 'DROP CONSTRAINT IF EXISTS generate_table_test_pkey CASCADE;' });
+
+    // await dbConnection.query({ sql: 'DROP INDEX generate_table_test_pkey;' });
+    // await dbConnection.query({ sql: 'DROP INDEX IF EXISTS generate_table_test_ux1;' });
+    // await dbConnection.query({ sql: 'DROP INDEX IF EXISTS generate_table_test_fk1;' });
+    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test_referenced CASCADE;' });
     await dbConnection.query({
       sql: `
       CREATE TABLE generate_table_test_referenced (
@@ -25,33 +33,33 @@ describe('generateTable', () => {
     });
     await dbConnection.query({ sql: createTableSql });
   };
-  const getShowCreateNow = async () => {
-    const result = (await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_test' })) as any;
-    return result[0][0]['Create Table'];
-  };
+  const getShowCreateNow = async () => getShowCreateTable({ table: 'generate_table_test', dbConnection });
   it('can create a table with basic column definition, w/ same syntax as from SHOW CREATE TABLE', async () => {
     const pk = new Property({
       type: new DataType({
         name: DataTypeName.BIGINT,
-        precision: 11,
       }),
     });
     const reference = new Property({
       type: new DataType({
         name: DataTypeName.BIGINT,
-        precision: 11,
       }),
       references: 'generate_table_test_referenced',
     });
+    const status = prop.ENUM(['QUEUED', 'ATTEMPTED', 'FULFILLED']);
     const createTableSql = await generateTable({
       tableName: 'generate_table_test',
-      properties: { id: pk, reference_id: reference, second_reference_id: reference },
+      properties: { id: pk, reference_id: reference, second_reference_id: reference, status },
       unique: ['reference_id'],
     });
     await testTableIsCreateable({ createTableSql });
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
     const createTableSqlFound = await getShowCreateNow();
+    console.log(createTableSqlFound);
     expect(createTableSqlFound).toEqual(createTableSql); // should be the exact string
+
+    // snapshot to save an example
+    expect(createTableSql).toMatchSnapshot();
   });
 });
