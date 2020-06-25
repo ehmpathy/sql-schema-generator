@@ -54,12 +54,12 @@ describe('generateColumn', () => {
   it('should be able to specify a default value', () => {
     const property = new Property({
       type: new DataType({
-        name: DataTypeName.TIMESTAMP,
+        name: DataTypeName.TIMESTAMPTZ,
       }),
-      default: 'NOW(6)',
+      default: 'now()',
     });
     const sql = generateColumn({ columnName: 'user_id', property });
-    expect(sql).toContain('DEFAULT NOW(6)');
+    expect(sql).toContain('DEFAULT now()');
     expect(sql).toMatchSnapshot(); // to log an example, not to actualy test logic
   });
 });

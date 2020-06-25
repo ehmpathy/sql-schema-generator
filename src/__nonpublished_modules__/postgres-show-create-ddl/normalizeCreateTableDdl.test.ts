@@ -71,4 +71,23 @@ CREATE INDEX generate_table_test_fk1_ix ON generate_table_test USING btree (seco
     const normalizedDdl = normalizeCreateTableDdl({ ddl: checkConstraintContainingDdl });
     expect(normalizedDdl).toContain("CHECK (status IN ('QUEUED', 'ATTEMPTED', 'FULFILLED'))");
   });
+  it('should add a space between the referenced table and the referenced column', () => {
+    const checkConstraintContainingDdl = `
+CREATE TABLE generate_table_test (
+  id bigint NOT NULL,
+  reference_id bigint NOT NULL,
+  second_reference_id bigint NOT NULL,
+  status varchar NOT NULL,
+  CONSTRAINT generate_table_test_pk PRIMARY KEY (id),
+  CONSTRAINT generate_table_test_ux1 UNIQUE (reference_id),
+  CONSTRAINT generate_table_test_fk0 FOREIGN KEY (reference_id) REFERENCES generate_table_test_referenced(id),
+  CONSTRAINT generate_table_test_fk1 FOREIGN KEY (second_reference_id) REFERENCES generate_table_test_referenced(id),
+);
+CREATE INDEX generate_table_test_fk0_ix ON generate_table_test USING btree (reference_id);
+CREATE INDEX generate_table_test_fk1_ix ON generate_table_test USING btree (second_reference_id);
+    `;
+    const normalizedDdl = normalizeCreateTableDdl({ ddl: checkConstraintContainingDdl });
+    expect(normalizedDdl).not.toContain('generate_table_test_referenced(id)');
+    expect(normalizedDdl).toContain('generate_table_test_referenced (id)');
+  });
 });

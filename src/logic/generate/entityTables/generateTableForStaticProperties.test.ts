@@ -37,8 +37,8 @@ describe('generateTableForStaticProperties', () => {
           id: prop.BIGINT(),
           uuid: prop.UUID(),
           created_at: new Property({
-            ...prop.DATETIME(6),
-            default: 'CURRENT_TIMESTAMP(6)',
+            ...prop.TIMESTAMPTZ(),
+            default: 'now()',
           }),
         }),
       }),
@@ -61,7 +61,7 @@ describe('generateTableForStaticProperties', () => {
     expect(generateTableMock).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
-          testProp_hash: prop.BINARY(32), // 32 since SHA256 binary string is 32 char long
+          testProp_hash: prop.BYTEA(),
         }),
       }),
     );
@@ -77,7 +77,7 @@ describe('generateTableForStaticProperties', () => {
       expect.objectContaining({
         unique: ['testProp_hash'], // note: it _must_ pass the "hash" suffix, in order for the "create table" logic to find the correct column
         properties: expect.objectContaining({
-          testProp_hash: prop.BINARY(32), // 32 since SHA256 binary string is 32 char long
+          testProp_hash: prop.BYTEA(),
         }),
       }),
     );

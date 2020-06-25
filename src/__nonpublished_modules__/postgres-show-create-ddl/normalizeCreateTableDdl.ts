@@ -23,6 +23,9 @@ export const normalizeCreateTableDdl = ({ ddl }: { ddl: string }) => {
     'CHECK ($1 IN ($2))',
   );
 
+  // replace `REFERENCES table_name(id)` with `REFERENCES table_name (id)` for consistency
+  aliasedSql = aliasedSql.replace(/REFERENCES ([\w_]+)\(([\w_]+)\)/g, 'REFERENCES $1 ($2)');
+
   // reprettify the ddl
   const reprettyDdl = sqlFormatter.format(aliasedSql);
 

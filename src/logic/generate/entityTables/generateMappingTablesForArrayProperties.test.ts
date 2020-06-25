@@ -24,7 +24,7 @@ describe('generateMappingTablesForArrayProperties', () => {
           ...prop.BIGINT(),
           references: 'wrench',
         }),
-        ['array_order_index']: prop.TINYINT(),
+        ['array_order_index']: prop.SMALLINT(),
         ['diameter_id']: new Property({
           ...prop.BIGINT(),
           references: 'diameter',
@@ -48,7 +48,7 @@ describe('generateMappingTablesForArrayProperties', () => {
           ...prop.BIGINT(),
           references: 'wrench_version', // since "tags" are a property of the entities version, not the static entity
         }),
-        ['array_order_index']: prop.TINYINT(),
+        ['array_order_index']: prop.SMALLINT(),
         ['tag_id']: new Property({
           ...prop.BIGINT(),
           references: 'tag',

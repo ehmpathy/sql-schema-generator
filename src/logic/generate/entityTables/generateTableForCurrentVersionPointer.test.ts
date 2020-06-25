@@ -33,8 +33,8 @@ describe('generateTableForCurrentVersionPointer', () => {
           references: '__ENTITY_NAME___version',
         }),
         updated_at: new Property({
-          ...prop.DATETIME(6),
-          default: 'CURRENT_TIMESTAMP(6)',
+          ...prop.TIMESTAMPTZ(),
+          default: 'now()',
         }),
       },
     });

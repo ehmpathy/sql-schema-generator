@@ -9,8 +9,8 @@ export const generateTableForCurrentVersionPointer = ({ entityName }: { entityNa
   const currentVersionPointerProps = {
     id: prop.BIGINT(),
     updated_at: new Property({
-      ...prop.DATETIME(6),
-      default: 'CURRENT_TIMESTAMP(6)',
+      ...prop.TIMESTAMPTZ(),
+      default: 'now()',
     }),
     [staticTableReferenceName]: new Property({
       ...prop.BIGINT(),

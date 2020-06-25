@@ -41,7 +41,11 @@ $$
       SELECT
         c.column_name,
         c.data_type,
-        c.character_maximum_length,
+        COALESCE(
+          c.character_maximum_length,
+          CASE WHEN c.data_type = 'numeric' THEN c.numeric_precision ELSE null END -- only consider numeric_precision for the 'numeric' column, all others dont specify
+        ) as precision,
+        CASE WHEN c.numeric_scale IS NOT null AND c.numeric_scale <> 0 THEN c.numeric_scale ELSE null END as scale,
         c.is_nullable,
         c.column_default
       FROM information_schema.columns c
@@ -50,7 +54,14 @@ $$
     LOOP
       v_table_ddl := v_table_ddl || '  ' -- note: two char spacer to start, to indent the column
         || v_column_record.column_name || ' '
-        || v_column_record.data_type || CASE WHEN v_column_record.character_maximum_length IS NOT NULL THEN ('(' || v_column_record.character_maximum_length || ')') ELSE '' END || ' '
+        || v_column_record.data_type
+        || CASE WHEN v_column_record.precision IS NOT NULL THEN
+          (
+            '('
+            || v_column_record.precision
+            || CASE WHEN v_column_record.scale IS NOT NULL THEN (', ' || v_column_record.scale) ELSE '' END
+            || ')'
+          ) ELSE '' END || ' '
         || CASE WHEN v_column_record.is_nullable = 'NO' THEN 'NOT NULL' ELSE 'NULL' END
         || CASE WHEN v_column_record.column_default IS NOT null THEN (' DEFAULT ' || v_column_record.column_default) ELSE '' END
         || ',' || E'\n';
@@ -107,4 +118,3 @@ $$
     RETURN v_table_ddl;
   END;
 $$;
-

@@ -30,12 +30,12 @@ export const generateTableForUpdateableProperties = ({
       references: entityName,
     }),
     effective_at: new Property({
-      ...prop.DATETIME(6),
-      default: 'CURRENT_TIMESTAMP(6)',
+      ...prop.TIMESTAMPTZ(),
+      default: 'now()',
     }),
     created_at: new Property({
-      ...prop.DATETIME(6),
-      default: 'CURRENT_TIMESTAMP(6)',
+      ...prop.TIMESTAMPTZ(),
+      default: 'now()',
     }),
     ...updatableSingularProperties,
     ...castArrayPropertiesToValuesHashProperties({ properties: updatableArrayProperties }),

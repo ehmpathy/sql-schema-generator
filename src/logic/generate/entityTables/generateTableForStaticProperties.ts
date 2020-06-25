@@ -29,8 +29,8 @@ export const generateTableForStaticProperties = ({
     id: prop.BIGINT(),
     uuid: prop.UUID(),
     created_at: new Property({
-      ...prop.DATETIME(6),
-      default: 'CURRENT_TIMESTAMP(6)',
+      ...prop.TIMESTAMPTZ(),
+      default: 'now()',
     }),
     ...staticSingularProperties,
     ...castArrayPropertiesToValuesHashProperties({ properties: staticArrayProperties }),

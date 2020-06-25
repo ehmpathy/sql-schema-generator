@@ -1,4 +1,5 @@
 import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
+import { getShowCreateTable } from '../../../__test_utils__/getShowCreateTable';
 import { Entity, ValueObject } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
@@ -15,10 +16,8 @@ describe('generateEntityTables', () => {
   afterAll(async () => {
     await dbConnection.end();
   });
-  const getShowCreateNow = async ({ tableName }: { tableName: string }) => {
-    const result = (await dbConnection.query({ sql: `SHOW CREATE TABLE ${tableName}` })) as any;
-    return result[0][0]['Create Table'];
-  };
+  const getShowCreateNow = async ({ tableName }: { tableName: string }) =>
+    getShowCreateTable({ table: tableName, dbConnection });
   it('generates tables for a static entity, w/ same syntax as SHOW CREATE', async () => {
     const address = new Entity({
       name: 'address',
@@ -42,7 +41,7 @@ describe('generateEntityTables', () => {
     const order = new Entity({
       name: 'purchase_order',
       properties: {
-        value: prop.DECIMAL(5, 2),
+        value: prop.NUMERIC(5, 2),
         customer_id: prop.BIGINT(), // should be references, but to make it simple
       },
       unique: ['uuid'], // unique on uuid because same order can be placed many different times, so uuid is the only unique attribute
@@ -57,8 +56,8 @@ describe('generateEntityTables', () => {
     expect(createStaticSql).toEqual(tables.static.sql); // should be the exact string
   });
   it('generates tables for a versioned entity, w/ same syntax as SHOW CREATE', async () => {
-    const user = new Entity({
-      name: 'user',
+    const contractor = new Entity({
+      name: 'contractor',
       properties: {
         cognito_uuid: prop.UUID(),
         name: {
@@ -73,7 +72,7 @@ describe('generateEntityTables', () => {
       },
       unique: ['cognito_uuid'],
     });
-    const tables = await generateEntityTables({ entity: user });
+    const tables = await generateEntityTables({ entity: contractor });
     await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};` });
     await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.version!.name};` });
     await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
@@ -112,7 +111,7 @@ describe('generateEntityTables', () => {
         wiki_page_id: prop.REFERENCES(wikiPage),
         editor_id: prop.REFERENCES(wikiUser),
         final_text: { ...prop.VARCHAR(255), updatable: true },
-        status: { ...prop.ENUM(['APPROVED', 'CHANGES_REQUESTED', 'REJECTED']), nullable: true, updatable: true },
+        status: { ...prop.ENUM(['APPROVED', 'EDITABLE', 'REJECTED']), nullable: true, updatable: true },
         produced_wiki_page_version: { ...prop.REFERENCES_VERSION(wikiPage), nullable: true, updatable: true }, // i.e., what version it produced
       },
       unique: ['uuid'], // unique on uuid alone since the same user can edit the same page many times, so no natural keys

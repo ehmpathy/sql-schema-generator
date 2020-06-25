@@ -13,7 +13,7 @@ export const generateConstraintForeignKey = ({
 }) => {
   const constraintName = `${tableName}_fk${index}`;
   const constraintSql = `
-CONSTRAINT ${constraintName} FOREIGN KEY (${columnName}) REFERENCES ${property.references!}(id)
+CONSTRAINT ${constraintName} FOREIGN KEY (${columnName}) REFERENCES ${property.references!} (id)
   `.trim();
 
   const indexSql = `

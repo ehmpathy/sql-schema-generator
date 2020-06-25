@@ -1,8 +1,8 @@
 import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
 import { getShowCreateTable } from '../../../../__test_utils__/getShowCreateTable';
 import { DataType, DataTypeName, Property } from '../../../../types';
-import { generateTable } from './generateTable';
 import { prop } from '../../../define';
+import { generateTable } from './generateTable';
 
 /*
   we test an example of every variation against the database to ensure we are defining valid sql
@@ -56,7 +56,6 @@ describe('generateTable', () => {
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
     const createTableSqlFound = await getShowCreateNow();
-    console.log(createTableSqlFound);
     expect(createTableSqlFound).toEqual(createTableSql); // should be the exact string
 
     // snapshot to save an example

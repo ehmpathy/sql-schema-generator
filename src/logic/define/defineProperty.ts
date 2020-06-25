@@ -209,6 +209,8 @@ export const BYTEA = () =>
  *
  * TIMESTAMP requires 8 bytes of storage.
  *
+ * Note: in most cases, you probably want to use TIMESTAMPTZ, instead. Here is a great explanation for when and why you may actually want to use TIMESTAMP (without timezone): https://dba.stackexchange.com/a/158003/75296
+ *
  * https://www.postgresql.org/docs/10/datatype-datetime.html
  */
 export const TIMESTAMP = (precision?: number) =>
@@ -236,11 +238,10 @@ export const TIMESTAMP = (precision?: number) =>
  *
  * https://www.postgresql.org/docs/10/datatype-datetime.html
  */
-export const TIMESTAMPTZ = (precision?: number) =>
+export const TIMESTAMPTZ = () =>
   new Property({
     type: new DataType({
       name: DataTypeName.TIMESTAMPTZ,
-      precision,
     }),
   });
 

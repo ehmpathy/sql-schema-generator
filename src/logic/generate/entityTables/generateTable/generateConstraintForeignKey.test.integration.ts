@@ -1,11 +1,8 @@
-import { normalizeCreateTableDdl } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/normalizeCreateTableDdl';
-import { provisionShowCreateTableFunction } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/provisionShowCreateTableFunction';
-import { showCreateTable } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable';
 import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
+import { getShowCreateTable } from '../../../../__test_utils__/getShowCreateTable';
 import { DataType, DataTypeName, Property } from '../../../../types';
 import { generateColumn } from './generateColumn';
 import { generateConstraintForeignKey } from './generateConstraintForeignKey';
-import { getShowCreateTable } from '../../../../__test_utils__/getShowCreateTable';
 
 /*
   we test an example of every variation against the database to ensure we are defining valid sql
