@@ -26,7 +26,7 @@ export const generateTableForStaticProperties = ({
 
   // 1. add metadata properties
   const staticProps: Properties = {
-    id: prop.BIGINT(),
+    id: prop.BIGSERIAL(),
     uuid: prop.UUID(),
     created_at: new Property({
       ...prop.TIMESTAMPTZ(),

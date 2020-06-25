@@ -1,7 +1,9 @@
 import sha256 from 'simple-sha256';
 import uuid from 'uuid/v4';
-import { mysql as prepare } from 'yesql';
+import { pg as prepare } from 'yesql';
 
+import { normalizeCreateFunctionDdl } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateFunction/normalizeCreateFunctionDdl';
+import { getShowCreateFunction } from '../../../../__test_utils__/getShowCreateFunction';
 import { Entity, ValueObject } from '../../../../types';
 import * as prop from '../../../define/defineProperty';
 import {
@@ -11,7 +13,6 @@ import {
   getDatabaseConnection,
 } from '../../__test_utils__';
 import { dropAndCreateUpsertFunctionForEntity } from '../../__test_utils__/dropAndCreateUpsertForEntity';
-import { provisionGetFromDelimiterSplitStringFunction } from '../../__test_utils__/provisionGetFromDelimiterSplitStringFunction';
 import { generateEntityUpsert } from './generateEntityUpsert';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -28,16 +29,16 @@ describe('generateEntityUpsert', () => {
     const address = new Entity({
       name: 'address_2',
       properties: {
-        street: prop.VARCHAR(255),
+        street: prop.VARCHAR(),
         suite: {
-          ...prop.VARCHAR(255),
+          ...prop.VARCHAR(),
           nullable: true,
         },
-        city: prop.VARCHAR(255),
+        city: prop.VARCHAR(),
         country: prop.ENUM(['US', 'CA', 'MX']),
         weekday_found: {
           // non-unique but static property -> only track the first value
-          ...prop.VARCHAR(15),
+          ...prop.VARCHAR(),
           nullable: true,
         },
       },
@@ -64,7 +65,7 @@ describe('generateEntityUpsert', () => {
       country: string;
       weekday_found?: string;
     }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${address.name}(
           :street,
@@ -80,23 +81,20 @@ describe('generateEntityUpsert', () => {
           country,
           weekday_found: weekday_found || null,
         }),
-      )) as any;
-      return result[0][0].id;
+      );
+      return result.rows[0].id;
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${address.name} where id = :id
       `)({ id }),
-      )) as any;
-      return result[0][0];
+      );
+      return result.rows[0];
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: address });
-      const result = (await dbConnection.query({
-        sql: `SHOW CREATE FUNCTION ${name}`,
-      })) as any;
-      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      const showCreateSql = await getShowCreateFunction({ func: name, dbConnection });
       expect(sql).toEqual(showCreateSql);
 
       // show an example of the upsert function
@@ -189,7 +187,7 @@ describe('generateEntityUpsert', () => {
       await dropAndCreateUpsertFunctionForEntity({ entity: user, dbConnection });
     });
     const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${user.name}(
           :cognito_uuid,
@@ -201,40 +199,37 @@ describe('generateEntityUpsert', () => {
           name,
           bio,
         }),
-      )) as any;
-      return result[0][0].id;
+      );
+      return result.rows[0].id;
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${user.name} where id = :id
       `)({ id }),
-      )) as any;
-      return result[0][0];
+      );
+      return result.rows[0];
     };
     const getEntityVersions = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
-        select * from ${user.name}_version where ${user.name}_id = :id
+        select * from ${user.name}_version where ${user.name}_id = :id order by created_at asc
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     const getEntityCurrentVersionPointer = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${user.name}_cvp where ${user.name}_id = :id
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: user });
-      const result = (await dbConnection.query({
-        sql: `SHOW CREATE FUNCTION ${name}`,
-      })) as any;
-      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
-      expect(sql).toEqual(showCreateSql);
+      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
+      expect(normalizeCreateFunctionDdl({ ddl: sql })).toEqual(showCreateSql);
 
       // show an example of the upsert function
       expect(sql).toMatchSnapshot();
@@ -332,7 +327,6 @@ describe('generateEntityUpsert', () => {
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(1);
     });
-
     it('should not update the current version pointer table if a new version was not created', async () => {
       // i.e., idempotency
       const props = {
@@ -387,19 +381,19 @@ describe('generateEntityUpsert', () => {
     const language = new ValueObject({
       name: 'language',
       properties: {
-        name: prop.VARCHAR(255),
+        name: prop.VARCHAR(),
       },
     });
     const producer = new ValueObject({
       name: 'producer',
       properties: {
-        name: prop.VARCHAR(255),
+        name: prop.VARCHAR(),
       },
     });
     const movie = new Entity({
       name: 'movie',
       properties: {
-        name: prop.VARCHAR(255),
+        name: prop.VARCHAR(),
         producer_ids: prop.ARRAY_OF(prop.REFERENCES(producer)),
         language_ids: {
           ...prop.ARRAY_OF(prop.REFERENCES(language)),
@@ -418,13 +412,12 @@ describe('generateEntityUpsert', () => {
       await createTablesForEntity({ entity: movie, dbConnection });
 
       // provision the upserts
-      await provisionGetFromDelimiterSplitStringFunction({ dbConnection });
       await dropAndCreateUpsertFunctionForEntity({ entity: language, dbConnection });
       await dropAndCreateUpsertFunctionForEntity({ entity: producer, dbConnection });
       await dropAndCreateUpsertFunctionForEntity({ entity: movie, dbConnection });
     });
     const upsertLanguage = async ({ name }: { name: string }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${language.name}(
           :name
@@ -432,11 +425,11 @@ describe('generateEntityUpsert', () => {
       `)({
           name,
         }),
-      )) as any;
-      return result[0][0].id as number;
+      );
+      return result.rows[0].id;
     };
     const upsertProducer = async ({ name }: { name: string }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${producer.name}(
           :name
@@ -444,8 +437,8 @@ describe('generateEntityUpsert', () => {
       `)({
           name,
         }),
-      )) as any;
-      return result[0][0].id as number;
+      );
+      return result.rows[0].id;
     };
     const upsertMovie = async ({
       name,
@@ -456,7 +449,7 @@ describe('generateEntityUpsert', () => {
       producer_ids: number[];
       language_ids: number[];
     }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${movie.name}(
           :name,
@@ -465,58 +458,55 @@ describe('generateEntityUpsert', () => {
         ) as id;
       `)({
           name,
-          producer_ids: producer_ids.join(','),
-          language_ids: language_ids.join(','),
+          producer_ids: `{${producer_ids.join(',')}}`,
+          language_ids: `{${language_ids.join(',')}}`,
         }),
-      )) as any;
-      return result[0][0].id as number;
+      );
+      return result.rows[0].id;
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${movie.name} where id = :id
       `)({ id }),
-      )) as any;
-      return result[0][0];
+      );
+      return result.rows[0];
     };
     const getEntityVersions = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
-        select * from ${movie.name}_version where ${movie.name}_id = :id
+        select * from ${movie.name}_version where ${movie.name}_id = :id order by created_at asc
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     const getEntityCurrentVersionPointer = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${movie.name}_cvp where ${movie.name}_id = :id
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     const getProducerMappingTableEntries = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${movie.name}_to_${producer.name} where ${movie.name}_id = :id
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     const getLanguageMappingTableEntries = async ({ versionId }: { versionId: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${movie.name}_version_to_${language.name} where ${movie.name}_version_id = :versionId
       `)({ versionId }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
-      const { sql } = generateEntityUpsert({ entity: movie });
-      const result = (await dbConnection.query({
-        sql: `SHOW CREATE FUNCTION upsert_${movie.name}`,
-      })) as any;
-      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      const { sql, name } = generateEntityUpsert({ entity: movie });
+      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
       expect(sql).toEqual(showCreateSql);
       expect(sql).toMatchSnapshot();
     });
@@ -554,13 +544,13 @@ describe('generateEntityUpsert', () => {
       expect(producerMappings.length).toEqual(producerIds.length);
       producerIds.forEach((producerId, index) => {
         expect(producerMappings[index].producer_id).toEqual(producerId); // at the expected index
-        expect(producerMappings[index].array_order_index).toEqual(index); // explicitly tracked
+        expect(producerMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
       });
       const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
       expect(languageMappings.length).toEqual(languageIds.length);
       languageIds.forEach((languageId, index) => {
         expect(languageMappings[index].language_id).toEqual(languageId); // at the expected index
-        expect(languageMappings[index].array_order_index).toEqual(index); // explicitly tracked
+        expect(languageMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
       });
     });
     it('should update the entity if the updateable array has changed', async () => {
@@ -601,7 +591,7 @@ describe('generateEntityUpsert', () => {
       expect(languageMappings.length).toEqual(updatedLanguageIds.length);
       updatedLanguageIds.forEach((languageId, index) => {
         expect(languageMappings[index].language_id).toEqual(languageId); // at the expected index
-        expect(languageMappings[index].array_order_index).toEqual(index); // explicitly tracked
+        expect(languageMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
       });
     });
     it('should not create a new version if the updateable array did not change', async () => {
@@ -675,7 +665,7 @@ describe('generateEntityUpsert', () => {
       name: 'plant_order',
       properties: {
         customer_id: prop.BIGINT(), // really should be a reference - but for simplicity lets leave it as a bigint
-        plant_name: prop.VARCHAR(255),
+        plant_name: prop.VARCHAR(),
         quantity: prop.INT(),
       },
       unique: ['uuid'],
@@ -699,7 +689,7 @@ describe('generateEntityUpsert', () => {
       plant_name: string;
       quantity: number;
     }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${plantOrder.name}(
           :uuid,
@@ -713,23 +703,20 @@ describe('generateEntityUpsert', () => {
           plant_name,
           quantity,
         }),
-      )) as any;
-      return result[0][0].id;
+      );
+      return result.rows[0].id;
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${plantOrder.name} where id = :id
       `)({ id }),
-      )) as any;
-      return result[0][0];
+      );
+      return result.rows[0];
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: plantOrder });
-      const result = (await dbConnection.query({
-        sql: `SHOW CREATE FUNCTION ${name}`,
-      })) as any;
-      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
       expect(sql).toEqual(showCreateSql);
 
       // show an example of the upsert function
@@ -765,10 +752,10 @@ describe('generateEntityUpsert', () => {
     const webstore = new Entity({
       name: 'webstore',
       properties: {
-        name: { ...prop.VARCHAR(255), updatable: true },
-        phone_number: { ...prop.CHAR(11), updatable: true },
-        email: { ...prop.VARCHAR(255), updatable: true },
-        logo_url: { ...prop.VARCHAR(255), updatable: true },
+        name: { ...prop.VARCHAR(), updatable: true },
+        phone_number: { ...prop.VARCHAR(), updatable: true },
+        email: { ...prop.VARCHAR(), updatable: true },
+        logo_url: { ...prop.VARCHAR(), updatable: true },
       },
       unique: ['uuid'],
     });
@@ -793,7 +780,7 @@ describe('generateEntityUpsert', () => {
       email: string;
       logo_url: string;
     }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${webstore.name}(
           :uuid,
@@ -809,31 +796,28 @@ describe('generateEntityUpsert', () => {
           email,
           logo_url,
         }),
-      )) as any;
-      return result[0][0].id;
+      );
+      return result.rows[0].id;
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${webstore.name} where id = :id
       `)({ id }),
-      )) as any;
-      return result[0][0];
+      );
+      return result.rows[0];
     };
     const getEntityVersions = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${webstore.name}_version where ${webstore.name}_id = :id
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: webstore });
-      const result = (await dbConnection.query({
-        sql: `SHOW CREATE FUNCTION ${name}`,
-      })) as any;
-      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
       expect(sql).toEqual(showCreateSql);
 
       // show an example of the upsert function
@@ -886,10 +870,10 @@ describe('generateEntityUpsert', () => {
     const vehicle = new Entity({
       name: 'tracked_vehicle',
       properties: {
-        make: prop.VARCHAR(255),
-        model: prop.VARCHAR(255),
-        year: prop.CHAR(4),
-        software_version: { ...prop.VARCHAR(255), updatable: true }, // over the air updates -> updatable
+        make: prop.VARCHAR(),
+        model: prop.VARCHAR(),
+        year: { ...prop.VARCHAR(), check: '(LENGTH($COLUMN_NAME) = 4)' },
+        software_version: { ...prop.VARCHAR(), updatable: true }, // over the air updates -> updatable
       },
       unique: ['make', 'model', 'year'],
     });
@@ -908,7 +892,6 @@ describe('generateEntityUpsert', () => {
       await createTablesForEntity({ entity: crashReport, dbConnection });
 
       // provision the upserts
-      await provisionGetFromDelimiterSplitStringFunction({ dbConnection });
       await dropAndCreateUpsertFunctionForEntity({ entity: vehicle, dbConnection });
       await dropAndCreateUpsertFunctionForEntity({ entity: crashReport, dbConnection });
     });
@@ -923,7 +906,7 @@ describe('generateEntityUpsert', () => {
       year: string;
       software_version: string;
     }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${vehicle.name}(
           :make,
@@ -937,8 +920,8 @@ describe('generateEntityUpsert', () => {
           year,
           software_version,
         }),
-      )) as any;
-      return result[0][0].id as number;
+      );
+      return result.rows[0].id;
     };
     const upsertCrashReport = async ({
       location_id,
@@ -947,7 +930,7 @@ describe('generateEntityUpsert', () => {
       location_id: number;
       vehicle_version_id: number;
     }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${crashReport.name}(
           :location_id,
@@ -957,31 +940,28 @@ describe('generateEntityUpsert', () => {
           location_id,
           vehicle_version_id,
         }),
-      )) as any;
-      return result[0][0].id as number;
+      );
+      return result.rows[0].id;
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${crashReport.name} where id = :id
       `)({ id }),
-      )) as any;
-      return result[0][0];
+      );
+      return result.rows[0];
     };
     const getVehicleEntityVersions = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${vehicle.name}_version where ${vehicle.name}_id = :id
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
-      const { sql } = generateEntityUpsert({ entity: crashReport });
-      const result = (await dbConnection.query({
-        sql: `SHOW CREATE FUNCTION upsert_${crashReport.name}`,
-      })) as any;
-      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      const { sql, name } = generateEntityUpsert({ entity: crashReport });
+      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
       expect(sql).toEqual(showCreateSql);
       expect(sql).toMatchSnapshot();
     });

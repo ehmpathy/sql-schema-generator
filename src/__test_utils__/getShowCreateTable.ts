@@ -1,6 +1,6 @@
-import { normalizeCreateTableDdl } from '../__nonpublished_modules__/postgres-show-create-ddl/normalizeCreateTableDdl';
-import { provisionShowCreateTableFunction } from '../__nonpublished_modules__/postgres-show-create-ddl/provisionShowCreateTableFunction';
-import { showCreateTable } from '../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable';
+import { normalizeCreateTableDdl } from '../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable/normalizeCreateTableDdl';
+import { provisionShowCreateTableFunction } from '../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable/provisionShowCreateTableFunction';
+import { showCreateTable } from '../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable/showCreateTable';
 import { DatabaseConnection } from './databaseConnection';
 
 export const getShowCreateTable = async ({

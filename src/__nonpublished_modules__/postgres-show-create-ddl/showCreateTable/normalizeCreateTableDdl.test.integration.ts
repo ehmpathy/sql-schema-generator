@@ -1,4 +1,5 @@
-import { DatabaseConnection, getDatabaseConnection } from '../../__test_utils__/databaseConnection';
+import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
+import { normalizeCreateTableDdl } from './normalizeCreateTableDdl';
 import { provisionShowCreateTableFunction } from './provisionShowCreateTableFunction';
 import { showCreateTable } from './showCreateTable';
 
@@ -18,11 +19,13 @@ describe('showCreateTable', () => {
 CREATE TABLE test_tb_for_show_create_on (
   id BIGSERIAL PRIMARY KEY,
   name VARCHAR(150),
-  level VARCHAR(50) CHECK (level IN ('info', 'warn', 'error'))
+  level VARCHAR(50) CHECK (level IN ('info', 'warn', 'error')) DEFAULT 'info',
+  description TEXT NOT NULL
 )
     `.trim(),
     });
-    const result = await showCreateTable({ dbConnection, schema: 'public', table: 'test_tb_for_show_create_on' });
-    expect(result).toMatchSnapshot();
+    const ddl = await showCreateTable({ dbConnection, schema: 'public', table: 'test_tb_for_show_create_on' });
+    const normalizedDdl = await normalizeCreateTableDdl({ ddl });
+    expect(normalizedDdl).toMatchSnapshot();
   });
 });

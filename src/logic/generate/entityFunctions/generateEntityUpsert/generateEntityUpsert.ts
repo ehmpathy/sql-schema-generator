@@ -1,3 +1,5 @@
+import indentString from 'indent-string';
+
 import { Entity } from '../../../../types';
 import { defineDeclarations } from './defineDeclarations';
 import { defineFindOrCreateStaticEntityLogic } from './defineFindOrCreateStaticEntityLogic';
@@ -71,21 +73,6 @@ import { defineUpsertCurrentVersionPointerIfNeededLogic } from './defineUpsertCu
       - when checking or inserting
     - insert into mapping tables any time inserting static row or version row
 */
-
-/*
-
-  // define the property names
-  const updatablePropertyNames = Object.entries(entity.properties)
-    .filter((entry) => !!entry[1].updatable)
-    .map((entry) => entry[0]);
-
-  // define where clause conditionals
-  const updateablePropertyWhereClauseConditionals = updatablePropertyNames.map((name) =>
-    propertyNameToWhereClauseConditional({ name, entity }),
-  );
-
-*/
-
 export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
   // define the input definitions
   const inputDefinitions = defineInputDefinitions({ entity });
@@ -100,20 +87,25 @@ export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
 
   // combine the version and static logic into full upsert function
   const definition = `
-CREATE FUNCTION \`upsert_${entity.name}\`(
+CREATE OR REPLACE FUNCTION upsert_${entity.name}(
   ${inputDefinitions.join(',\n  ')}
-) RETURNS bigint(20)
-BEGIN
-  -- declarations
-  ${declarations.join('\n  ')}
+)
+RETURNS bigint
+LANGUAGE plpgsql
+AS $$
+  DECLARE
+    ${declarations.join('\n    ')}
+  BEGIN
+    ${[findOrCreateStaticEntityLogic, insertVersionIfDynamicDataChangedLogic, upsertCurrentVersionPointerIfNeededLogic]
+      .filter((sql): sql is string => !!sql)
+      .map((sql) => indentString(sql, 4))
+      .join('\n\n')
+      .trim()}
 
-  ${[findOrCreateStaticEntityLogic, insertVersionIfDynamicDataChangedLogic, upsertCurrentVersionPointerIfNeededLogic]
-    .filter((sql) => !!sql)
-    .join('\n\n  ')}
-
-  -- return the static entity id
-  return v_static_id;
-END
+    -- return the static entity id
+    RETURN v_static_id;
+  END;
+$$
   `.trim();
   return {
     name: `upsert_${entity.name}`,

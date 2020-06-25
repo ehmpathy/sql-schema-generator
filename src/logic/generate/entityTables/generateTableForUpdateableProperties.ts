@@ -24,7 +24,7 @@ export const generateTableForUpdateableProperties = ({
   // 1. add metadata properties
   const staticTableReferenceName = `${entityName}_id`;
   const updateableProps = {
-    id: prop.BIGINT(),
+    id: prop.BIGSERIAL(),
     [staticTableReferenceName]: new Property({
       ...prop.BIGINT(),
       references: entityName,

@@ -23,7 +23,7 @@ const generateMappingTableForArrayProperty = ({
 
   // 3. define the full table properties for the mapping table
   const mappingTableProps = {
-    id: prop.BIGINT(),
+    id: prop.BIGSERIAL(),
     created_at: new Property({
       ...prop.TIMESTAMPTZ(),
       default: 'now()',

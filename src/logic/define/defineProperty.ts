@@ -123,7 +123,7 @@ export const UUID = () =>
 /**
  * VARCHAR(n) requires a variable storage size. Precision, n, defines the maximum number of characters you want to store.
  *
- * If you dont need to limit the size of strings in this column, use the TEXT type instead.
+ * If you dont need to limit the size of strings in this column, consider using the TEXT type instead.
  *
  * VARCHAR values are stored with a 1-byte prefix plus data, if they're up to 126 bytes. Strings larger than this will have a 4 byte prefix. Long strings are compressed automatically, so physical requirement on disk may be less.
  *
@@ -131,7 +131,7 @@ export const UUID = () =>
  *
  * https://www.postgresql.org/docs/10/datatype-character.html
  */
-export const VARCHAR = (precision: number) =>
+export const VARCHAR = (precision?: number) =>
   new Property({
     type: new DataType({
       name: DataTypeName.VARCHAR,

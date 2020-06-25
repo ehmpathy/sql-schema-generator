@@ -19,7 +19,7 @@ export const castPropertyToTableColumnValueReference = ({
   const inputVariableName = castPropertyToInputVariableName({ name });
 
   // if it is an array, then hash the input value into a binary value
-  if (definition.array) return `UNHEX(SHA2(${inputVariableName}, 256))`; // NOTE: we expect that the datatype of the input variable is a string - this is defined in propertyNameToFunctionInputDefinition
+  if (definition.array) return `digest(array_to_string(${inputVariableName}, ',', '__NULL__'), 'sha256')`;
 
   // if not array, then return the input variable reference directly
   return inputVariableName;
