@@ -21,7 +21,7 @@ export const castPropertyToSelector = ({
     const mappingTableName = mappingTableKeys.tableName;
     return `
 (
-  SELECT GROUP_CONCAT(${arrayValueSelector} ORDER BY ${arrayIndexSelector} ASC SEPARATOR ',')
+  SELECT array_agg(${arrayValueSelector} ORDER BY ${arrayIndexSelector} ASC)
   FROM ${mappingTableName} WHERE ${entityReferenceSelector} = ${entityReferenceId}
 ) as ${name}
     `.trim();

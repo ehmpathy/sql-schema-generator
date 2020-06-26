@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`generateEntityViewCurrent static entity with array properties should generate good looking and consistent sql 1`] = `
-"CREATE VIEW \`view_door_current\` AS
+"CREATE VIEW view_door_current AS
   SELECT
     s.id,
     s.uuid,
     s.color,
     (
-      SELECT GROUP_CONCAT(door_to_door_lock.door_lock_id ORDER BY door_to_door_lock.array_order_index ASC SEPARATOR ',')
+      SELECT array_agg(door_to_door_lock.door_lock_id ORDER BY door_to_door_lock.array_order_index ASC)
       FROM door_to_door_lock WHERE door_to_door_lock.door_id = s.id
     ) as lock_ids,
     s.created_at
@@ -16,13 +16,13 @@ exports[`generateEntityViewCurrent static entity with array properties should ge
 `;
 
 exports[`generateEntityViewCurrent versioned entity with array properties should generate good looking and consistent sql 1`] = `
-"CREATE VIEW \`view_vehicle_current\` AS
+"CREATE VIEW view_vehicle_current AS
   SELECT
     s.id,
     s.uuid,
     s.name,
     (
-      SELECT GROUP_CONCAT(vehicle_version_to_wheel.wheel_id ORDER BY vehicle_version_to_wheel.array_order_index ASC SEPARATOR ',')
+      SELECT array_agg(vehicle_version_to_wheel.wheel_id ORDER BY vehicle_version_to_wheel.array_order_index ASC)
       FROM vehicle_version_to_wheel WHERE vehicle_version_to_wheel.vehicle_version_id = v.id
     ) as wheel_ids,
     s.created_at,
@@ -34,7 +34,7 @@ exports[`generateEntityViewCurrent versioned entity with array properties should
 `;
 
 exports[`generateEntityViewCurrent versioned entity without array properties should generate good looking and consistent sql 1`] = `
-"CREATE VIEW \`view_alternative_user_current\` AS
+"CREATE VIEW view_alternative_user_current AS
   SELECT
     s.id,
     s.uuid,

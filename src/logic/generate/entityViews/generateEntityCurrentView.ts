@@ -51,7 +51,7 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
     's.created_at',
     hasVersionTable ? 'v.effective_at' : null,
     hasVersionTable ? 'v.created_at as updated_at' : null,
-  ].filter((column) => !!column); // only non empty coluns
+  ].filter((column) => !!column); // only non empty columns
 
   // define the joins
   const joins = hasVersionTable // only join if has version table
@@ -63,7 +63,7 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
 
   // combine the version and static logic into full upsert function
   const definition = `
-CREATE VIEW \`${viewName}\` AS
+CREATE VIEW ${viewName} AS
   SELECT
     ${indentString(columns.join(',\n'), 4).trim()}
   FROM ${entity.name} s
