@@ -1,4 +1,4 @@
-import { Entity, ValueObject } from '../../../types';
+import { Entity } from '../../../types';
 import { prop } from '../../define';
 import { generateEntityFunctions } from './generateEntityFunctions';
 
@@ -38,7 +38,7 @@ describe('generateEntityFunctions', () => {
           nullable: true, // i.e., some people don't name their cars
         },
         wheels: {
-          ...prop.TINYINT(),
+          ...prop.SMALLINT(),
           updatable: true,
         },
       },
@@ -48,40 +48,5 @@ describe('generateEntityFunctions', () => {
     expect(functions.upsert).toHaveProperty('sql');
     expect(functions.backfillCurrentVersionPointers).toHaveProperty('sql');
     expect(functions.utils.length).toEqual(0); // none, since no mapping table
-  });
-  describe('getFromDelimiterSplitString util function', () => {
-    it('should return the getFromDelimiterSplitString util function if has a static array property', () => {
-      const lock = new ValueObject({
-        name: 'lock',
-        properties: {
-          manufacturer: prop.VARCHAR(255),
-          manufacturerId: prop.VARCHAR(255),
-        },
-      });
-      const door = new ValueObject({
-        name: 'door',
-        properties: {
-          color: prop.ENUM(['red', 'green', 'blue']),
-          lock_ids: prop.ARRAY_OF(prop.REFERENCES(lock)), // e.g., can have one lock or two locks
-        },
-      });
-      const functions = generateEntityFunctions({ entity: door });
-      expect(functions.utils.length).toEqual(1);
-      expect(functions.utils[0].name).toEqual('get_from_delimiter_split_string');
-    });
-    it('should return the getFromDelimiterSplitString util function if has a updatable array property', () => {
-      const name = new ValueObject({ name: 'name', properties: { value: prop.VARCHAR(255) } });
-      const buddy = new Entity({
-        name: 'buddy',
-        properties: {
-          social_security_number: prop.CHAR(11),
-          nick_name_ids: prop.ARRAY_OF(prop.REFERENCES(name)),
-        },
-        unique: ['social_security_number'],
-      });
-      const functions = generateEntityFunctions({ entity: buddy });
-      expect(functions.utils.length).toEqual(1);
-      expect(functions.utils[0].name).toEqual('get_from_delimiter_split_string');
-    });
   });
 });

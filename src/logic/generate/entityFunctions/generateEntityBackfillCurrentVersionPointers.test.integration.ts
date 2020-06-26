@@ -1,7 +1,8 @@
 import uuid from 'uuid/v4';
-import { mysql as prepare } from 'yesql';
+import { pg as prepare } from 'yesql';
 
 import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
+import { getShowCreateFunction } from '../../../__test_utils__/getShowCreateFunction';
 import { Entity } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { generateEntityTables } from '../entityTables/generateEntityTables';
@@ -44,7 +45,7 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       await dbConnection.query({ sql: tables.currentVersionPointer!.sql });
     });
     const upsertCar = async ({ vin, name, wheels }: { vin: string; name?: string; wheels: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         SELECT upsert_${car.name}(
           :vin,
@@ -56,8 +57,8 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
           name,
           wheels,
         }),
-      )) as any;
-      return result[0][0].id;
+      );
+      return result.rows[0].id;
     };
     const recreateTheUpsertMethod = async () => {
       const { name, sql: upsertSql } = generateEntityUpsert({ entity: car });
@@ -72,35 +73,32 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       return { name, sql: upsertSql };
     };
     const backfillCurrentVersionPointers = async (params?: { limit: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
           SELECT backfill_${car.name}_cvp (:limit) as rows_affected;
         `)(params || { limit: 100 }),
-      )) as any;
-      return result[0][0].rows_affected as number;
+      );
+      return result.rows[0].rows_affected as number;
     };
     const getEntityVersions = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
-        select * from ${car.name}_version where ${car.name}_id = :id
+        select * from ${car.name}_version where ${car.name}_id = :id order by created_at asc
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     const getEntityCurrentVersionPointer = async ({ id }: { id: number }) => {
-      const result = (await dbConnection.query(
+      const result = await dbConnection.query(
         prepare(`
         select * from ${car.name}_cvp where ${car.name}_id = :id
       `)({ id }),
-      )) as any;
-      return result[0];
+      );
+      return result.rows;
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = await recreateTheBackfillMethod();
-      const result = (await dbConnection.query({
-        sql: `SHOW CREATE FUNCTION ${name}`,
-      })) as any;
-      const showCreateSql = result[0][0]['Create Function'].replace(' DEFINER=`root`@`%`', ''); // ignoring the definer part
+      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
       expect(sql).toEqual(showCreateSql);
       expect(sql).toMatchSnapshot();
     });
@@ -144,7 +142,7 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfill).toEqual(0);
 
       // delete all the cvp records
-      await dbConnection.query(`delete from ${car.name}_cvp where ${car.name}_id = ${id}`);
+      await dbConnection.query({ sql: `delete from ${car.name}_cvp where ${car.name}_id = ${id}` });
 
       // prove that the target record was affected
       const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers();
@@ -174,12 +172,14 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfill).toEqual(0);
 
       // insert a new version manually
-      await dbConnection.query(`
+      await dbConnection.query({
+        sql: `
         INSERT INTO car_version
         (car_id, name, wheels)
         VALUES
         (${id}, 'the world famous twenty-one wheeler', 21);
-      `);
+      `,
+      });
 
       // prove that one pointer needs to be fixed now
       const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers();
@@ -202,7 +202,7 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       return await upsertCar(props);
     };
     const deleteCvpRecordForCarById = async ({ id }: { id: number }) => {
-      await dbConnection.query(`delete from ${car.name}_cvp where ${car.name}_id = ${id}`);
+      await dbConnection.query({ sql: `delete from ${car.name}_cvp where ${car.name}_id = ${id}` });
     };
     it('should respect the limit on inserts', async () => {
       await recreateTheBackfillMethod();
@@ -234,12 +234,14 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
     });
 
     const manuallyChangeVersionOfCarById = async ({ id }: { id: number }) => {
-      await dbConnection.query(`
+      await dbConnection.query({
+        sql: `
         INSERT INTO car_version
         (car_id, name, wheels)
         VALUES
         (${id}, 'the world famous twenty-one wheeler', 21);
-      `);
+      `,
+      });
     };
     it('should respect the limit on updates', async () => {
       await recreateTheBackfillMethod();

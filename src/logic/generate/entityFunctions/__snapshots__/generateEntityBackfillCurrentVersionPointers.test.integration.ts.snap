@@ -1,87 +1,79 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`generateEntityBackfillCurrentVersionPointers versioned entity should produce the same syntax as the SHOW CREATE FUNCTION query 1`] = `
-"CREATE FUNCTION \`backfill_car_cvp\`(in_limit INT) RETURNS int(20)
-BEGIN
-  -- declarations
-  DECLARE v_cvp_rows_inserted INT;
-  DECLARE v_cvp_rows_updated INT;
-  DECLARE v_remaining_limit INT;
-
-  -- 1. insert every time cvp dne for an entity
-  INSERT INTO car_cvp
-    (car_id, car_version_id)
-  SELECT
-    e.id,
-    e_to_cv.current_version_id
-  FROM car e
-  JOIN (
+"CREATE OR REPLACE FUNCTION backfill_car_cvp(
+  in_limit int
+)
+RETURNS int
+LANGUAGE plpgsql
+AS $$
+  DECLARE
+    v_cvp_rows_inserted int;
+    v_cvp_rows_updated int;
+    v_remaining_limit int;
+  BEGIN
+    -- 1. insert every time cvp dne for an entity
+    INSERT INTO car_cvp
+      (car_id, car_version_id)
     SELECT
-      e.id as id,
-      v.id as current_version_id
+      e.id,
+      e_to_cv.current_version_id
     FROM car e
-    JOIN car_version v ON v.car_id = e.id
-    WHERE 1=1
-      AND effective_at = ( -- and is the currently effective version
-        SELECT MAX(effective_at)
-        FROM car_version ssv
-        WHERE ssv.car_id = e.id -- for same entity
-      )
-  ) AS e_to_cv ON e_to_cv.id = e.id
-  WHERE 1=1
-    AND NOT EXISTS (
-      SELECT 'x'
-      FROM car_cvp cvp
-      WHERE cvp.car_id = e.id
-    )
-  LIMIT in_limit;
-  SET v_cvp_rows_inserted = ROW_COUNT();
-  SET v_remaining_limit = in_limit - v_cvp_rows_inserted;
-
-  -- 2. update every time cvp exists but is out of sync for an entity
-  UPDATE car_cvp cvp
-  JOIN (
-    SELECT
-      e.id as id,
-      v.id as current_version_id
-    FROM car e
-    JOIN car_version v ON v.car_id = e.id
-    WHERE 1=1
-      AND effective_at = ( -- and is the currently effective version
-        SELECT MAX(effective_at)
-        FROM car_version ssv
-        WHERE ssv.car_id = e.id -- for same entity
-      )
-  ) AS e_to_cv ON e_to_cv.id = cvp.car_id
-  SET
-    updated_at = CURRENT_TIMESTAMP(6),
-    cvp.car_version_id = e_to_cv.current_version_id -- set pointer table to have current version
-  WHERE cvp.car_id IN (
-    SELECT id FROM ( -- ugly? agreed: https://stackoverflow.com/a/12620023/3068233 - its the best way found so far to limit in an update
+    JOIN (
       SELECT
-        cvp.car_id as id
-      FROM car_cvp cvp
-      JOIN (
-        SELECT
-          e.id as id,
-          v.id as current_version_id
-        FROM car e
-        JOIN car_version v ON v.car_id = e.id
-        WHERE 1=1
-          AND effective_at = ( -- and is the currently effective version
-            SELECT MAX(effective_at)
-            FROM car_version ssv
-            WHERE ssv.car_id = e.id -- for same entity
-          )
-      ) AS e_to_cv ON e_to_cv.id = cvp.car_id
+        e.id as id,
+        v.id as current_version_id
+      FROM car e
+      JOIN car_version v ON v.car_id = e.id
       WHERE 1=1
-        AND cvp.car_version_id <> e_to_cv.current_version_id -- where the pointer table does not already have current version
-      LIMIT v_remaining_limit
-    ) as tmp
-  );
-  SET v_cvp_rows_updated = ROW_COUNT();
+        AND effective_at = ( -- and is the currently effective version
+          SELECT MAX(effective_at)
+          FROM car_version ssv
+          WHERE ssv.car_id = e.id -- for same entity
+        )
+    ) AS e_to_cv ON e_to_cv.id = e.id
+    WHERE 1=1
+      AND NOT EXISTS (
+        SELECT 'x'
+        FROM car_cvp cvp
+        WHERE cvp.car_id = e.id
+      )
+    LIMIT in_limit;
+    GET DIAGNOSTICS v_cvp_rows_inserted = ROW_COUNT;
+    v_remaining_limit := in_limit - v_cvp_rows_inserted;
 
-  -- return the number of rows affected
-  RETURN v_cvp_rows_inserted + v_cvp_rows_updated;
-END"
+    -- 2. update every time cvp exists but is out of sync for an entity
+    WITH cvp_to_update AS (
+      SELECT
+        cvp.id,
+        e_to_cv.current_version_id as actual_current_version_id
+      FROM (
+        SELECT
+        e.id as id,
+        v.id as current_version_id
+      FROM car e
+      JOIN car_version v ON v.car_id = e.id
+      WHERE 1=1
+        AND effective_at = ( -- and is the currently effective version
+          SELECT MAX(effective_at)
+          FROM car_version ssv
+          WHERE ssv.car_id = e.id -- for same entity
+        )
+      ) AS e_to_cv
+      JOIN car_cvp cvp ON cvp.car_id = e_to_cv.id
+      WHERE cvp.car_version_id <> e_to_cv.current_version_id
+      LIMIT v_remaining_limit
+    )
+    UPDATE car_cvp
+    SET
+      updated_at = now(),
+      car_version_id = cvp_to_update.actual_current_version_id
+    FROM cvp_to_update
+    WHERE car_cvp.id = cvp_to_update.id;
+    GET DIAGNOSTICS v_cvp_rows_updated = ROW_COUNT;
+
+    -- return the number of rows affected
+    RETURN v_cvp_rows_inserted + v_cvp_rows_updated;
+  END;
+$$"
 `;
