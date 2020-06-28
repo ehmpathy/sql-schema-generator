@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`generateColumn should be able to specify a default value 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NOT NULL DEFAULT NOW(6)"`;
+exports[`generateColumn should be able to specify a default value 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NOT NULL DEFAULT now()"`;
 
 exports[`generateColumn should define column name accurately 1`] = `"user_id __MOCKED_TYPE_DEFINITION__ NOT NULL"`;
 

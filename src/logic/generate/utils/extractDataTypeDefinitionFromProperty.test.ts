@@ -21,7 +21,7 @@ describe('extractDataTypeDefinitionFromProperty', () => {
       }),
     });
     const definition = extractDataTypeDefinitionFromProperty({ property });
-    expect(definition).toEqual(`${DataTypeName.DECIMAL}(5,2)`);
+    expect(definition).toEqual(`${DataTypeName.DECIMAL}(5, 2)`);
   });
   it('should be able to accurately define text without precision', () => {
     const property = new Property({

@@ -31,7 +31,7 @@ describe('generateTableForUpdateableProperties', () => {
     expect(generateTableMock).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
-          id: prop.BIGINT(),
+          id: prop.BIGSERIAL(),
           __ENTITY_NAME___id: new Property({
             ...prop.BIGINT(),
             references: '__ENTITY_NAME__',

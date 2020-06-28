@@ -19,7 +19,7 @@ describe('throwErrorIfAnythingNotUnderscoreCase', () => {
       name: 'tree_house',
       properties: {
         name: prop.VARCHAR(255),
-        dateBuilt: prop.DATETIME(6),
+        dateBuilt: prop.TIMESTAMPTZ(),
       },
       unique: ['name'],
     });
@@ -37,7 +37,7 @@ describe('throwErrorIfAnythingNotUnderscoreCase', () => {
       name: 'tree_house',
       properties: {
         name: prop.VARCHAR(255),
-        date_built: prop.DATETIME(6),
+        date_built: prop.TIMESTAMPTZ(),
       },
       unique: ['name'],
     });

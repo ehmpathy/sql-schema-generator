@@ -85,7 +85,7 @@ $$
       JOIN pg_catalog.pg_namespace nsp ON nsp.oid = connamespace
       WHERE nsp.nspname = in_schema_name
       AND rel.relname = in_table_name
-      ORDER BY type_rank
+      ORDER BY type_rank, constraint_name -- pk > uuid > fk; fk0 > fk1
     LOOP
       v_table_ddl := v_table_ddl || '  ' -- note: two char spacer to start, to indent the column
         || 'CONSTRAINT' || ' '
@@ -108,6 +108,7 @@ $$
       WHERE 1=1
         AND (schemaname, tablename) = (in_schema_name, in_table_name)
         AND c.contype is null -- and is not an index auto created for a constraint
+      ORDER BY indexdef asc -- makes it so that "fk0" ordered before "fk1"
     LOOP
       v_table_ddl := v_table_ddl
         || v_index_record.indexdef

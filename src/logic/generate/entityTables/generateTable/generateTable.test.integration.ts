@@ -17,12 +17,6 @@ describe('generateTable', () => {
   });
   const testTableIsCreateable = async ({ createTableSql }: { createTableSql: string }) => {
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test CASCADE;' });
-
-    // await dbConnection.query({ sql: 'DROP CONSTRAINT IF EXISTS generate_table_test_pkey CASCADE;' });
-
-    // await dbConnection.query({ sql: 'DROP INDEX generate_table_test_pkey;' });
-    // await dbConnection.query({ sql: 'DROP INDEX IF EXISTS generate_table_test_ux1;' });
-    // await dbConnection.query({ sql: 'DROP INDEX IF EXISTS generate_table_test_fk1;' });
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test_referenced CASCADE;' });
     await dbConnection.query({
       sql: `

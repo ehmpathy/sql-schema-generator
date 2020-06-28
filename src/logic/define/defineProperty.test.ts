@@ -15,7 +15,7 @@ describe('generateProperty', () => {
     expect(property.type).toMatchObject({
       name: DataTypeName.VARCHAR,
     });
-    expect(property.check).toEqual("($COLUMN_NAME IN ('this','or','otherwise'))");
+    expect(property.check).toEqual("($COLUMN_NAME IN ('this', 'or', 'otherwise'))");
   });
   it('should be possible to create a varchar data type', () => {
     const property = prop.VARCHAR(255);

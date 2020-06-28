@@ -5,7 +5,7 @@ Object {
   "currentVersionPointer": Object {
     "name": "home_cvp",
     "sql": "CREATE TABLE home_cvp (
-  id bigint NOT NULL,
+  id bigserial NOT NULL,
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   home_id bigint NOT NULL,
   home_version_id bigint NOT NULL,
@@ -21,7 +21,7 @@ CREATE INDEX home_cvp_fk1_ix ON home_cvp USING btree (home_version_id);",
     Object {
       "name": "home_to_host",
       "sql": "CREATE TABLE home_to_host (
-  id bigint NOT NULL,
+  id bigserial NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   home_id bigint NOT NULL,
   host_id bigint NOT NULL,
@@ -37,7 +37,7 @@ CREATE INDEX home_to_host_fk1_ix ON home_to_host USING btree (host_id);",
     Object {
       "name": "home_version_to_photo",
       "sql": "CREATE TABLE home_version_to_photo (
-  id bigint NOT NULL,
+  id bigserial NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   home_version_id bigint NOT NULL,
   photo_id bigint NOT NULL,
@@ -54,7 +54,7 @@ CREATE INDEX home_version_to_photo_fk1_ix ON home_version_to_photo USING btree (
   "static": Object {
     "name": "home",
     "sql": "CREATE TABLE home (
-  id bigint NOT NULL,
+  id bigserial NOT NULL,
   uuid uuid NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   name varchar(255) NOT NULL,
@@ -66,7 +66,7 @@ CREATE INDEX home_version_to_photo_fk1_ix ON home_version_to_photo USING btree (
   "version": Object {
     "name": "home_version",
     "sql": "CREATE TABLE home_version (
-  id bigint NOT NULL,
+  id bigserial NOT NULL,
   home_id bigint NOT NULL,
   effective_at timestamp with time zone NOT NULL DEFAULT now(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),

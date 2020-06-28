@@ -23,7 +23,7 @@ describe('generateTableForCurrentVersionPointer', () => {
     });
     expect(generateTableMock.mock.calls[0][0]).toMatchObject({
       properties: {
-        id: prop.BIGINT(),
+        id: prop.BIGSERIAL(),
         __ENTITY_NAME___id: new Property({
           ...prop.BIGINT(),
           references: '__ENTITY_NAME__',
