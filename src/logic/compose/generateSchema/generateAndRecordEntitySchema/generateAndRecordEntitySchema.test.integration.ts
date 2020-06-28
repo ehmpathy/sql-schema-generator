@@ -30,7 +30,7 @@ describe('generateAndRecordEntitySchema', () => {
 
     // check that the upsert function was created
     const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${address.name}.sql`, 'utf8');
-    expect(upsertSql).toContain('CREATE FUNCTION');
+    expect(upsertSql).toContain('CREATE OR REPLACE FUNCTION');
   });
   it('should record all resources for an updatable entity', async () => {
     const user = new Entity({
@@ -68,14 +68,14 @@ describe('generateAndRecordEntitySchema', () => {
 
     // check that the upsert function was created
     const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${user.name}.sql`, 'utf8');
-    expect(upsertSql).toContain('CREATE FUNCTION');
+    expect(upsertSql).toContain('CREATE OR REPLACE FUNCTION');
 
     // check that the backfill current version pointer function was created
     const backfillCurrentVersionPointerSql = await readFile(
       `${targetDirPath}/functions/backfill_${user.name}_cvp.sql`,
       'utf8',
     );
-    expect(backfillCurrentVersionPointerSql).toContain('CREATE FUNCTION');
+    expect(backfillCurrentVersionPointerSql).toContain('CREATE OR REPLACE FUNCTION');
 
     // check that the _current view was created
     const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${user.name}_current.sql`, 'utf8');
@@ -134,21 +134,21 @@ describe('generateAndRecordEntitySchema', () => {
 
     // check that the upsert function was created
     const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${movie.name}.sql`, 'utf8');
-    expect(upsertSql).toContain('CREATE FUNCTION');
+    expect(upsertSql).toContain('CREATE OR REPLACE FUNCTION');
 
     // check that the backfill current version pointer function was created
     const backfillCurrentVersionPointerSql = await readFile(
       `${targetDirPath}/functions/backfill_${movie.name}_cvp.sql`,
       'utf8',
     );
-    expect(backfillCurrentVersionPointerSql).toContain('CREATE FUNCTION');
+    expect(backfillCurrentVersionPointerSql).toContain('CREATE OR REPLACE FUNCTION');
 
     // check that the getFromDelimiterSplitString function was created
     const getFromDelimiterSplitStringSql = await readFile(
       `${targetDirPath}/functions/upsert_${movie.name}.sql`,
       'utf8',
     );
-    expect(getFromDelimiterSplitStringSql).toContain('CREATE FUNCTION');
+    expect(getFromDelimiterSplitStringSql).toContain('CREATE OR REPLACE FUNCTION');
 
     // check that the _current view was created
     const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${movie.name}_current.sql`, 'utf8');

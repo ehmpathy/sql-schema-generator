@@ -7,9 +7,6 @@ export interface Properties {
   [index: string]: Property;
 }
 
-/*
-  naming from https://dev.mysql.com/doc/refman/8.0/en/create-table.html
-*/
 const entitySchema = Joi.object().keys({
   name: Joi.string().required(),
   properties: Joi.object().pattern(

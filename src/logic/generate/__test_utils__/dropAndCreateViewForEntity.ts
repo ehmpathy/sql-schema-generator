@@ -1,6 +1,6 @@
+import { DatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { Entity } from '../../../types';
 import { generateEntityCurrentView } from '../entityViews/generateEntityCurrentView';
-import { DatabaseConnection } from './databaseConnection';
 
 export const dropAndCreateViewForEntity = async ({
   entity,

@@ -1,10 +1,10 @@
 import uuid from 'uuid/v4';
-import { mysql as prepare } from 'yesql';
+import { pg as prepare } from 'yesql';
 
+import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { Entity, ValueObject } from '../../../types';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
-import { DatabaseConnection, getDatabaseConnection } from '../__test_utils__/databaseConnection';
 import { dropAndCreateUpsertFunctionForEntity } from '../__test_utils__/dropAndCreateUpsertForEntity';
 import { dropAndCreateViewForEntity } from '../__test_utils__/dropAndCreateViewForEntity';
 import { getEntityFromCurrentView } from '../__test_utils__/getEntityFromCurrentView';
@@ -59,7 +59,7 @@ describe('generateEntityViewCurrent', () => {
         },
       });
       const upsertLock = async ({ manufacturer, manufacturerId }: { manufacturer: string; manufacturerId: string }) => {
-        const result = (await dbConnection.query(
+        const result = await dbConnection.query(
           prepare(`
             SELECT upsert_${lock.name}(
               :manufacturer,
@@ -69,11 +69,11 @@ describe('generateEntityViewCurrent', () => {
             manufacturer,
             manufacturerId,
           }),
-        )) as any;
-        return result[0][0].id;
+        );
+        return result.rows[0].id;
       };
       const upsertDoor = async ({ color, lock_ids }: { color: string; lock_ids: string }) => {
-        const result = (await dbConnection.query(
+        const result = await dbConnection.query(
           prepare(`
             SELECT upsert_${door.name}(
               :color,
@@ -83,8 +83,8 @@ describe('generateEntityViewCurrent', () => {
             color,
             lock_ids,
           }),
-        )) as any;
-        return result[0][0].id;
+        );
+        return result.rows[0].id;
       };
       const getEntityFromView = async ({ id }: { id: number }) =>
         getEntityFromCurrentView({ id, entity: door, dbConnection });
@@ -112,13 +112,13 @@ describe('generateEntityViewCurrent', () => {
 
         const props = {
           color: 'red',
-          lock_ids: lockIds,
+          lock_ids: `{${lockIds}}`,
         };
         const id = await upsertDoor(props);
 
         // // check that the static part was accurate
         const entity = await getEntityFromView({ id });
-        expect(entity).toMatchObject(props);
+        expect({ ...entity, lock_ids: `{${entity.lock_ids.join(',')}}` }).toMatchObject(props);
         expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
         expect(entity.id).toEqual(id);
       });
@@ -150,7 +150,7 @@ describe('generateEntityViewCurrent', () => {
       const getEntityFromView = async ({ id }: { id: number }) =>
         getEntityFromCurrentView({ id, entity: user, dbConnection });
       const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
-        const result = (await dbConnection.query(
+        const result = await dbConnection.query(
           prepare(`
         SELECT upsert_${user.name}(
           :cognito_uuid,
@@ -162,8 +162,8 @@ describe('generateEntityViewCurrent', () => {
             name,
             bio,
           }),
-        )) as any;
-        return result[0][0].id;
+        );
+        return result.rows[0].id;
       };
       it('should generate good looking and consistent sql', () => {
         const view = generateEntityCurrentView({ entity: user });
@@ -232,7 +232,7 @@ describe('generateEntityViewCurrent', () => {
       const getEntityFromView = async ({ id }: { id: number }) =>
         getEntityFromCurrentView({ id, entity: vehicle, dbConnection });
       const upsertVehicle = async ({ name, wheel_ids }: { name: string; wheel_ids: string }) => {
-        const result = (await dbConnection.query(
+        const result = await dbConnection.query(
           prepare(`
           SELECT upsert_${vehicle.name}(
             :name,
@@ -242,11 +242,11 @@ describe('generateEntityViewCurrent', () => {
             name,
             wheel_ids,
           }),
-        )) as any;
-        return result[0][0].id;
+        );
+        return result.rows[0].id;
       };
       const upsertWheel = async ({ name }: { name: string }) => {
-        const result = (await dbConnection.query(
+        const result = await dbConnection.query(
           prepare(`
           SELECT upsert_${wheel.name}(
             :name
@@ -254,8 +254,8 @@ describe('generateEntityViewCurrent', () => {
         `)({
             name,
           }),
-        )) as any;
-        return result[0][0].id;
+        );
+        return result.rows[0].id;
       };
       it('should generate good looking and consistent sql', () => {
         const view = generateEntityCurrentView({ entity: vehicle });
@@ -271,13 +271,13 @@ describe('generateEntityViewCurrent', () => {
         ].join(',');
         const props = {
           name: uuid(),
-          wheel_ids: wheelIds,
+          wheel_ids: `{${wheelIds}}`,
         };
         const id = await upsertVehicle(props);
 
         // check that the static part was accurate
         const entity = await getEntityFromView({ id });
-        expect(entity).toMatchObject(props);
+        expect({ ...entity, wheel_ids: `{${entity.wheel_ids.join(',')}}` }).toMatchObject(props);
         expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
         expect(entity.id).toEqual(id);
       });
@@ -292,24 +292,24 @@ describe('generateEntityViewCurrent', () => {
         ].join(',');
         const props = {
           name: uuid(),
-          wheel_ids: wheelIds,
+          wheel_ids: `{${wheelIds}}`,
         };
         const id = await upsertVehicle(props);
 
         // update the entity dynamic properties
         const updatedProps = {
           ...props,
-          wheel_ids: wheelIds
+          wheel_ids: `{${wheelIds
             .split(',')
             .slice(1, 2)
-            .join(','),
+            .join(',')}}`,
         };
         const idAgain = await upsertVehicle(updatedProps);
         expect(idAgain).toEqual(id);
 
         // check that the updated part is still accurate
         const entity = await getEntityFromView({ id });
-        expect(entity).toMatchObject(updatedProps);
+        expect({ ...entity, wheel_ids: `{${entity.wheel_ids.join(',')}}` }).toMatchObject(updatedProps);
       });
     });
   });

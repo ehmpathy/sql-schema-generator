@@ -1,5 +1,6 @@
+import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
+import { getShowCreateTable } from '../../../../__test_utils__/getShowCreateTable';
 import { DataType, DataTypeName, Property } from '../../../../types';
-import { DatabaseConnection, getDatabaseConnection } from '../../__test_utils__/databaseConnection';
 import { generateColumn } from './generateColumn';
 import { generateConstraintForeignKey } from './generateConstraintForeignKey';
 
@@ -17,11 +18,11 @@ describe('generateConstraintForeignKey', () => {
   const testFkIsCreateable = async ({
     columnSql,
     constraintSql,
-    keySql,
+    indexSql,
   }: {
     columnSql: string;
     constraintSql: string;
-    keySql: string;
+    indexSql: string;
   }) => {
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_constraint_fk_test;' });
     await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_constraint_fk_test_referenced;' });
@@ -36,20 +37,16 @@ describe('generateConstraintForeignKey', () => {
       sql: `
       CREATE TABLE generate_table_constraint_fk_test (
         ${columnSql} PRIMARY KEY,
-        ${keySql},
         ${constraintSql}
-      )
+      );
+      ${indexSql};
     `,
     });
   };
-  const getShowCreateNow = async () => {
-    const result = (await dbConnection.query({ sql: 'SHOW CREATE TABLE generate_table_constraint_fk_test' })) as any;
-    return result[0][0]['Create Table'];
-  };
+  const getShowCreateNow = async () => getShowCreateTable({ table: 'generate_table_constraint_fk_test', dbConnection });
   const property = new Property({
     type: new DataType({
       name: DataTypeName.BIGINT,
-      precision: 11,
     }),
     references: 'generate_table_constraint_fk_test_referenced',
   });
@@ -57,15 +54,15 @@ describe('generateConstraintForeignKey', () => {
     const columnSql = generateColumn({ columnName: 'user_id', property });
     const constraintSql = generateConstraintForeignKey({
       index: 1,
-      tableName: 'message',
+      tableName: 'generate_table_constraint_fk_test',
       columnName: 'user_id',
       property,
     });
-    await testFkIsCreateable({ columnSql, constraintSql: constraintSql.constraint, keySql: constraintSql.key });
+    await testFkIsCreateable({ columnSql, constraintSql: constraintSql.constraint, indexSql: constraintSql.index });
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
     const createTableSQL = await getShowCreateNow();
     expect(createTableSQL).toContain(constraintSql.constraint); // should contain the exact string
-    expect(createTableSQL).toContain(constraintSql.key); // should contain the exact string
+    expect(createTableSQL).toContain(constraintSql.index); // should contain the exact string
   });
 });

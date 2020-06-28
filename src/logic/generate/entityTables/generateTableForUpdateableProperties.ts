@@ -24,18 +24,18 @@ export const generateTableForUpdateableProperties = ({
   // 1. add metadata properties
   const staticTableReferenceName = `${entityName}_id`;
   const updateableProps = {
-    id: prop.BIGINT(),
+    id: prop.BIGSERIAL(),
     [staticTableReferenceName]: new Property({
       ...prop.BIGINT(),
       references: entityName,
     }),
     effective_at: new Property({
-      ...prop.DATETIME(6),
-      default: 'CURRENT_TIMESTAMP(6)',
+      ...prop.TIMESTAMPTZ(),
+      default: 'now()',
     }),
     created_at: new Property({
-      ...prop.DATETIME(6),
-      default: 'CURRENT_TIMESTAMP(6)',
+      ...prop.TIMESTAMPTZ(),
+      default: 'now()',
     }),
     ...updatableSingularProperties,
     ...castArrayPropertiesToValuesHashProperties({ properties: updatableArrayProperties }),

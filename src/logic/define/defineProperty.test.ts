@@ -6,17 +6,16 @@ describe('generateProperty', () => {
     const property = prop.UUID();
     expect(property.constructor).toEqual(Property);
     expect(property.type).toMatchObject({
-      name: DataTypeName.CHAR,
-      precision: 36,
+      name: DataTypeName.UUID,
     });
   });
   it('should be possible to create an enum data type', () => {
     const property = prop.ENUM(['this', 'or', 'otherwise']);
     expect(property.constructor).toEqual(Property);
     expect(property.type).toMatchObject({
-      name: DataTypeName.ENUM,
-      values: ['this', 'or', 'otherwise'] as any,
+      name: DataTypeName.VARCHAR,
     });
+    expect(property.check).toEqual("($COLUMN_NAME IN ('this', 'or', 'otherwise'))");
   });
   it('should be possible to create a varchar data type', () => {
     const property = prop.VARCHAR(255);

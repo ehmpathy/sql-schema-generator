@@ -8,7 +8,7 @@ import { castPropertyToInputVariableName } from './utils/castPropertyToInputVari
   - insert a row per value into the mapping table relating this entity to the entity referenced in the property
 
   reference:
-    https://dev.mysql.com/doc/refman/8.0/en/string-functions.html
+    https://www.postgresql.org/docs/10/plpgsql-control-structures.html#PLPGSQL-FOREACH-ARRAY
 */
 export const defineMappingTableInsertsForArrayProperty = ({
   name,
@@ -24,20 +24,13 @@ export const defineMappingTableInsertsForArrayProperty = ({
   const mappingTableEntityReferenceVariable = definition.updatable ? 'v_matching_version_id' : 'v_static_id';
 
   return `
-    -- insert a row into the mapping table for each value in the ${inputVariableName} comma delimited string
-    SET v_can_still_find_values_in_delimited_string = true;
-    SET v_delimited_string_access_index = 0;
-    WHILE (v_can_still_find_values_in_delimited_string) DO
-      SET v_delimited_string_access_value = get_from_delimiter_split_string(${inputVariableName}, ',', v_delimited_string_access_index); -- get value from string
-      IF (v_delimited_string_access_value = '') THEN
-        SET v_can_still_find_values_in_delimited_string = false; -- no value at this index, stop looping
-      ELSE
-        INSERT INTO ${mappingTableKeys.tableName}
-          (created_at, ${mappingTableKeys.entityReferenceColumnName}, ${mappingTableKeys.mappedEntityReferenceColumnName}, ${mappingTableKeys.arrayOrderIndexColumnName})
-          VALUES
-          (v_created_at, ${mappingTableEntityReferenceVariable},v_delimited_string_access_value, v_delimited_string_access_index);
-      END IF;
-      SET v_delimited_string_access_index = v_delimited_string_access_index + 1;
-    END WHILE;
+  -- insert a row into the mapping table for each value in array ${inputVariableName}
+  FOR v_array_access_index IN 1 .. array_upper(${inputVariableName}, 1)
+  LOOP
+    INSERT INTO ${mappingTableKeys.tableName}
+      (created_at, ${mappingTableKeys.entityReferenceColumnName}, ${mappingTableKeys.mappedEntityReferenceColumnName}, ${mappingTableKeys.arrayOrderIndexColumnName})
+      VALUES
+      (v_created_at, ${mappingTableEntityReferenceVariable}, ${inputVariableName}[v_array_access_index], v_array_access_index);
+  END LOOP;
   `.trim();
 };

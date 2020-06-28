@@ -31,18 +31,18 @@ describe('generateTableForUpdateableProperties', () => {
     expect(generateTableMock).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
-          id: prop.BIGINT(),
+          id: prop.BIGSERIAL(),
           __ENTITY_NAME___id: new Property({
             ...prop.BIGINT(),
             references: '__ENTITY_NAME__',
           }),
           effective_at: new Property({
-            ...prop.DATETIME(6),
-            default: 'CURRENT_TIMESTAMP(6)',
+            ...prop.TIMESTAMPTZ(),
+            default: 'now()',
           }),
           created_at: new Property({
-            ...prop.DATETIME(6),
-            default: 'CURRENT_TIMESTAMP(6)',
+            ...prop.TIMESTAMPTZ(),
+            default: 'now()',
           }),
         }),
       }),
@@ -64,7 +64,7 @@ describe('generateTableForUpdateableProperties', () => {
     expect(generateTableMock).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
-          testProp_hash: prop.BINARY(32), // 32 since SHA256 binary string is 32 bytes long
+          testProp_hash: prop.BYTEA(),
         }),
       }),
     );

@@ -23,7 +23,7 @@ describe('generateTableForCurrentVersionPointer', () => {
     });
     expect(generateTableMock.mock.calls[0][0]).toMatchObject({
       properties: {
-        id: prop.BIGINT(),
+        id: prop.BIGSERIAL(),
         __ENTITY_NAME___id: new Property({
           ...prop.BIGINT(),
           references: '__ENTITY_NAME__',
@@ -33,8 +33,8 @@ describe('generateTableForCurrentVersionPointer', () => {
           references: '__ENTITY_NAME___version',
         }),
         updated_at: new Property({
-          ...prop.DATETIME(6),
-          default: 'CURRENT_TIMESTAMP(6)',
+          ...prop.TIMESTAMPTZ(),
+          default: 'now()',
         }),
       },
     });

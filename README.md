@@ -78,15 +78,15 @@ Consequently, by utilizing the schema generator:
   const photo = new ValueObject({
     name: 'photo',
     properties: {
-      url: prop.VARCHAR(255),
+      url: prop.VARCHAR(),
     },
   });
   const user = new Entity({
     name: 'user',
     properties: {
       phone_number: prop.CHAR(10), // only us numbers allowed
-      first_name: prop.VARCHAR(255),
-      last_name: prop.VARCHAR(255),
+      first_name: prop.VARCHAR(),
+      last_name: prop.VARCHAR(),
       avatar_id: { ...prop.REFERENCES(photo), updatable: true, nullable: true },
     },
     unique: ['phone_number'], // users are identified by their phone number
@@ -94,9 +94,9 @@ Consequently, by utilizing the schema generator:
   const home = new Entity({
     name: 'home',
     properties: {
-      name: prop.VARCHAR(255),
+      name: prop.VARCHAR(),
       owner_id: prop.REFERENCES(user),
-      built: prop.DATETIME(6),
+      built: prop.TIMESTAMPTZ(),
       bedrooms: prop.INT(),
       bathrooms: prop.INT(),
       photo_ids: { ...prop.ARRAY_OF(prop.REFERENCES(photo)), updatable: true }, // array of photos
@@ -109,7 +109,7 @@ Consequently, by utilizing the schema generator:
       agent_id: prop.REFERENCES(user),
       home_id: prop.REFERENCES(home),
       description: { ...prop.TEXT(), updatable: true },
-      price: { ...prop.DECIMAL(10, 2), updatable: true },
+      price: { ...prop.NUMERIC(10, 2), updatable: true },
     },
     unique: [], // because the same agent can list the same home more than once, there is nothing unique about a listing
   })
@@ -122,7 +122,7 @@ Consequently, by utilizing the schema generator:
   npx sql-schema-generator generate -d schema/entities.ts -t schema/generated
   ```
 
-4. Check the generated into your VCS
+4. Check the generated into your VCS (version control software, e.g. git)
      - Steps 2 and 3 above will have produced tables, functions, and views for each entity, as required. For best practice, we encourage you to check these sql resources into your VCS. This will make it easy to detect changes in the source sql, if ever modified, and for peer reviews.
 
 5. Use a schema management tool like schema-control or liquibase to apply your schema
@@ -132,6 +132,14 @@ Consequently, by utilizing the schema generator:
 6. ???
 
 7. Profit
+
+# Supported Databases
+
+## PostgreSQL
+PostgreSQL is the primary target of `sql-schema-generator` since `v0.18.0`. PostgreSQL is a great database for the large majority of applications, for many reasons.
+
+## MySQL
+Support for MySQL has ended with `v0.18.0`. Versions `v0.17.1` and earlier, which support MySQL, can still be installed. No new features or support will be targeting MySQL.
 
 # Commands
 <!-- commands -->

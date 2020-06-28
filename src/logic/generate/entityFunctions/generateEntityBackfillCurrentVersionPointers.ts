@@ -30,61 +30,61 @@ WHERE 1=1
 
   // combine the version and static logic into full upsert function
   const definition = `
-CREATE FUNCTION \`backfill_${entity.name}_cvp\`(in_limit INT) RETURNS int(20)
-BEGIN
-  -- declarations
-  DECLARE v_cvp_rows_inserted INT;
-  DECLARE v_cvp_rows_updated INT;
-  DECLARE v_remaining_limit INT;
+CREATE OR REPLACE FUNCTION backfill_${entity.name}_cvp(
+  in_limit int
+)
+RETURNS int
+LANGUAGE plpgsql
+AS $$
+  DECLARE
+    v_cvp_rows_inserted int;
+    v_cvp_rows_updated int;
+    v_remaining_limit int;
+  BEGIN
+    -- 1. insert every time cvp dne for an entity
+    INSERT INTO ${entity.name}_cvp
+      (${entity.name}_id, ${entity.name}_version_id)
+    SELECT
+      e.id,
+      e_to_cv.current_version_id
+    FROM ${entity.name} e
+    JOIN (
+      ${indentString(selectCurrentVersionIdForEntity, 6).trim()}
+    ) AS e_to_cv ON e_to_cv.id = e.id
+    WHERE 1=1
+      AND NOT EXISTS (
+        SELECT 'x'
+        FROM ${entity.name}_cvp cvp
+        WHERE cvp.${entity.name}_id = e.id
+      )
+    LIMIT in_limit;
+    GET DIAGNOSTICS v_cvp_rows_inserted = ROW_COUNT;
+    v_remaining_limit := in_limit - v_cvp_rows_inserted;
 
-  -- 1. insert every time cvp dne for an entity
-  INSERT INTO ${entity.name}_cvp
-    (${entity.name}_id, ${entity.name}_version_id)
-  SELECT
-    e.id,
-    e_to_cv.current_version_id
-  FROM ${entity.name} e
-  JOIN (
-    ${indentString(selectCurrentVersionIdForEntity, 4).trim()}
-  ) AS e_to_cv ON e_to_cv.id = e.id
-  WHERE 1=1
-    AND NOT EXISTS (
-      SELECT 'x'
-      FROM ${entity.name}_cvp cvp
-      WHERE cvp.${entity.name}_id = e.id
-    )
-  LIMIT in_limit;
-  SET v_cvp_rows_inserted = ROW_COUNT();
-  SET v_remaining_limit = in_limit - v_cvp_rows_inserted;
-
-  -- 2. update every time cvp exists but is out of sync for an entity
-  UPDATE ${entity.name}_cvp cvp
-  JOIN (
-    ${indentString(selectCurrentVersionIdForEntity, 4).trim()}
-  ) AS e_to_cv ON e_to_cv.id = cvp.${entity.name}_id
-  SET
-    updated_at = CURRENT_TIMESTAMP(6),
-    cvp.${entity.name}_version_id = e_to_cv.current_version_id -- set pointer table to have current version
-  WHERE cvp.${entity.name}_id IN (
-    SELECT id FROM ( -- ugly? agreed: https://stackoverflow.com/a/12620023/3068233 - its the best way found so far to limit in an update
+    -- 2. update every time cvp exists but is out of sync for an entity
+    WITH cvp_to_update AS (
       SELECT
-        cvp.${entity.name}_id as id
-      FROM ${entity.name}_cvp cvp
-      JOIN (
-        ${indentString(selectCurrentVersionIdForEntity, 8).trim()}
-      ) AS e_to_cv ON e_to_cv.id = cvp.${entity.name}_id
-      WHERE 1=1
-        AND cvp.${
-          entity.name
-        }_version_id <> e_to_cv.current_version_id -- where the pointer table does not already have current version
+        cvp.id,
+        e_to_cv.current_version_id as actual_current_version_id
+      FROM (
+        ${indentString(selectCurrentVersionIdForEntity, 6).trim()}
+      ) AS e_to_cv
+      JOIN ${entity.name}_cvp cvp ON cvp.${entity.name}_id = e_to_cv.id
+      WHERE cvp.${entity.name}_version_id <> e_to_cv.current_version_id
       LIMIT v_remaining_limit
-    ) as tmp
-  );
-  SET v_cvp_rows_updated = ROW_COUNT();
+    )
+    UPDATE ${entity.name}_cvp
+    SET
+      updated_at = now(),
+      ${entity.name}_version_id = cvp_to_update.actual_current_version_id
+    FROM cvp_to_update
+    WHERE ${entity.name}_cvp.id = cvp_to_update.id;
+    GET DIAGNOSTICS v_cvp_rows_updated = ROW_COUNT;
 
-  -- return the number of rows affected
-  RETURN v_cvp_rows_inserted + v_cvp_rows_updated;
-END
+    -- return the number of rows affected
+    RETURN v_cvp_rows_inserted + v_cvp_rows_updated;
+  END;
+$$
   `.trim();
   return {
     name: `backfill_${entity.name}_cvp`,

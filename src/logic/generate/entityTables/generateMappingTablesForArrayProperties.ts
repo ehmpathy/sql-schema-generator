@@ -23,10 +23,10 @@ const generateMappingTableForArrayProperty = ({
 
   // 3. define the full table properties for the mapping table
   const mappingTableProps = {
-    id: prop.BIGINT(),
+    id: prop.BIGSERIAL(),
     created_at: new Property({
-      ...prop.DATETIME(6),
-      default: 'CURRENT_TIMESTAMP(6)',
+      ...prop.TIMESTAMPTZ(),
+      default: 'now()',
     }),
     [mappingTableKeys.entityReferenceColumnName]: new Property({
       ...prop.BIGINT(),
@@ -36,7 +36,7 @@ const generateMappingTableForArrayProperty = ({
       ...prop.BIGINT(),
       references: mappingTableKeys.mappedEntityReferenceTableName,
     }),
-    [mappingTableKeys.arrayOrderIndexColumnName]: prop.TINYINT(), // if someone needs more than 255 properties in an array, there is probably an alternative better way to model the problem
+    [mappingTableKeys.arrayOrderIndexColumnName]: prop.SMALLINT(), // smallint because if someone needs more than 30k properties in an array, something is terribly wrong!
   };
 
   // 4. build the table

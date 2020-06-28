@@ -12,7 +12,7 @@ jest.mock('./generateConstraintForeignKey');
 const generateConstraintForeignKeyMock = generateConstraintForeignKey as jest.Mock;
 generateConstraintForeignKeyMock.mockReturnValue({
   constraint: '__FOREIGN_KEY_CONSTRAINT__',
-  key: '__FOREIGN_KEY_KEY__',
+  index: '__FOREIGN_KEY_INDEX__',
 });
 
 describe('generateTableConstraint', () => {
@@ -26,7 +26,7 @@ describe('generateTableConstraint', () => {
   const statusProperty = prop.ENUM(['happy', 'meh', 'sad']);
   it('should define the table with the correct name', () => {
     const sql = generateTable({ tableName: 'message', properties: { user_id: userIdProperty }, unique: ['user_id'] });
-    expect(sql).toContain('CREATE TABLE `message`');
+    expect(sql).toContain('CREATE TABLE message');
   });
   it('should call generateColumn for each property', () => {
     generateTable({ tableName: 'message', properties: { user_id: userIdProperty }, unique: ['user_id'] });
@@ -48,15 +48,15 @@ describe('generateTableConstraint', () => {
   });
   it('should define id as the primary key', () => {
     const sql = generateTable({ tableName: 'message', properties: { user_id: userIdProperty }, unique: ['user_id'] });
-    expect(sql).toContain('PRIMARY KEY (`id`),');
+    expect(sql).toContain('CONSTRAINT message_pk PRIMARY KEY (id),');
   });
   it('should define the unique key', () => {
     const sql = generateTable({ tableName: 'message', properties: { user_id: userIdProperty }, unique: ['user_id'] });
-    expect(sql).toContain('UNIQUE KEY `message_ux1` (`user_id`),');
+    expect(sql).toContain('CONSTRAINT message_ux1 UNIQUE (user_id),');
   });
   it('should define the foreign key constraints', () => {
     const sql = generateTable({ tableName: 'message', properties: { user_id: userIdProperty }, unique: ['user_id'] });
-    expect(sql).toContain('__FOREIGN_KEY_KEY__,');
+    expect(sql).toContain('__FOREIGN_KEY_INDEX__');
     expect(sql).toContain('__FOREIGN_KEY_CONSTRAINT__');
   });
   it('should not have empty lines if no foreign keys are defined', () => {
@@ -68,7 +68,7 @@ describe('generateTableConstraint', () => {
       generateTable({ tableName: 'message', properties: { status: statusProperty }, unique: [] });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual('must have atleast one unique property; otherwise, idempotency is not guaranteed');
+      expect(error.message).toEqual('must have atleast one unique property; otherwise, idempotency cant be enforced');
     }
   });
 });

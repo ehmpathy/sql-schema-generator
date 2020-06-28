@@ -19,7 +19,7 @@ export const castArrayPropertiesToValuesHashProperties = ({
       throw new Error('error - non array property was asked to have been casted into values hash property');
     }
     const columnName = castPropertyToColumnName({ name, definition });
-    castedProperties[columnName] = prop.BINARY(32); // UNHEX(SHA2(in_string, 256)) produces a 32 byte binary string
+    castedProperties[columnName] = prop.BYTEA();
   });
   return castedProperties;
 };
