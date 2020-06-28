@@ -2,11 +2,11 @@
 
 exports[`normalizeCreateFunctionDdl should be possible to get create statement of function 1`] = `
 "CREATE OR REPLACE FUNCTION public.test_func_for_show_create_on(
-  in_name character varying,
+  in_name varchar,
   in_date timestamp with time zone,
-  in_counter integer
+  in_counter int
 )
-RETURNS integer
+RETURNS int
 LANGUAGE plpgsql
 AS $$
   DECLARE
