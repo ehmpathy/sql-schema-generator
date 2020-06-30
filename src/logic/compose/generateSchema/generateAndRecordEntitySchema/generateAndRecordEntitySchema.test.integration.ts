@@ -79,7 +79,7 @@ describe('generateAndRecordEntitySchema', () => {
 
     // check that the _current view was created
     const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${user.name}_current.sql`, 'utf8');
-    expect(viewCurrentSql).toContain('CREATE VIEW');
+    expect(viewCurrentSql).toContain('CREATE OR REPLACE VIEW');
   });
   it('should record all resources for an updatable entity with array properties', async () => {
     const language = new ValueObject({
@@ -152,6 +152,6 @@ describe('generateAndRecordEntitySchema', () => {
 
     // check that the _current view was created
     const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${movie.name}_current.sql`, 'utf8');
-    expect(viewCurrentSql).toContain('CREATE VIEW');
+    expect(viewCurrentSql).toContain('CREATE OR REPLACE VIEW');
   });
 });

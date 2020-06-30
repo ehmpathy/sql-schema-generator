@@ -63,7 +63,7 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
 
   // combine the version and static logic into full upsert function
   const definition = `
-CREATE VIEW ${viewName} AS
+CREATE OR REPLACE VIEW ${viewName} AS
   SELECT
     ${indentString(columns.join(',\n'), 4).trim()}
   FROM ${entity.name} s
