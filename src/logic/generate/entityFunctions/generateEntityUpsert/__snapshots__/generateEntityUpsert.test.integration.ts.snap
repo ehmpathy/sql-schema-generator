@@ -64,7 +64,7 @@ AS $$
         RETURNING id INTO v_static_id; 
 
       -- insert a row into the mapping table for each value in array in_producer_ids
-      FOR v_array_access_index IN 1 .. array_upper(in_producer_ids, 1)
+      FOR v_array_access_index IN 1 .. coalesce(array_upper(in_producer_ids, 1), 0)
       LOOP
         INSERT INTO movie_to_producer
           (created_at, movie_id, producer_id, array_order_index)
@@ -93,7 +93,7 @@ AS $$
         RETURNING id INTO v_matching_version_id; 
 
       -- insert a row into the mapping table for each value in array in_language_ids
-      FOR v_array_access_index IN 1 .. array_upper(in_language_ids, 1)
+      FOR v_array_access_index IN 1 .. coalesce(array_upper(in_language_ids, 1), 0)
       LOOP
         INSERT INTO movie_version_to_language
           (created_at, movie_version_id, language_id, array_order_index)

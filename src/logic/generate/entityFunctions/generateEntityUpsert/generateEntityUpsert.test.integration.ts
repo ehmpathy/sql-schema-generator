@@ -658,6 +658,30 @@ describe('generateEntityUpsert', () => {
       languageMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
       expect(currentVersionPointers[0].updated_at).toEqual(entityStatic.created_at);
     });
+    it('should be able to insert empty arrays', async () => {
+      const movieProps = {
+        name: uuid(),
+        producer_ids: [],
+        language_ids: [],
+      };
+
+      // create the movie
+      const id = await upsertMovie(movieProps);
+
+      // alter the languages its in and upsert it again
+      const idAgain = await upsertMovie(movieProps);
+      expect(id).toEqual(idAgain); // should update the same entity
+
+      // expect one version still
+      const versions = await getEntityVersions({ id });
+      expect(versions.length).toEqual(1);
+
+      // check that the mapping tables are accurate
+      const producerMappings = await getProducerMappingTableEntries({ id });
+      expect(producerMappings.length).toEqual(0);
+      const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
+      expect(languageMappings.length).toEqual(0);
+    });
   });
 
   describe('static entity unique on uuid', () => {

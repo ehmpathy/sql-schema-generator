@@ -25,7 +25,7 @@ export const defineMappingTableInsertsForArrayProperty = ({
 
   return `
   -- insert a row into the mapping table for each value in array ${inputVariableName}
-  FOR v_array_access_index IN 1 .. array_upper(${inputVariableName}, 1)
+  FOR v_array_access_index IN 1 .. coalesce(array_upper(${inputVariableName}, 1), 0)
   LOOP
     INSERT INTO ${mappingTableKeys.tableName}
       (created_at, ${mappingTableKeys.entityReferenceColumnName}, ${mappingTableKeys.mappedEntityReferenceColumnName}, ${mappingTableKeys.arrayOrderIndexColumnName})

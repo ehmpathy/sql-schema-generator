@@ -21,7 +21,7 @@ export const castPropertyToSelector = ({
     const mappingTableName = mappingTableKeys.tableName;
     return `
 (
-  SELECT array_agg(${arrayValueSelector} ORDER BY ${arrayIndexSelector}) as array_agg
+  SELECT coalesce(array_agg(${arrayValueSelector} ORDER BY ${arrayIndexSelector}), array[]::bigint[]) as array_agg
   FROM ${mappingTableName} WHERE ${entityReferenceSelector} = ${entityReferenceId}
 ) as ${name}
     `.trim();

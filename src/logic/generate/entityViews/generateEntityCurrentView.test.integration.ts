@@ -122,6 +122,20 @@ describe('generateEntityViewCurrent', () => {
         expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
         expect(entity.id).toEqual(id);
       });
+      it('should still return an array even if an array property for the entity is empty', async () => {
+        await dropAndCreateViewForEntity({ entity: door, dbConnection });
+
+        const props = {
+          color: 'red',
+          lock_ids: '{}',
+        };
+        const id = await upsertDoor(props);
+
+        // // check that the static part was accurate
+        const entity = await getEntityFromView({ id });
+        expect(Array.isArray(entity.lock_ids));
+        expect(entity.lock_ids).toEqual([]);
+      });
     });
   });
   describe('versioned entity', () => {
