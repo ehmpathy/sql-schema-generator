@@ -26,7 +26,9 @@ describe('normalizeDeclarationContents', () => {
       normalizeDeclarationContents({ contents });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual('an entities array must be exported by the source file');
+      expect(error.message).toEqual(
+        'an `entities` or `generateSqlSchemasFor` array must be exported by the source file',
+      );
     }
   });
   it('throw an error if entities are not all of class Entity or ValueObject', () => {
@@ -81,6 +83,27 @@ describe('normalizeDeclarationContents', () => {
     });
     const contents = {
       entities: [plant, vase, customer, order],
+    };
+    const { entities } = normalizeDeclarationContents({ contents });
+
+    // check that we return everything as expected
+    expect(entities).toEqual([plant, vase, customer, order]);
+  });
+  it('should return the entities and value objects found in the contents - when specified with the generateSqlSchemasFor syntax', () => {
+    const plant = new ValueObject({ name: 'plant', properties: { genus: prop.VARCHAR(255) } });
+    const vase = new ValueObject({ name: 'vase', properties: { plants: prop.ARRAY_OF(prop.REFERENCES(plant)) } });
+    const customer = new Entity({
+      name: 'customer',
+      properties: { phone_number: prop.VARCHAR(10) },
+      unique: ['phone_number'], // users are unique on phone numbers
+    });
+    const order = new Entity({
+      name: 'order',
+      properties: { customer_id: prop.REFERENCES(customer), vase_id: prop.REFERENCES(vase) },
+      unique: ['uuid'], // logically unique on nothing - same order can be placed many times! -> we'll require the user to pass in a uuid for idempotency
+    });
+    const contents = {
+      generateSqlSchemasFor: [plant, vase, customer, order],
     };
     const { entities } = normalizeDeclarationContents({ contents });
 

@@ -5,9 +5,10 @@ import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingCo
 import { throwErrorIfNotUniqueOnAnything } from './throwErrorIfNotUniqueOnAnything';
 
 export const normalizeDeclarationContents = ({ contents }: { contents: any }) => {
-  // 1. check that 'entities' is exported
-  if (!contents.entities) throw new Error('an entities array must be exported by the source file');
-  const entities = contents.entities as Entity[];
+  // 1. check that 'entities' or 'generateSqlSchemasFor' is exported
+  if (!contents.entities && !contents.generateSqlSchemasFor)
+    throw new Error('an `entities` or `generateSqlSchemasFor` array must be exported by the source file');
+  const entities = (contents.entities ?? contents.generateSqlSchemasFor) as Entity[];
 
   // 2. check that each entity is of the constructor
   entities.forEach((entity: any) => {

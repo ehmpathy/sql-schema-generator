@@ -21,6 +21,7 @@
     "member-ordering": false,
     "ter-arrow-parens": false,
     "ter-indent": false,
-    "array-type": false
+    "array-type": false,
+    "curly": false
   }
 }
