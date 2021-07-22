@@ -58,13 +58,16 @@ export const BIGSERIAL = () =>
 /**
  * The NUMERIC type stores exact numeric data values. These types are used when it is important to preserve exact precision.
  *
- * Precision represents the number of significant digits that are stored in total. Scale represents the number of digits following the decimal point.
+ * This type accepts optional type coercion options of precision and scale. Precision represents the number of significant digits that are stored in total. Scale represents the number of digits following the decimal point. Specifying precision/scale does not change how much storage space each value requires, it only affects input coercion.
  *
  * Example: the range of DECIMAL(5,2) is [-999.99, 999.99], since 5 is the precision and 2 is the scale.
  *
+ * From the docs:
+ * > If you're concerned about portability, always specify the precision and scale explicitly.
+ *
  * https://www.postgresql.org/docs/9.5/datatype-numeric.html
  */
-export const NUMERIC = (precision: number, scale: number) =>
+export const NUMERIC = (precision?: number, scale?: number) =>
   new Property({
     type: new DataType({
       name: DataTypeName.NUMERIC,
