@@ -61,10 +61,10 @@ describe('generateEntityViewCurrent', () => {
       const upsertLock = async ({ manufacturer, manufacturerId }: { manufacturer: string; manufacturerId: string }) => {
         const result = await dbConnection.query(
           prepare(`
-            SELECT upsert_${lock.name}(
+            SELECT * FROM upsert_${lock.name}(
               :manufacturer,
               :manufacturerId
-            ) as id;
+            );
         `)({
             manufacturer,
             manufacturerId,
@@ -75,10 +75,10 @@ describe('generateEntityViewCurrent', () => {
       const upsertDoor = async ({ color, lock_ids }: { color: string; lock_ids: string }) => {
         const result = await dbConnection.query(
           prepare(`
-            SELECT upsert_${door.name}(
+            SELECT * FROM upsert_${door.name}(
               :color,
               :lock_ids
-            ) as id;
+            );
         `)({
             color,
             lock_ids,
@@ -166,11 +166,11 @@ describe('generateEntityViewCurrent', () => {
       const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
         const result = await dbConnection.query(
           prepare(`
-        SELECT upsert_${user.name}(
+        SELECT * FROM upsert_${user.name}(
           :cognito_uuid,
           :name,
           :bio
-        ) as id;
+        );
       `)({
             cognito_uuid,
             name,
@@ -248,10 +248,10 @@ describe('generateEntityViewCurrent', () => {
       const upsertVehicle = async ({ name, wheel_ids }: { name: string; wheel_ids: string }) => {
         const result = await dbConnection.query(
           prepare(`
-          SELECT upsert_${vehicle.name}(
+          SELECT * FROM upsert_${vehicle.name}(
             :name,
             :wheel_ids
-          ) as id;
+          );
         `)({
             name,
             wheel_ids,
@@ -262,9 +262,9 @@ describe('generateEntityViewCurrent', () => {
       const upsertWheel = async ({ name }: { name: string }) => {
         const result = await dbConnection.query(
           prepare(`
-          SELECT upsert_${wheel.name}(
+          SELECT * FROM upsert_${wheel.name}(
             :name
-          ) as id;
+          );
         `)({
             name,
           }),

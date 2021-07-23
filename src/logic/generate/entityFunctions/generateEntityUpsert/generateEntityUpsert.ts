@@ -1,4 +1,5 @@
 import indentString from 'indent-string';
+import { isPresent } from 'simple-type-guards';
 
 import { Entity } from '../../../../types';
 import { defineDeclarations } from './defineDeclarations';
@@ -8,7 +9,7 @@ import { defineInsertVersionIfDynamicDataChangedLogic } from './defineInsertVers
 import { defineUpsertCurrentVersionPointerIfNeededLogic } from './defineUpsertCurrentVersionPointerIfNeededLogic';
 
 /*
-1. define procedure / function (try function if possible)
+1. define function
 2. define inputs
 3. declare needed inputs
 4. logic
@@ -17,61 +18,6 @@ import { defineUpsertCurrentVersionPointerIfNeededLogic } from './defineUpsertCu
   2. check if the version has changed
   3. if the version has changed, insert a new version
   5. return the id of the static entity
-*/
-
-/*
-  what is affected by array properties:
-    - input type (json array) -vs- saved type (char(36) <- hash) && mapping table inputs
-    - input name -vs- table name
-
-  ---
-
-  and
-
-  ----
-
-  so:
-  - conversions:
-    - 1. input name -> stored name for array properties
-    - 2. normal name -> stored name for array properties
-    - 3. normal name -> mapping table for array properties
-
-  ----
-
-  ideally:
-
-  upsert_x(in_tag_ids VARCHAR(5000)) {
-    -- calculate hashes for arrays
-    v_tag_ids_hash = SHA256(in_tag_ids);
-    v_name_ids_hash = SHA256(in_name_ids);
-
-    -- find unique
-    SELECT * WHERE
-      ...
-      AND tag_ids_hash = SHA256(v_tag_ids_hash)
-
-    -- insert if dne
-    if (null) {
-      -- insert main
-      INSERT INTO (tag_ids_hash)
-      VALUES
-        (v_tag_ids_hash)
-
-      -- insert into mapping table, if array props exist
-      FOR tag IN in_tags {
-        INSERT INTO x_to_tag (x_id, tag_id) VALUES (v_entity_id, tag.id);
-      }
-    }
-
-    -- do the same for the version
-
-  }
-
-  SO changes:
-    - calculate the hash value one time for each array prop
-    - change the property name if array and change the property type if array (name => ${name}_hash, type => CHAR(32))
-      - when checking or inserting
-    - insert into mapping tables any time inserting static row or version row
 */
 export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
   // define the input definitions
@@ -85,12 +31,37 @@ export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
   const insertVersionIfDynamicDataChangedLogic = defineInsertVersionIfDynamicDataChangedLogic({ entity });
   const upsertCurrentVersionPointerIfNeededLogic = defineUpsertCurrentVersionPointerIfNeededLogic({ entity });
 
+  // define the return statement
+  const hasVersionTable = Object.values(entity.properties).some((property) => !!property.updatable);
+  const returnsDefinition = `
+TABLE(${[
+    'id bigint',
+    'uuid uuid',
+    'created_at timestamp with time zone',
+    hasVersionTable ? 'effective_at timestamp with time zone' : null,
+  ]
+    .filter(isPresent)
+    .join(', ')})
+  `.trim();
+  const returnsQuery = `
+      SELECT ${['s.id', 's.uuid', 's.created_at', hasVersionTable ? 'v.effective_at AS effective_at' : null]
+        .filter(isPresent)
+        .join(', ')}
+      FROM ${entity.name} s
+      ${[
+        hasVersionTable ? `JOIN ${entity.name}_version v ON v.id = v_matching_version_id` : null,
+        'WHERE s.id = v_static_id',
+      ]
+        .filter(isPresent)
+        .join('\n      ')}
+  `.trim();
+
   // combine the version and static logic into full upsert function
   const definition = `
 CREATE OR REPLACE FUNCTION upsert_${entity.name}(
   ${inputDefinitions.join(',\n  ')}
 )
-RETURNS bigint
+RETURNS ${returnsDefinition}
 LANGUAGE plpgsql
 AS $$
   DECLARE
@@ -102,8 +73,9 @@ AS $$
       .join('\n\n')
       .trim()}
 
-    -- return the static entity id
-    RETURN v_static_id;
+    -- return the db generated values
+    RETURN QUERY
+      ${returnsQuery};
   END;
 $$
   `.trim();

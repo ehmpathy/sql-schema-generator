@@ -47,11 +47,11 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
     const upsertCar = async ({ vin, name, wheels }: { vin: string; name?: string; wheels: number }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${car.name}(
+        SELECT * FROM upsert_${car.name}(
           :vin,
           :name,
           :wheels
-        ) as id;
+        );
       `)({
           vin,
           name,

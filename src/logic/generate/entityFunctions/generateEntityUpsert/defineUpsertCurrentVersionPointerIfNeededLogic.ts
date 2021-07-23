@@ -24,9 +24,9 @@ IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null,
   v_current_version_id_recorded_in_pointer_table := v_matching_version_id; -- and record that the current version recorded is now the real current version
 END IF;
 IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
-  SELECT effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
-  FROM ${entity.name}_version
-  WHERE id = v_current_version_id_recorded_in_pointer_table;
+  SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
+  FROM ${entity.name}_version AS v
+  WHERE v.id = v_current_version_id_recorded_in_pointer_table;
   IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is "newer" than the currently cached version
     UPDATE ${entity.name}_cvp
     SET

@@ -1,5 +1,5 @@
 import sha256 from 'simple-sha256';
-import uuid from 'uuid/v4';
+import uuidV4 from 'uuid/v4';
 import { pg as prepare } from 'yesql';
 
 import { normalizeCreateFunctionDdl } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateFunction/normalizeCreateFunctionDdl';
@@ -67,13 +67,13 @@ describe('generateEntityUpsert', () => {
     }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${address.name}(
+        SELECT * FROM upsert_${address.name}(
           :street,
           :suite,
           :city,
           :country,
           :weekday_found
-        ) as id;
+        );
       `)({
           street,
           suite,
@@ -82,7 +82,8 @@ describe('generateEntityUpsert', () => {
           weekday_found: weekday_found || null,
         }),
       );
-      return result.rows[0].id;
+      const row = result.rows[0];
+      return { id: row.id, uuid: row.uuid, createdAt: row.created_at };
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
       const result = await dbConnection.query(
@@ -107,9 +108,11 @@ describe('generateEntityUpsert', () => {
         city: '__CITY__',
         country: 'US',
       };
-      const id = await upsertAddress(props);
+      const { id, uuid, createdAt } = await upsertAddress(props);
+      expect(uuid.length).toEqual(36);
       const entity = await getEntityStatic({ id });
-      expect(entity.uuid.length).toEqual(36); // uuid was generated
+      expect(entity.uuid).toEqual(uuid);
+      expect(entity.created_at).toEqual(createdAt);
       expect(entity).toMatchObject(props);
     });
     it('should not create a second entity, if unique properties are the same', async () => {
@@ -120,8 +123,8 @@ describe('generateEntityUpsert', () => {
         city: '__CITY__',
         country: 'US',
       };
-      const id = await upsertAddress(props);
-      const idAgain = await upsertAddress(props);
+      const { id } = await upsertAddress(props);
+      const { id: idAgain } = await upsertAddress(props);
       expect(id).toEqual(idAgain);
     });
     it('should not create a duplicate entity even if static entity has nullable value as part of unique column', async () => {
@@ -131,8 +134,8 @@ describe('generateEntityUpsert', () => {
         city: '__CITY__',
         country: 'US',
       };
-      const id = await upsertAddress(props);
-      const idAgain = await upsertAddress(props);
+      const { id } = await upsertAddress(props);
+      const { id: idAgain } = await upsertAddress(props);
       expect(id).toEqual(idAgain);
     });
     it('should not create a duplicate entity even if the new upsert has changed a non-unique but static property', async () => {
@@ -143,8 +146,8 @@ describe('generateEntityUpsert', () => {
         city: '__CITY__',
         country: 'US',
       };
-      const id = await upsertAddress(props);
-      const idAgain = await upsertAddress({ ...props, weekday_found: 'friday' });
+      const { id } = await upsertAddress(props);
+      const { id: idAgain } = await upsertAddress({ ...props, weekday_found: 'friday' });
       expect(id).toEqual(idAgain);
     });
     it('should be case sensitive in deciding whether values are unique', async () => {
@@ -155,8 +158,8 @@ describe('generateEntityUpsert', () => {
         city: '__CITY__',
         country: 'US',
       };
-      const id = await upsertAddress(props);
-      const idAgain = await upsertAddress({ ...props, city: props.city.toLowerCase() });
+      const { id } = await upsertAddress(props);
+      const { id: idAgain } = await upsertAddress({ ...props, city: props.city.toLowerCase() });
       expect(id).not.toEqual(idAgain);
     });
   });
@@ -189,18 +192,24 @@ describe('generateEntityUpsert', () => {
     const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${user.name}(
+        SELECT * FROM upsert_${user.name}(
           :cognito_uuid,
           :name,
           :bio
-        ) as id;
+        );
       `)({
           cognito_uuid,
           name,
           bio,
         }),
       );
-      return result.rows[0].id;
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        uuid: row.uuid,
+        createdAt: row.created_at,
+        effectiveAt: row.effective_at,
+      };
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
       const result = await dbConnection.query(
@@ -236,22 +245,25 @@ describe('generateEntityUpsert', () => {
     });
     it('should create the entity accurately', async () => {
       const props = {
-        cognito_uuid: uuid(),
+        cognito_uuid: uuidV4(),
         name: 'hank hill',
         bio: 'i sell propane and propane accessories',
       };
-      const id = await upsertUser(props);
+      const { id, uuid, createdAt, effectiveAt } = await upsertUser(props);
 
       // check that the static part was accurate
       const entityStatic = await getEntityStatic({ id });
       expect(entityStatic.uuid.length).toEqual(36); // uuid was generated
       expect(entityStatic.cognito_uuid).toEqual(props.cognito_uuid);
+      expect(uuid).toEqual(entityStatic.uuid);
+      expect(createdAt).toEqual(entityStatic.created_at);
 
       // check that the versioned part is accurate
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(1);
       expect(versions[0].name).toEqual(props.name);
       expect(versions[0].bio).toEqual(props.bio);
+      expect(effectiveAt).toEqual(versions[0].effective_at);
 
       // check that the current version table is initialized accurately
       const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
@@ -260,17 +272,20 @@ describe('generateEntityUpsert', () => {
     });
     it('should update the entity if the updateable data changed', async () => {
       const props = {
-        cognito_uuid: uuid(),
+        cognito_uuid: uuidV4(),
         name: 'hank hill',
         bio: 'i sell propane and propane accessories',
       };
-      const id = await upsertUser(props);
-      const idAgain = await upsertUser({ ...props, name: "Hank's Hill" });
-      expect(id).toEqual(idAgain);
+      const { id, effectiveAt } = await upsertUser(props);
+      const { id: idAgain, effectiveAt: effectiveAtAgain } = await upsertUser({ ...props, name: "Hank's Hill" });
+      expect(idAgain).toEqual(id);
+      expect(effectiveAtAgain).not.toEqual(effectiveAt);
 
       // expect two versions
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(2);
+      expect(effectiveAt).toEqual(versions[0].effective_at);
+      expect(effectiveAtAgain).toEqual(versions[1].effective_at);
 
       // expect newest version to have updated name
       expect(versions[1].name).toEqual("Hank's Hill");
@@ -283,12 +298,12 @@ describe('generateEntityUpsert', () => {
     it('should be case sensitive in determining updateable data has changed', async () => {
       // mysql is not case sensitive by default, so we must make sure that somehow we meet this condition (options include default encode on table/column, binary on search, and data hashing)
       const props = {
-        cognito_uuid: uuid(),
+        cognito_uuid: uuidV4(),
         name: 'hank hill',
         bio: 'i sell propane and propane accessories',
       };
-      const id = await upsertUser(props);
-      const idAgain = await upsertUser({ ...props, name: 'Hank Hill' });
+      const { id } = await upsertUser(props);
+      const { id: idAgain } = await upsertUser({ ...props, name: 'Hank Hill' });
       expect(id).toEqual(idAgain);
 
       // expect two versions
@@ -301,12 +316,12 @@ describe('generateEntityUpsert', () => {
     it('should not create a new version if the updateable data did not change', async () => {
       // i.e., idempotency
       const props = {
-        cognito_uuid: uuid(),
+        cognito_uuid: uuidV4(),
         name: 'hank hill',
         bio: 'i sell propane and propane accessories',
       };
-      const id = await upsertUser(props);
-      const idAgain = await upsertUser(props);
+      const { id } = await upsertUser(props);
+      const { id: idAgain } = await upsertUser(props);
       expect(id).toEqual(idAgain);
 
       // expect only one versions
@@ -316,11 +331,11 @@ describe('generateEntityUpsert', () => {
     it('should not create a new version if the updateable data did not change, even if one of fields is null', async () => {
       // i.e., idempotency
       const props = {
-        cognito_uuid: uuid(),
+        cognito_uuid: uuidV4(),
         name: 'hank hill',
       };
-      const id = await upsertUser(props);
-      const idAgain = await upsertUser(props);
+      const { id } = await upsertUser(props);
+      const { id: idAgain } = await upsertUser(props);
       expect(id).toEqual(idAgain);
 
       // expect only one versions
@@ -330,11 +345,11 @@ describe('generateEntityUpsert', () => {
     it('should not update the current version pointer table if a new version was not created', async () => {
       // i.e., idempotency
       const props = {
-        cognito_uuid: uuid(),
+        cognito_uuid: uuidV4(),
         name: 'hank hill',
         bio: 'i sell propane and propane accessories',
       };
-      const id = await upsertUser(props);
+      const { id } = await upsertUser(props);
 
       // check the pointer before the no-op upsert
       const initialVersionPointers = await getEntityCurrentVersionPointer({ id });
@@ -343,7 +358,7 @@ describe('generateEntityUpsert', () => {
 
       // make the upsert
       await sleep(1000); // sleep to make extra sure that if we do update the current_version_pointer table, that the timestamp will be different
-      const idAgain = await upsertUser(props);
+      const { id: idAgain } = await upsertUser(props);
       expect(id).toEqual(idAgain);
 
       // expect prove its  a no-op
@@ -358,11 +373,11 @@ describe('generateEntityUpsert', () => {
 
     it('should have the same exact created_at timestamp on both the static and version rows, on first insert', async () => {
       const props = {
-        cognito_uuid: uuid(),
+        cognito_uuid: uuidV4(),
         name: 'hank hill',
         bio: 'i sell propane and propane accessories',
       };
-      const id = await upsertUser(props);
+      const { id } = await upsertUser(props);
 
       // grab the data
       const entityStatic = await getEntityStatic({ id });
@@ -419,9 +434,9 @@ describe('generateEntityUpsert', () => {
     const upsertLanguage = async ({ name }: { name: string }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${language.name}(
+        SELECT * FROM upsert_${language.name}(
           :name
-        ) as id;
+        );
       `)({
           name,
         }),
@@ -431,9 +446,9 @@ describe('generateEntityUpsert', () => {
     const upsertProducer = async ({ name }: { name: string }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${producer.name}(
+        SELECT * FROM upsert_${producer.name}(
           :name
-        ) as id;
+        );
       `)({
           name,
         }),
@@ -451,11 +466,11 @@ describe('generateEntityUpsert', () => {
     }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${movie.name}(
+        SELECT * FROM upsert_${movie.name}(
           :name,
           :producer_ids,
           :language_ids
-        ) as id;
+        );
       `)({
           name,
           producer_ids: `{${producer_ids.join(',')}}`,
@@ -511,14 +526,14 @@ describe('generateEntityUpsert', () => {
       expect(sql).toMatchSnapshot();
     });
     it('should define the array values properly', async () => {
-      const producerIds = [await upsertProducer({ name: uuid() }), await upsertProducer({ name: uuid() })];
+      const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
       const languageIds = [
-        await upsertLanguage({ name: uuid() }),
-        await upsertLanguage({ name: uuid() }),
-        await upsertLanguage({ name: uuid() }),
+        await upsertLanguage({ name: uuidV4() }),
+        await upsertLanguage({ name: uuidV4() }),
+        await upsertLanguage({ name: uuidV4() }),
       ];
       const movieProps = {
-        name: uuid(),
+        name: uuidV4(),
         producer_ids: producerIds,
         language_ids: languageIds,
       };
@@ -554,14 +569,14 @@ describe('generateEntityUpsert', () => {
       });
     });
     it('should update the entity if the updateable array has changed', async () => {
-      const producerIds = [await upsertProducer({ name: uuid() }), await upsertProducer({ name: uuid() })];
+      const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
       const languageIds = [
-        await upsertLanguage({ name: uuid() }),
-        await upsertLanguage({ name: uuid() }),
-        await upsertLanguage({ name: uuid() }),
+        await upsertLanguage({ name: uuidV4() }),
+        await upsertLanguage({ name: uuidV4() }),
+        await upsertLanguage({ name: uuidV4() }),
       ];
       const movieProps = {
-        name: uuid(),
+        name: uuidV4(),
         producer_ids: producerIds,
         language_ids: languageIds,
       };
@@ -595,14 +610,14 @@ describe('generateEntityUpsert', () => {
       });
     });
     it('should not create a new version if the updateable array did not change', async () => {
-      const producerIds = [await upsertProducer({ name: uuid() }), await upsertProducer({ name: uuid() })];
+      const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
       const languageIds = [
-        await upsertLanguage({ name: uuid() }),
-        await upsertLanguage({ name: uuid() }),
-        await upsertLanguage({ name: uuid() }),
+        await upsertLanguage({ name: uuidV4() }),
+        await upsertLanguage({ name: uuidV4() }),
+        await upsertLanguage({ name: uuidV4() }),
       ];
       const movieProps = {
-        name: uuid(),
+        name: uuidV4(),
         producer_ids: producerIds,
         language_ids: languageIds,
       };
@@ -626,14 +641,14 @@ describe('generateEntityUpsert', () => {
       });
     });
     it('should have the same exact created_at timestamp on both the static, version, and mapping rows, on first insert', async () => {
-      const producerIds = [await upsertProducer({ name: uuid() }), await upsertProducer({ name: uuid() })];
+      const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
       const languageIds = [
-        await upsertLanguage({ name: uuid() }),
-        await upsertLanguage({ name: uuid() }),
-        await upsertLanguage({ name: uuid() }),
+        await upsertLanguage({ name: uuidV4() }),
+        await upsertLanguage({ name: uuidV4() }),
+        await upsertLanguage({ name: uuidV4() }),
       ];
       const movieProps = {
-        name: uuid(),
+        name: uuidV4(),
         producer_ids: producerIds,
         language_ids: languageIds,
       };
@@ -660,7 +675,7 @@ describe('generateEntityUpsert', () => {
     });
     it('should be able to insert empty arrays', async () => {
       const movieProps = {
-        name: uuid(),
+        name: uuidV4(),
         producer_ids: [],
         language_ids: [],
       };
@@ -715,12 +730,12 @@ describe('generateEntityUpsert', () => {
     }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${plantOrder.name}(
+        SELECT * FROM upsert_${plantOrder.name}(
           :uuid,
           :customer_id,
           :plant_name,
           :quantity
-        ) as id;
+        );
       `)({
           uuid,
           customer_id,
@@ -748,7 +763,7 @@ describe('generateEntityUpsert', () => {
     });
     it('should create the entity accurately', async () => {
       const props = {
-        uuid: uuid(),
+        uuid: uuidV4(),
         customer_id: 821,
         plant_name: 'Monstera deliciosa',
         quantity: 1,
@@ -761,7 +776,7 @@ describe('generateEntityUpsert', () => {
     it('should not create a second entity, if unique properties are the same', async () => {
       // idempotency
       const props = {
-        uuid: uuid(),
+        uuid: uuidV4(),
         customer_id: 821,
         plant_name: 'Monstera deliciosa',
         quantity: 1,
@@ -806,13 +821,13 @@ describe('generateEntityUpsert', () => {
     }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${webstore.name}(
+        SELECT * FROM upsert_${webstore.name}(
           :uuid,
           :name,
           :phone_number,
           :email,
           :logo_url
-        ) as id;
+        );
       `)({
           uuid,
           name,
@@ -849,7 +864,7 @@ describe('generateEntityUpsert', () => {
     });
     it('should create the entity accurately', async () => {
       const props = {
-        uuid: uuid(),
+        uuid: uuidV4(),
         name: "Donnie's Donuts",
         phone_number: '15125551234',
         email: 'hello@donniesdonuts.com',
@@ -871,7 +886,7 @@ describe('generateEntityUpsert', () => {
     });
     it('should update the entity if the updateable data changed', async () => {
       const props = {
-        uuid: uuid(),
+        uuid: uuidV4(),
         name: "Donnie's Donuts",
         phone_number: '15125551234',
         email: 'hello@donniesdonuts.com',
@@ -932,12 +947,12 @@ describe('generateEntityUpsert', () => {
     }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${vehicle.name}(
+        SELECT * FROM upsert_${vehicle.name}(
           :make,
           :model,
           :year,
           :software_version
-        ) as id;
+        );
       `)({
           make,
           model,
@@ -956,10 +971,10 @@ describe('generateEntityUpsert', () => {
     }) => {
       const result = await dbConnection.query(
         prepare(`
-        SELECT upsert_${crashReport.name}(
+        SELECT * FROM upsert_${crashReport.name}(
           :location_id,
           :vehicle_version_id
-        ) as id;
+        );
       `)({
           location_id,
           vehicle_version_id,

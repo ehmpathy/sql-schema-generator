@@ -28,13 +28,13 @@ export const defineFindOrCreateStaticEntityLogic = ({ entity }: { entity: Entity
   const uniqueStaticPropertyWhereClauseConditionals = (() => {
     // if the entity is unique on the uuid alone, that is the where clause conditional
     if (entityIsUniqueOnUuid) {
-      return [castPropertyToWhereClauseConditional({ name: 'uuid', definition: prop.UUID() })];
+      return [castPropertyToWhereClauseConditional({ name: 'uuid', definition: prop.UUID(), tableAlias: 's' })];
     }
 
     // otherwise, define the where clause conditionals as normal
     const uniqueStaticPropertyNames = staticPropertyNames.filter((name) => entity.unique.includes(name));
     return uniqueStaticPropertyNames.map((name) =>
-      castPropertyToWhereClauseConditional({ name, definition: entity.properties[name] }),
+      castPropertyToWhereClauseConditional({ name, definition: entity.properties[name], tableAlias: 's' }),
     );
   })();
 
@@ -54,17 +54,17 @@ export const defineFindOrCreateStaticEntityLogic = ({ entity }: { entity: Entity
 
   // define the sql
   return `
--- find or create the static entity
-SELECT id INTO v_static_id -- try to find id of entity
-FROM ${entity.name}
+-- find or create the static record
+SELECT s.id INTO v_static_id -- try to find the id of the static record
+FROM ${entity.name} AS s
 WHERE 1=1
   ${uniqueStaticPropertyWhereClauseConditionals.join('\n  ')};
-IF (v_static_id IS NULL) THEN -- if entity could not be already found, create the static entity
-  INSERT INTO ${entity.name}
+IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+  INSERT INTO ${entity.name} AS s
     (${['uuid', 'created_at', ...staticPropertyColumnNames].join(', ')})
     VALUES
     (${[uuidValueReference, 'v_created_at', ...staticPropertyColumnValueReferences].join(', ')})
-    RETURNING id INTO v_static_id; ${
+    RETURNING s.id INTO v_static_id; ${
       // ensure that no newlines are added if no mapping table inserts are needed
       mappingTableInserts.length ? ['', ...mappingTableInserts].join('\n\n  ') : ''
     }

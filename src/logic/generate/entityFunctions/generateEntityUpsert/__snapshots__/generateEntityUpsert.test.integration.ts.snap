@@ -5,29 +5,32 @@ exports[`generateEntityUpsert entity that references another entity by version s
   in_location_id bigint,
   in_vehicle_version_id bigint
 )
-RETURNS bigint
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
     v_static_id bigint;
     v_created_at timestamptz := now(); -- define a common created_at timestamp to use
   BEGIN
-    -- find or create the static entity
-    SELECT id INTO v_static_id -- try to find id of entity
-    FROM crash_report
+    -- find or create the static record
+    SELECT s.id INTO v_static_id -- try to find the id of the static record
+    FROM crash_report AS s
     WHERE 1=1
-      AND (location_id = in_location_id)
-      AND (vehicle_version_id = in_vehicle_version_id);
-    IF (v_static_id IS NULL) THEN -- if entity could not be already found, create the static entity
-      INSERT INTO crash_report
+      AND (s.location_id = in_location_id)
+      AND (s.vehicle_version_id = in_vehicle_version_id);
+    IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+      INSERT INTO crash_report AS s
         (uuid, created_at, location_id, vehicle_version_id)
         VALUES
         (uuid_generate_v4(), v_created_at, in_location_id, in_vehicle_version_id)
-        RETURNING id INTO v_static_id; 
+        RETURNING s.id INTO v_static_id; 
     END IF;
 
-    -- return the static entity id
-    RETURN v_static_id;
+    -- return the db generated values
+    RETURN QUERY
+      SELECT s.id, s.uuid, s.created_at
+      FROM crash_report s
+      WHERE s.id = v_static_id;
   END;
 $$"
 `;
@@ -38,7 +41,7 @@ exports[`generateEntityUpsert entity with array properties should produce the sa
   in_producer_ids bigint[],
   in_language_ids bigint[]
 )
-RETURNS bigint
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
@@ -50,18 +53,18 @@ AS $$
     v_effective_at_of_current_version_recorded_in_pointer_table timestamptz;
     v_array_access_index int;
   BEGIN
-    -- find or create the static entity
-    SELECT id INTO v_static_id -- try to find id of entity
-    FROM movie
+    -- find or create the static record
+    SELECT s.id INTO v_static_id -- try to find the id of the static record
+    FROM movie AS s
     WHERE 1=1
-      AND (name = in_name)
-      AND (producer_ids_hash = digest(array_to_string(in_producer_ids, ',', '__NULL__'), 'sha256'));
-    IF (v_static_id IS NULL) THEN -- if entity could not be already found, create the static entity
-      INSERT INTO movie
+      AND (s.name = in_name)
+      AND (s.producer_ids_hash = digest(array_to_string(in_producer_ids, ',', '__NULL__'), 'sha256'));
+    IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+      INSERT INTO movie AS s
         (uuid, created_at, name, producer_ids_hash)
         VALUES
         (uuid_generate_v4(), v_created_at, in_name, digest(array_to_string(in_producer_ids, ',', '__NULL__'), 'sha256'))
-        RETURNING id INTO v_static_id; 
+        RETURNING s.id INTO v_static_id; 
 
       -- insert a row into the mapping table for each value in array in_producer_ids
       FOR v_array_access_index IN 1 .. coalesce(array_upper(in_producer_ids, 1), 0)
@@ -73,24 +76,24 @@ AS $$
       END LOOP;
     END IF;
 
-    -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
-    SELECT id INTO v_matching_version_id -- see if latest version already has this data
-    FROM movie_version
+    -- insert new version record to ensure that latest dynamic data is effective, if dynamic data has changed
+    SELECT v.id INTO v_matching_version_id -- see if latest version record already has this data
+    FROM movie_version AS v
     WHERE 1=1
-      AND movie_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the version effective at the time of \\"v_effective_at\\"
-        SELECT MAX(effective_at)
+      AND v.movie_id = v_static_id -- for this entity
+      AND v.effective_at = ( -- and is the version record effective at the time of \\"v_effective_at\\"
+        SELECT MAX(ssv.effective_at)
         FROM movie_version ssv
         WHERE ssv.movie_id = v_static_id
-          AND effective_at <= v_effective_at
+          AND ssv.effective_at <= v_effective_at
       )
-      AND (language_ids_hash = digest(array_to_string(in_language_ids, ',', '__NULL__'), 'sha256'));
-    IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
-      INSERT INTO movie_version
+      AND (v.language_ids_hash = digest(array_to_string(in_language_ids, ',', '__NULL__'), 'sha256'));
+    IF (v_matching_version_id IS NULL) THEN -- if the latest version record does not match, insert a new version record
+      INSERT INTO movie_version AS v
         (movie_id, created_at, effective_at, language_ids_hash)
         VALUES
         (v_static_id, v_created_at, v_effective_at, digest(array_to_string(in_language_ids, ',', '__NULL__'), 'sha256'))
-        RETURNING id INTO v_matching_version_id; 
+        RETURNING v.id INTO v_matching_version_id; 
 
       -- insert a row into the mapping table for each value in array in_language_ids
       FOR v_array_access_index IN 1 .. coalesce(array_upper(in_language_ids, 1), 0)
@@ -115,9 +118,9 @@ AS $$
       v_current_version_id_recorded_in_pointer_table := v_matching_version_id; -- and record that the current version recorded is now the real current version
     END IF;
     IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
-      SELECT effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
-      FROM movie_version
-      WHERE id = v_current_version_id_recorded_in_pointer_table;
+      SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
+      FROM movie_version AS v
+      WHERE v.id = v_current_version_id_recorded_in_pointer_table;
       IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
         UPDATE movie_cvp
         SET
@@ -128,8 +131,12 @@ AS $$
       END IF;
     END IF;
 
-    -- return the static entity id
-    RETURN v_static_id;
+    -- return the db generated values
+    RETURN QUERY
+      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at
+      FROM movie s
+      JOIN movie_version v ON v.id = v_matching_version_id
+      WHERE s.id = v_static_id;
   END;
 $$"
 `;
@@ -142,7 +149,7 @@ exports[`generateEntityUpsert fully versioned entity unique on uuid should produ
   in_email varchar,
   in_logo_url varchar
 )
-RETURNS bigint
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
@@ -153,40 +160,40 @@ AS $$
     v_current_version_id_recorded_in_pointer_table bigint;
     v_effective_at_of_current_version_recorded_in_pointer_table timestamptz;
   BEGIN
-    -- find or create the static entity
-    SELECT id INTO v_static_id -- try to find id of entity
-    FROM webstore
+    -- find or create the static record
+    SELECT s.id INTO v_static_id -- try to find the id of the static record
+    FROM webstore AS s
     WHERE 1=1
-      AND (uuid = in_uuid);
-    IF (v_static_id IS NULL) THEN -- if entity could not be already found, create the static entity
-      INSERT INTO webstore
+      AND (s.uuid = in_uuid);
+    IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+      INSERT INTO webstore AS s
         (uuid, created_at)
         VALUES
         (in_uuid, v_created_at)
-        RETURNING id INTO v_static_id; 
+        RETURNING s.id INTO v_static_id; 
     END IF;
 
-    -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
-    SELECT id INTO v_matching_version_id -- see if latest version already has this data
-    FROM webstore_version
+    -- insert new version record to ensure that latest dynamic data is effective, if dynamic data has changed
+    SELECT v.id INTO v_matching_version_id -- see if latest version record already has this data
+    FROM webstore_version AS v
     WHERE 1=1
-      AND webstore_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the version effective at the time of \\"v_effective_at\\"
-        SELECT MAX(effective_at)
+      AND v.webstore_id = v_static_id -- for this entity
+      AND v.effective_at = ( -- and is the version record effective at the time of \\"v_effective_at\\"
+        SELECT MAX(ssv.effective_at)
         FROM webstore_version ssv
         WHERE ssv.webstore_id = v_static_id
-          AND effective_at <= v_effective_at
+          AND ssv.effective_at <= v_effective_at
       )
-      AND (name = in_name)
-      AND (phone_number = in_phone_number)
-      AND (email = in_email)
-      AND (logo_url = in_logo_url);
-    IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
-      INSERT INTO webstore_version
+      AND (v.name = in_name)
+      AND (v.phone_number = in_phone_number)
+      AND (v.email = in_email)
+      AND (v.logo_url = in_logo_url);
+    IF (v_matching_version_id IS NULL) THEN -- if the latest version record does not match, insert a new version record
+      INSERT INTO webstore_version AS v
         (webstore_id, created_at, effective_at, name, phone_number, email, logo_url)
         VALUES
         (v_static_id, v_created_at, v_effective_at, in_name, in_phone_number, in_email, in_logo_url)
-        RETURNING id INTO v_matching_version_id; 
+        RETURNING v.id INTO v_matching_version_id; 
     END IF;
 
     -- update the current version pointer table, if it is not already up to date
@@ -202,9 +209,9 @@ AS $$
       v_current_version_id_recorded_in_pointer_table := v_matching_version_id; -- and record that the current version recorded is now the real current version
     END IF;
     IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
-      SELECT effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
-      FROM webstore_version
-      WHERE id = v_current_version_id_recorded_in_pointer_table;
+      SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
+      FROM webstore_version AS v
+      WHERE v.id = v_current_version_id_recorded_in_pointer_table;
       IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
         UPDATE webstore_cvp
         SET
@@ -215,8 +222,12 @@ AS $$
       END IF;
     END IF;
 
-    -- return the static entity id
-    RETURN v_static_id;
+    -- return the db generated values
+    RETURN QUERY
+      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at
+      FROM webstore s
+      JOIN webstore_version v ON v.id = v_matching_version_id
+      WHERE s.id = v_static_id;
   END;
 $$"
 `;
@@ -229,31 +240,34 @@ exports[`generateEntityUpsert static entity should produce the same syntax as th
   in_country varchar,
   in_weekday_found varchar
 )
-RETURNS bigint
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
     v_static_id bigint;
     v_created_at timestamptz := now(); -- define a common created_at timestamp to use
   BEGIN
-    -- find or create the static entity
-    SELECT id INTO v_static_id -- try to find id of entity
-    FROM address_2
+    -- find or create the static record
+    SELECT s.id INTO v_static_id -- try to find the id of the static record
+    FROM address_2 AS s
     WHERE 1=1
-      AND (street = in_street)
-      AND (suite = in_suite OR (suite IS null AND in_suite IS null))
-      AND (city = in_city)
-      AND (country = in_country);
-    IF (v_static_id IS NULL) THEN -- if entity could not be already found, create the static entity
-      INSERT INTO address_2
+      AND (s.street = in_street)
+      AND (s.suite = in_suite OR (s.suite IS null AND in_suite IS null))
+      AND (s.city = in_city)
+      AND (s.country = in_country);
+    IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+      INSERT INTO address_2 AS s
         (uuid, created_at, street, suite, city, country, weekday_found)
         VALUES
         (uuid_generate_v4(), v_created_at, in_street, in_suite, in_city, in_country, in_weekday_found)
-        RETURNING id INTO v_static_id; 
+        RETURNING s.id INTO v_static_id; 
     END IF;
 
-    -- return the static entity id
-    RETURN v_static_id;
+    -- return the db generated values
+    RETURN QUERY
+      SELECT s.id, s.uuid, s.created_at
+      FROM address_2 s
+      WHERE s.id = v_static_id;
   END;
 $$"
 `;
@@ -265,28 +279,31 @@ exports[`generateEntityUpsert static entity unique on uuid should produce the sa
   in_plant_name varchar,
   in_quantity int
 )
-RETURNS bigint
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
     v_static_id bigint;
     v_created_at timestamptz := now(); -- define a common created_at timestamp to use
   BEGIN
-    -- find or create the static entity
-    SELECT id INTO v_static_id -- try to find id of entity
-    FROM plant_order
+    -- find or create the static record
+    SELECT s.id INTO v_static_id -- try to find the id of the static record
+    FROM plant_order AS s
     WHERE 1=1
-      AND (uuid = in_uuid);
-    IF (v_static_id IS NULL) THEN -- if entity could not be already found, create the static entity
-      INSERT INTO plant_order
+      AND (s.uuid = in_uuid);
+    IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+      INSERT INTO plant_order AS s
         (uuid, created_at, customer_id, plant_name, quantity)
         VALUES
         (in_uuid, v_created_at, in_customer_id, in_plant_name, in_quantity)
-        RETURNING id INTO v_static_id; 
+        RETURNING s.id INTO v_static_id; 
     END IF;
 
-    -- return the static entity id
-    RETURN v_static_id;
+    -- return the db generated values
+    RETURN QUERY
+      SELECT s.id, s.uuid, s.created_at
+      FROM plant_order s
+      WHERE s.id = v_static_id;
   END;
 $$"
 `;
@@ -297,7 +314,7 @@ exports[`generateEntityUpsert versioned entity should produce the same syntax as
   in_name varchar(255),
   in_bio text
 )
-RETURNS bigint
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
@@ -308,38 +325,38 @@ AS $$
     v_current_version_id_recorded_in_pointer_table bigint;
     v_effective_at_of_current_version_recorded_in_pointer_table timestamptz;
   BEGIN
-    -- find or create the static entity
-    SELECT id INTO v_static_id -- try to find id of entity
-    FROM alternative_user
+    -- find or create the static record
+    SELECT s.id INTO v_static_id -- try to find the id of the static record
+    FROM alternative_user AS s
     WHERE 1=1
-      AND (cognito_uuid = in_cognito_uuid);
-    IF (v_static_id IS NULL) THEN -- if entity could not be already found, create the static entity
-      INSERT INTO alternative_user
+      AND (s.cognito_uuid = in_cognito_uuid);
+    IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+      INSERT INTO alternative_user AS s
         (uuid, created_at, cognito_uuid)
         VALUES
         (uuid_generate_v4(), v_created_at, in_cognito_uuid)
-        RETURNING id INTO v_static_id; 
+        RETURNING s.id INTO v_static_id; 
     END IF;
 
-    -- insert new version to ensure that latest dynamic data is effective, if dynamic data has changed
-    SELECT id INTO v_matching_version_id -- see if latest version already has this data
-    FROM alternative_user_version
+    -- insert new version record to ensure that latest dynamic data is effective, if dynamic data has changed
+    SELECT v.id INTO v_matching_version_id -- see if latest version record already has this data
+    FROM alternative_user_version AS v
     WHERE 1=1
-      AND alternative_user_id = v_static_id -- for this entity
-      AND effective_at = ( -- and is the version effective at the time of \\"v_effective_at\\"
-        SELECT MAX(effective_at)
+      AND v.alternative_user_id = v_static_id -- for this entity
+      AND v.effective_at = ( -- and is the version record effective at the time of \\"v_effective_at\\"
+        SELECT MAX(ssv.effective_at)
         FROM alternative_user_version ssv
         WHERE ssv.alternative_user_id = v_static_id
-          AND effective_at <= v_effective_at
+          AND ssv.effective_at <= v_effective_at
       )
-      AND (name = in_name)
-      AND (bio = in_bio OR (bio IS null AND in_bio IS null));
-    IF (v_matching_version_id IS NULL) THEN -- if the latest version does not match, insert a new version
-      INSERT INTO alternative_user_version
+      AND (v.name = in_name)
+      AND (v.bio = in_bio OR (v.bio IS null AND in_bio IS null));
+    IF (v_matching_version_id IS NULL) THEN -- if the latest version record does not match, insert a new version record
+      INSERT INTO alternative_user_version AS v
         (alternative_user_id, created_at, effective_at, name, bio)
         VALUES
         (v_static_id, v_created_at, v_effective_at, in_name, in_bio)
-        RETURNING id INTO v_matching_version_id; 
+        RETURNING v.id INTO v_matching_version_id; 
     END IF;
 
     -- update the current version pointer table, if it is not already up to date
@@ -355,9 +372,9 @@ AS $$
       v_current_version_id_recorded_in_pointer_table := v_matching_version_id; -- and record that the current version recorded is now the real current version
     END IF;
     IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
-      SELECT effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
-      FROM alternative_user_version
-      WHERE id = v_current_version_id_recorded_in_pointer_table;
+      SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
+      FROM alternative_user_version AS v
+      WHERE v.id = v_current_version_id_recorded_in_pointer_table;
       IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
         UPDATE alternative_user_cvp
         SET
@@ -368,8 +385,12 @@ AS $$
       END IF;
     END IF;
 
-    -- return the static entity id
-    RETURN v_static_id;
+    -- return the db generated values
+    RETURN QUERY
+      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at
+      FROM alternative_user s
+      JOIN alternative_user_version v ON v.id = v_matching_version_id
+      WHERE s.id = v_static_id;
   END;
 $$"
 `;

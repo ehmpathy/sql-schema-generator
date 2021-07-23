@@ -13,6 +13,7 @@ describe('castPropertyToWhereClauseConditional', () => {
     const definition = castPropertyToWhereClauseConditional({
       name: 'creator_id',
       definition: plan.properties.creator_id,
+      tableAlias: 't',
     });
     expect(definition).toMatchSnapshot();
   });
@@ -20,6 +21,7 @@ describe('castPropertyToWhereClauseConditional', () => {
     const definition = castPropertyToWhereClauseConditional({
       name: 'participant_ids',
       definition: plan.properties.participant_ids,
+      tableAlias: 't',
     });
     expect(definition).toContain("digest(array_to_string(in_participant_ids, ',', '__NULL__'), 'sha256')"); // should convert input array to sha256 hash
     expect(definition).toMatchSnapshot();

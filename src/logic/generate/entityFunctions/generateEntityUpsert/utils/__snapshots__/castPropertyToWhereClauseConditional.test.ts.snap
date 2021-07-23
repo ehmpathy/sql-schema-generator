@@ -1,5 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`castPropertyToWhereClauseConditional should define the conditional accurately for a array property 1`] = `"AND (participant_ids_hash = digest(array_to_string(in_participant_ids, ',', '__NULL__'), 'sha256'))"`;
+exports[`castPropertyToWhereClauseConditional should define the conditional accurately for a array property 1`] = `"AND (t.participant_ids_hash = digest(array_to_string(in_participant_ids, ',', '__NULL__'), 'sha256'))"`;
 
-exports[`castPropertyToWhereClauseConditional should define the conditional accurately for a unit property 1`] = `"AND (creator_id = in_creator_id)"`;
+exports[`castPropertyToWhereClauseConditional should define the conditional accurately for a unit property 1`] = `"AND (t.creator_id = in_creator_id)"`;
