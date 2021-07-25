@@ -209,6 +209,7 @@ describe('generateEntityUpsert', () => {
         uuid: row.uuid,
         createdAt: row.created_at,
         effectiveAt: row.effective_at,
+        updatedAt: row.updated_at,
       };
     };
     const getEntityStatic = async ({ id }: { id: number }) => {
@@ -249,7 +250,7 @@ describe('generateEntityUpsert', () => {
         name: 'hank hill',
         bio: 'i sell propane and propane accessories',
       };
-      const { id, uuid, createdAt, effectiveAt } = await upsertUser(props);
+      const { id, uuid, createdAt, effectiveAt, updatedAt } = await upsertUser(props);
 
       // check that the static part was accurate
       const entityStatic = await getEntityStatic({ id });
@@ -264,6 +265,7 @@ describe('generateEntityUpsert', () => {
       expect(versions[0].name).toEqual(props.name);
       expect(versions[0].bio).toEqual(props.bio);
       expect(effectiveAt).toEqual(versions[0].effective_at);
+      expect(updatedAt).toEqual(versions[0].created_at); // updated_at of entity = created_at of version
 
       // check that the current version table is initialized accurately
       const currentVersionPointers = await getEntityCurrentVersionPointer({ id });

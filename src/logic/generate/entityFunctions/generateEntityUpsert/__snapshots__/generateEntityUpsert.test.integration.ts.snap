@@ -41,7 +41,7 @@ exports[`generateEntityUpsert entity with array properties should produce the sa
   in_producer_ids bigint[],
   in_language_ids bigint[]
 )
-RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone)
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone, updated_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
@@ -133,7 +133,7 @@ AS $$
 
     -- return the db generated values
     RETURN QUERY
-      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at
+      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at, v.created_at AS updated_at
       FROM movie s
       JOIN movie_version v ON v.id = v_matching_version_id
       WHERE s.id = v_static_id;
@@ -149,7 +149,7 @@ exports[`generateEntityUpsert fully versioned entity unique on uuid should produ
   in_email varchar,
   in_logo_url varchar
 )
-RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone)
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone, updated_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
@@ -224,7 +224,7 @@ AS $$
 
     -- return the db generated values
     RETURN QUERY
-      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at
+      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at, v.created_at AS updated_at
       FROM webstore s
       JOIN webstore_version v ON v.id = v_matching_version_id
       WHERE s.id = v_static_id;
@@ -314,7 +314,7 @@ exports[`generateEntityUpsert versioned entity should produce the same syntax as
   in_name varchar(255),
   in_bio text
 )
-RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone)
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone, updated_at timestamp with time zone)
 LANGUAGE plpgsql
 AS $$
   DECLARE
@@ -387,7 +387,7 @@ AS $$
 
     -- return the db generated values
     RETURN QUERY
-      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at
+      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at, v.created_at AS updated_at
       FROM alternative_user s
       JOIN alternative_user_version v ON v.id = v_matching_version_id
       WHERE s.id = v_static_id;

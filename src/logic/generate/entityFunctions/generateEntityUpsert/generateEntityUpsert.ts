@@ -39,12 +39,19 @@ TABLE(${[
     'uuid uuid',
     'created_at timestamp with time zone',
     hasVersionTable ? 'effective_at timestamp with time zone' : null,
+    hasVersionTable ? 'updated_at timestamp with time zone' : null,
   ]
     .filter(isPresent)
     .join(', ')})
   `.trim();
   const returnsQuery = `
-      SELECT ${['s.id', 's.uuid', 's.created_at', hasVersionTable ? 'v.effective_at AS effective_at' : null]
+      SELECT ${[
+        's.id',
+        's.uuid',
+        's.created_at',
+        hasVersionTable ? 'v.effective_at AS effective_at' : null,
+        hasVersionTable ? 'v.created_at AS updated_at' : null,
+      ]
         .filter(isPresent)
         .join(', ')}
       FROM ${entity.name} s
