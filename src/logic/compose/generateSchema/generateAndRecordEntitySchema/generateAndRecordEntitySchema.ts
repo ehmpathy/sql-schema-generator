@@ -42,7 +42,7 @@ const saveResource = async ({
 }) => {
   // ensure directory is defined
   const dir = `${targetDirPath}/${resourceSpecificDir[type]}`;
-  await mkdir(dir).catch((error) => {
+  await mkdir(dir, { recursive: true }).catch((error) => {
     if (error.code !== 'EEXIST') throw error;
   }); // mkdir and ignore if dir already exists
 
