@@ -1,6 +1,6 @@
 import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
 import { getShowCreateTable } from '../../../../__test_utils__/getShowCreateTable';
-import { DataType, DataTypeName, Property } from '../../../../types';
+import { DataType, DataTypeName, Property } from '../../../../domain';
 import { prop } from '../../../define';
 import { generateTable } from './generateTable';
 

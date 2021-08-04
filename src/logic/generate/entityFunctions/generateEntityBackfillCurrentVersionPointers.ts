@@ -1,6 +1,6 @@
 import indentString from 'indent-string';
 
-import { Entity } from '../../../types';
+import { Entity } from '../../../domain';
 
 /*
 1. define procedure / function (try function if possible)

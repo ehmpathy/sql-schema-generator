@@ -1,4 +1,4 @@
-import { Property } from '../../../../types';
+import { Property } from '../../../../domain';
 import { prop } from '../../../define';
 import { castPropertyToColumnName } from '../../utils/castPropertyToColumnName';
 

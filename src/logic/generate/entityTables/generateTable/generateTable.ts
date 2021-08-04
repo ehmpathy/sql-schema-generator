@@ -1,4 +1,4 @@
-import { Property } from '../../../../types';
+import { Property } from '../../../../domain';
 import { generateColumn } from './generateColumn';
 import { generateConstraintForeignKey } from './generateConstraintForeignKey';
 

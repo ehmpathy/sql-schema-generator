@@ -1,4 +1,4 @@
-import { Entity } from '../../../../types';
+import { Entity } from '../../../../domain';
 import { generateEntityFunctions } from '../../../generate/entityFunctions/generateEntityFunctions';
 import { generateEntityTables } from '../../../generate/entityTables/generateEntityTables';
 import { generateEntityCurrentView } from '../../../generate/entityViews/generateEntityCurrentView';

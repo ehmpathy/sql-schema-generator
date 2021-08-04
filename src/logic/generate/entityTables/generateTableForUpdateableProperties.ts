@@ -1,4 +1,4 @@
-import { Property } from '../../../types';
+import { Property } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { pickKeysFromObject } from '../utils/pickKeysFromObject';
 import { generateTable } from './generateTable';

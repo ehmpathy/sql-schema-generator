@@ -1,4 +1,4 @@
-import { Entity } from '../../../../types';
+import { Entity } from '../../../../domain';
 
 export const throwErrorIfNotUniqueOnAnything = ({ entity }: { entity: Entity }) => {
   if (entity.unique.length === 0) {

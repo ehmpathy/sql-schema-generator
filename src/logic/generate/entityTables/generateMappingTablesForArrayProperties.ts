@@ -1,4 +1,4 @@
-import { Property } from '../../../types';
+import { Property } from '../../../domain';
 import { prop } from '../../define';
 import { defineMappingTableKeysForEntityProperty } from '../utils/defineMappingTableKeysForEntityProperty';
 import { generateTable } from './generateTable';

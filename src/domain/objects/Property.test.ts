@@ -1,3 +1,5 @@
+import { serialize } from 'domain-objects';
+
 import { DataTypeName } from '../constants';
 import { DataType } from './DataType';
 import { Property } from './Property';
@@ -30,5 +32,12 @@ describe('Property', () => {
       references: 'user',
     });
     expect(property.references).toEqual('user');
+  });
+  it('should be possible to serialize a property', () => {
+    serialize(
+      new Property({
+        type,
+      }),
+    );
   });
 });

@@ -1,6 +1,6 @@
 import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { getShowCreateTable } from '../../../__test_utils__/getShowCreateTable';
-import { Entity, ValueObject } from '../../../types';
+import { Entity, ValueObject } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
 import { generateEntityTables } from './generateEntityTables';

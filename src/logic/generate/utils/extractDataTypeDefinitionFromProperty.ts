@@ -1,4 +1,4 @@
-import { Property } from '../../../types';
+import { Property } from '../../../domain';
 
 // https://www.postgresql.org/docs/10/datatype.html
 export const extractDataTypeDefinitionFromProperty = ({ property }: { property: Property }) => {

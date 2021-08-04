@@ -1,4 +1,4 @@
-import { DataType, DataTypeName, Property } from '../../../../types';
+import { DataType, DataTypeName, Property } from '../../../../domain';
 import { extractDataTypeDefinitionFromProperty } from '../../utils/extractDataTypeDefinitionFromProperty';
 import { generateColumn } from './generateColumn';
 

@@ -1,4 +1,4 @@
-import { ValueObject } from '../../../../../types';
+import { ValueObject } from '../../../../../domain';
 import { prop } from '../../../../define';
 import { castPropertyToFunctionInputDefinition } from './castPropertyToFunctionInputDefinition';
 

@@ -1,4 +1,4 @@
-import { Entity } from '../../../../../types';
+import { Entity } from '../../../../../domain';
 
 /*
   check that any properties that "reference" an entity have `_id` or `_ids` as their suffix

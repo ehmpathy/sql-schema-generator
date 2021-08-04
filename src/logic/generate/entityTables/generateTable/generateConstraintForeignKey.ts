@@ -1,4 +1,4 @@
-import { Property } from '../../../../types';
+import { Property } from '../../../../domain';
 
 export const generateConstraintForeignKey = ({
   index,

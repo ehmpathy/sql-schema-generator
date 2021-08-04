@@ -1,7 +1,7 @@
 import indentString from 'indent-string';
 import { isPresent } from 'simple-type-guards';
 
-import { Entity } from '../../../../types';
+import { Entity } from '../../../../domain';
 import { defineDeclarations } from './defineDeclarations';
 import { defineFindOrCreateStaticEntityLogic } from './defineFindOrCreateStaticEntityLogic';
 import { defineInputDefinitions } from './defineInputDefinitions';

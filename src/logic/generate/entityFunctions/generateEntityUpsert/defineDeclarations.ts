@@ -1,4 +1,4 @@
-import { Entity } from '../../../../types';
+import { Entity } from '../../../../domain';
 
 export const defineDeclarations = ({ entity }: { entity: Entity }) => {
   const declarations = [];

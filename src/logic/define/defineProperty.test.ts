@@ -1,4 +1,4 @@
-import { DataTypeName, Entity, Property, ValueObject } from '../../types';
+import { DataTypeName, Entity, Property, ValueObject } from '../../domain';
 import * as prop from './defineProperty';
 
 describe('generateProperty', () => {

@@ -47,4 +47,4 @@ const home = new Entity({
   unique: ['name', 'host_ids'],
 });
 
-export const entities = [photo, user, host, home];
+export const generateSqlSchemasFor = [photo, user, host, home];

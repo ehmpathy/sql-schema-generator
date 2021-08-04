@@ -1,4 +1,4 @@
-import { Property } from '../../../../types';
+import { Property } from '../../../../domain';
 import { defineMappingTableKeysForEntityProperty } from '../../utils/defineMappingTableKeysForEntityProperty';
 import { castPropertyToInputVariableName } from './utils/castPropertyToInputVariableName';
 

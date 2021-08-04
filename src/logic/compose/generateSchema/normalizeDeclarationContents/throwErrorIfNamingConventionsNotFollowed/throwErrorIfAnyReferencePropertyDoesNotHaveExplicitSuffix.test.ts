@@ -1,4 +1,4 @@
-import { Entity, ValueObject } from '../../../../../types';
+import { Entity, ValueObject } from '../../../../../domain';
 import { prop } from '../../../../define';
 import { throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix';
 

@@ -1,4 +1,4 @@
-import { Properties, Property } from '../../../types';
+import { Properties, Property } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { castPropertyToColumnName } from '../utils/castPropertyToColumnName';
 import { pickKeysFromObject } from '../utils/pickKeysFromObject';

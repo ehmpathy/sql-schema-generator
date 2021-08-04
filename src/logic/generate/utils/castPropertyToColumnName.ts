@@ -1,4 +1,4 @@
-import { Property } from '../../../types';
+import { Property } from '../../../domain';
 
 /*
   note: "column name" refers to the name of the column on either the static or the version table - not the mapping table (since mapping tables are always fk's and fk's have standard notation)

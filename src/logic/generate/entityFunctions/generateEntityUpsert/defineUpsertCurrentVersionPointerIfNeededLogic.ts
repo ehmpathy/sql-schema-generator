@@ -1,4 +1,4 @@
-import { Entity } from '../../../../types';
+import { Entity } from '../../../../domain';
 
 export const defineUpsertCurrentVersionPointerIfNeededLogic = ({ entity }: { entity: Entity }) => {
   // define the updatable property names

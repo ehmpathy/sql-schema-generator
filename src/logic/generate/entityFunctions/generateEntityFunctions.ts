@@ -1,4 +1,4 @@
-import { Entity } from '../../../types';
+import { Entity } from '../../../domain';
 import { generateEntityBackfillCurrentVersionPointers } from './generateEntityBackfillCurrentVersionPointers';
 import { generateEntityUpsert } from './generateEntityUpsert';
 

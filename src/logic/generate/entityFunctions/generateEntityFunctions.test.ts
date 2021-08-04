@@ -1,4 +1,4 @@
-import { Entity } from '../../../types';
+import { Entity } from '../../../domain';
 import { prop } from '../../define';
 import { generateEntityFunctions } from './generateEntityFunctions';
 

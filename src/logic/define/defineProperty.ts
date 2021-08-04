@@ -1,7 +1,7 @@
 /*
   purpose: provide convenient tools to define types
 */
-import { DataType, DataTypeName, Entity, Property } from '../../types';
+import { DataType, DataTypeName, Entity, Property } from '../../domain';
 
 /**
  * SMALLINT: requires 2 bytes of storage. Range [-32,768, 32,768].

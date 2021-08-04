@@ -1,4 +1,4 @@
-import { DataType, DataTypeName, Property } from '../../../../types';
+import { DataType, DataTypeName, Property } from '../../../../domain';
 import * as prop from '../../../define/defineProperty';
 import { generateColumn } from './generateColumn';
 import { generateConstraintForeignKey } from './generateConstraintForeignKey';

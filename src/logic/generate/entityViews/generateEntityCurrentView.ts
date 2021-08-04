@@ -1,6 +1,6 @@
 import indentString from 'indent-string';
 
-import { Entity } from '../../../types';
+import { Entity } from '../../../domain';
 import { castPropertyToSelector } from './utils/castPropertyToSelector';
 
 /*

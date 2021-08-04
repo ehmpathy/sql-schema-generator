@@ -1,4 +1,4 @@
-import { Entity, ValueObject } from '../../../../types';
+import { Entity, ValueObject } from '../../../../domain';
 import * as prop from '../../../define/defineProperty';
 import { generateAndRecordEntitySchema } from './generateAndRecordEntitySchema';
 import { readFile } from './utils/fileIO';

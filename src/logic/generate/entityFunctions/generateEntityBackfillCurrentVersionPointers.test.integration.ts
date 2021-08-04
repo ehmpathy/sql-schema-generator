@@ -3,7 +3,7 @@ import { pg as prepare } from 'yesql';
 
 import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
 import { getShowCreateFunction } from '../../../__test_utils__/getShowCreateFunction';
-import { Entity } from '../../../types';
+import { Entity } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { generateEntityTables } from '../entityTables/generateEntityTables';
 import { generateEntityBackfillCurrentVersionPointers } from './generateEntityBackfillCurrentVersionPointers';

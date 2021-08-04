@@ -1,4 +1,4 @@
-import { Property } from '../../../../types';
+import { Property } from '../../../../domain';
 import { extractDataTypeDefinitionFromProperty } from '../../utils/extractDataTypeDefinitionFromProperty';
 
 export const generateColumn = ({ columnName, property }: { columnName: string; property: Property }) => {

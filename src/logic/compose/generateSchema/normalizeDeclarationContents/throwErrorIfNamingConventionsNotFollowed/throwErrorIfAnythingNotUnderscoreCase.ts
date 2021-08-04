@@ -1,4 +1,4 @@
-import { Entity } from '../../../../../types';
+import { Entity } from '../../../../../domain';
 
 /*
   sql is, as a language, underscore_case based.

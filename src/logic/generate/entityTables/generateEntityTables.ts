@@ -1,4 +1,4 @@
-import { Entity, Property } from '../../../types';
+import { Entity, Property } from '../../../domain';
 import { pickKeysFromObject } from '../utils/pickKeysFromObject';
 import { generateMappingTablesForArrayProperties } from './generateMappingTablesForArrayProperties';
 import { generateTableForCurrentVersionPointer } from './generateTableForCurrentVersionPointer';

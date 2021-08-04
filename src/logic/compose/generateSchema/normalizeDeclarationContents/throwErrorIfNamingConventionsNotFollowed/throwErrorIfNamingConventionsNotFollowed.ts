@@ -1,4 +1,4 @@
-import { Entity } from '../../../../../types';
+import { Entity } from '../../../../../domain';
 import { throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix';
 import { throwErrorIfAnythingNotUnderscoreCase } from './throwErrorIfAnythingNotUnderscoreCase';
 

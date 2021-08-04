@@ -1,4 +1,4 @@
-import { Entity } from '../../../../types';
+import { Entity } from '../../../../domain';
 import { castPropertyToColumnName } from '../../utils/castPropertyToColumnName';
 import { pickKeysFromObject } from '../../utils/pickKeysFromObject';
 import { defineMappingTableInsertsForArrayProperty } from './defineMappingTableInsertsForArrayProperty';

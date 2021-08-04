@@ -1,5 +1,5 @@
 import { DatabaseConnection } from '../../../__test_utils__/databaseConnection';
-import { Entity } from '../../../types';
+import { Entity } from '../../../domain';
 import { generateEntityUpsert } from '../entityFunctions/generateEntityUpsert';
 
 export const dropAndCreateUpsertFunctionForEntity = async ({

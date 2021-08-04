@@ -2,7 +2,7 @@ import { normalizeCreateTableDdl } from '../../../../__nonpublished_modules__/po
 import { provisionShowCreateTableFunction } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable/provisionShowCreateTableFunction';
 import { showCreateTable } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable/showCreateTable';
 import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
-import { DataType, DataTypeName, Property } from '../../../../types';
+import { DataType, DataTypeName, Property } from '../../../../domain';
 import { prop } from '../../../define';
 import { generateColumn } from './generateColumn';
 

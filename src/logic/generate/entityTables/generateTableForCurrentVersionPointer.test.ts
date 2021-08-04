@@ -1,4 +1,4 @@
-import { Property } from '../../../types';
+import { Property } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { generateTable } from './generateTable';
 import { generateTableForCurrentVersionPointer } from './generateTableForCurrentVersionPointer';

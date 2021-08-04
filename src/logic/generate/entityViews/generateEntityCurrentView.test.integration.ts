@@ -2,7 +2,7 @@ import uuid from 'uuid/v4';
 import { pg as prepare } from 'yesql';
 
 import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
-import { Entity, ValueObject } from '../../../types';
+import { Entity, ValueObject } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
 import { dropAndCreateUpsertFunctionForEntity } from '../__test_utils__/dropAndCreateUpsertForEntity';

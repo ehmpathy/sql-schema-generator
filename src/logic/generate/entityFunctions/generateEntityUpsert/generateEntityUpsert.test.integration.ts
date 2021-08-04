@@ -4,7 +4,7 @@ import { pg as prepare } from 'yesql';
 
 import { normalizeCreateFunctionDdl } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateFunction/normalizeCreateFunctionDdl';
 import { getShowCreateFunction } from '../../../../__test_utils__/getShowCreateFunction';
-import { Entity, ValueObject } from '../../../../types';
+import { Entity, ValueObject } from '../../../../domain';
 import * as prop from '../../../define/defineProperty';
 import {
   createTablesForEntity,

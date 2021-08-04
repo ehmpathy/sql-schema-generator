@@ -1,4 +1,4 @@
-import { Property } from '../../../types';
+import { Property } from '../../../domain';
 
 /*
   defines the important keys for an entity + property mapping table
