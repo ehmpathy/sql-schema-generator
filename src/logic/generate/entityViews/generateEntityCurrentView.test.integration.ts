@@ -231,6 +231,7 @@ describe('generateEntityViewCurrent', () => {
             ...prop.ARRAY_OF(prop.REFERENCES(wheel)),
             updatable: true, // the wheels on a vehicle can change
           },
+          manufacturer_uuids: prop.ARRAY_OF(prop.UUID()),
         },
         unique: ['name'],
       });
@@ -245,16 +246,26 @@ describe('generateEntityViewCurrent', () => {
       });
       const getEntityFromView = async ({ id }: { id: number }) =>
         getEntityFromCurrentView({ id, entity: vehicle, dbConnection });
-      const upsertVehicle = async ({ name, wheel_ids }: { name: string; wheel_ids: string }) => {
+      const upsertVehicle = async ({
+        name,
+        wheel_ids,
+        manufacturer_uuids,
+      }: {
+        name: string;
+        wheel_ids: string;
+        manufacturer_uuids: string;
+      }) => {
         const result = await dbConnection.query(
           prepare(`
           SELECT * FROM upsert_${vehicle.name}(
             :name,
-            :wheel_ids
+            :wheel_ids,
+            :manufacturer_uuids
           );
         `)({
             name,
             wheel_ids,
+            manufacturer_uuids,
           }),
         );
         return result.rows[0].id;
@@ -283,15 +294,21 @@ describe('generateEntityViewCurrent', () => {
           await upsertWheel({ name: uuid() }),
           await upsertWheel({ name: uuid() }),
         ].join(',');
+        const manufacturerUuids = [uuid(), uuid()];
         const props = {
           name: uuid(),
           wheel_ids: `{${wheelIds}}`,
+          manufacturer_uuids: `{${manufacturerUuids}}`,
         };
         const id = await upsertVehicle(props);
 
         // check that the static part was accurate
         const entity = await getEntityFromView({ id });
-        expect({ ...entity, wheel_ids: `{${entity.wheel_ids.join(',')}}` }).toMatchObject(props);
+        expect({
+          ...entity,
+          wheel_ids: `{${entity.wheel_ids.join(',')}}`,
+          manufacturer_uuids: `{${entity.manufacturer_uuids.join(',')}}`,
+        }).toMatchObject(props);
         expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
         expect(entity.id).toEqual(id);
       });
@@ -304,9 +321,11 @@ describe('generateEntityViewCurrent', () => {
           await upsertWheel({ name: uuid() }),
           await upsertWheel({ name: uuid() }),
         ].join(',');
+        const manufacturerUuids = [uuid(), uuid()];
         const props = {
           name: uuid(),
           wheel_ids: `{${wheelIds}}`,
+          manufacturer_uuids: `{${manufacturerUuids}}`,
         };
         const id = await upsertVehicle(props);
 
@@ -323,7 +342,11 @@ describe('generateEntityViewCurrent', () => {
 
         // check that the updated part is still accurate
         const entity = await getEntityFromView({ id });
-        expect({ ...entity, wheel_ids: `{${entity.wheel_ids.join(',')}}` }).toMatchObject(updatedProps);
+        expect({
+          ...entity,
+          wheel_ids: `{${entity.wheel_ids.join(',')}}`,
+          manufacturer_uuids: `{${entity.manufacturer_uuids.join(',')}}`,
+        }).toMatchObject(updatedProps);
       });
     });
   });

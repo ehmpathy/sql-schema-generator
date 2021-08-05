@@ -50,6 +50,34 @@ CREATE INDEX home_to_host_fk1_ix ON home_to_host USING btree (host_id);",
 CREATE INDEX home_version_to_photo_fk0_ix ON home_version_to_photo USING btree (home_version_id);
 CREATE INDEX home_version_to_photo_fk1_ix ON home_version_to_photo USING btree (photo_id);",
     },
+    Object {
+      "name": "home_to_seller_uuid",
+      "sql": "CREATE TABLE home_to_seller_uuid (
+  id bigserial NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  home_id bigint NOT NULL,
+  seller_uuid uuid NOT NULL,
+  array_order_index smallint NOT NULL,
+  CONSTRAINT home_to_seller_uuid_pk PRIMARY KEY (id),
+  CONSTRAINT home_to_seller_uuid_ux1 UNIQUE (home_id, array_order_index),
+  CONSTRAINT home_to_seller_uuid_fk0 FOREIGN KEY (home_id) REFERENCES home (id)
+);
+CREATE INDEX home_to_seller_uuid_fk0_ix ON home_to_seller_uuid USING btree (home_id);",
+    },
+    Object {
+      "name": "home_version_to_advert_uuid",
+      "sql": "CREATE TABLE home_version_to_advert_uuid (
+  id bigserial NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  home_version_id bigint NOT NULL,
+  advert_uuid uuid NOT NULL,
+  array_order_index smallint NOT NULL,
+  CONSTRAINT home_version_to_advert_uuid_pk PRIMARY KEY (id),
+  CONSTRAINT home_version_to_advert_uuid_ux1 UNIQUE (home_version_id, array_order_index),
+  CONSTRAINT home_version_to_advert_uuid_fk0 FOREIGN KEY (home_version_id) REFERENCES home_version (id)
+);
+CREATE INDEX home_version_to_advert_uuid_fk0_ix ON home_version_to_advert_uuid USING btree (home_version_id);",
+    },
   ],
   "static": Object {
     "name": "home",
@@ -59,6 +87,7 @@ CREATE INDEX home_version_to_photo_fk1_ix ON home_version_to_photo USING btree (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   name varchar(255) NOT NULL,
   host_ids_hash bytea NOT NULL,
+  seller_uuids_hash bytea NOT NULL,
   CONSTRAINT home_pk PRIMARY KEY (id),
   CONSTRAINT home_ux1 UNIQUE (name, host_ids_hash)
 );",
@@ -71,6 +100,7 @@ CREATE INDEX home_version_to_photo_fk1_ix ON home_version_to_photo USING btree (
   effective_at timestamp with time zone NOT NULL DEFAULT now(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   photo_ids_hash bytea NOT NULL,
+  advert_uuids_hash bytea NOT NULL,
   CONSTRAINT home_version_pk PRIMARY KEY (id),
   CONSTRAINT home_version_ux1 UNIQUE (home_id, effective_at, created_at),
   CONSTRAINT home_version_fk0 FOREIGN KEY (home_id) REFERENCES home (id)

@@ -1,6 +1,7 @@
 /*
   purpose: provide convenient tools to define types
 */
+import { serialize } from 'domain-objects';
 import { DataType, DataTypeName, Entity, Property } from '../../domain';
 
 /**
@@ -306,9 +307,11 @@ export const REFERENCES_VERSION = (entity: Entity) => {
  *
  * This flag tells the generator to create a mapping table and to expect to write and read an array of these values. It results in the addition of a BINARY(32) column to the base table on which uniqueness can be defined.
  *
- * NOTE: currently only arrays of REFERENCEs are supported, meaning that the data in the array must be normalized into its own table.
+ * NOTE: only arrays of REFERENCEs or UUIDs are supported.
  */
 export const ARRAY_OF = (property: Property) => {
-  if (!property.references) throw new Error('only arrays of REFERENCES are supported');
+  const isArrayOfReferences = !!property.references;
+  const isArrayOfUuids = serialize(property) === serialize(UUID());
+  if (!isArrayOfReferences && !isArrayOfUuids) throw new Error('only arrays of REFERENCEs or UUIDs are supported');
   return new Property({ ...property, array: true });
 };

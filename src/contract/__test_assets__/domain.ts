@@ -56,5 +56,15 @@ const welcomedHomeEvent = new Event({
   },
   unique: ['occurred_at', 'home_id'], // only one user can be welcomed at a time
 });
+const message = new Entity({
+  name: 'message',
+  properties: {
+    about_home_id: prop.REFERENCES(home),
+    from_user_id: prop.REFERENCES(user),
+    text: prop.VARCHAR(), // the text they sent as part of the message
+    image_uuids: prop.ARRAY_OF(prop.UUID()), // the images they sent as part of the message (e.g., references a table in a different db by uuid)
+  },
+  unique: ['uuid'],
+});
 
-export const generateSqlSchemasFor = [photo, user, host, home, welcomedHomeEvent];
+export const generateSqlSchemasFor = [photo, user, host, home, welcomedHomeEvent, message];

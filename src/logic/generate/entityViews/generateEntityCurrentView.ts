@@ -56,6 +56,7 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
   // define the joins
   const joins = hasVersionTable // only join if has version table
     ? [
+        '',
         `JOIN ${entity.name}_cvp cvp ON s.id = cvp.${entity.name}_id`,
         `JOIN ${entity.name}_version v ON v.id = cvp.${entity.name}_version_id`,
       ]
@@ -66,8 +67,7 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
 CREATE OR REPLACE VIEW ${viewName} AS
   SELECT
     ${indentString(columns.join(',\n'), 4).trim()}
-  FROM ${entity.name} s
-  ${joins.join('\n  ')};
+  FROM ${entity.name} s${joins.join('\n  ')};
   `.trim();
   return {
     name: viewName,

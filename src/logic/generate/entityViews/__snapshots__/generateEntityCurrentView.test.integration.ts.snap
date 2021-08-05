@@ -11,8 +11,7 @@ exports[`generateEntityViewCurrent static entity with array properties should ge
       FROM door_to_door_lock WHERE door_to_door_lock.door_id = s.id
     ) as lock_ids,
     s.created_at
-  FROM door s
-  ;"
+  FROM door s;"
 `;
 
 exports[`generateEntityViewCurrent versioned entity with array properties should generate good looking and consistent sql 1`] = `
@@ -21,6 +20,10 @@ exports[`generateEntityViewCurrent versioned entity with array properties should
     s.id,
     s.uuid,
     s.name,
+    (
+      SELECT coalesce(array_agg(vehicle_to_manufacturer_uuid.manufacturer_uuid ORDER BY vehicle_to_manufacturer_uuid.array_order_index), array[]::uuid[]) as array_agg
+      FROM vehicle_to_manufacturer_uuid WHERE vehicle_to_manufacturer_uuid.vehicle_id = s.id
+    ) as manufacturer_uuids,
     (
       SELECT coalesce(array_agg(vehicle_version_to_wheel.wheel_id ORDER BY vehicle_version_to_wheel.array_order_index), array[]::bigint[]) as array_agg
       FROM vehicle_version_to_wheel WHERE vehicle_version_to_wheel.vehicle_version_id = v.id

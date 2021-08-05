@@ -2,6 +2,7 @@ import { Entity } from '../../../../../domain';
 import { prop } from '../../../../define';
 import { throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix';
 import { throwErrorIfAnythingNotUnderscoreCase } from './throwErrorIfAnythingNotUnderscoreCase';
+import { throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix';
 import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
 
 jest.mock('./throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix');
@@ -9,6 +10,9 @@ const throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock = throwError
 
 jest.mock('./throwErrorIfAnythingNotUnderscoreCase');
 const throwErrorIfAnythingNotUnderscoreCaseMock = throwErrorIfAnythingNotUnderscoreCase;
+
+jest.mock('./throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix');
+const throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock = throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix;
 
 describe('throwErrorIfNamingConventionsNotFollowed', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -21,6 +25,18 @@ describe('throwErrorIfNamingConventionsNotFollowed', () => {
     throwErrorIfNamingConventionsNotFollowed({ entity: exampleEntity });
     expect(throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock).toHaveBeenCalledTimes(1);
     expect(throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock).toHaveBeenCalledWith({
+      entity: exampleEntity,
+    });
+  });
+  it('should throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix', () => {
+    const exampleEntity = new Entity({
+      name: 'user',
+      properties: { name: prop.VARCHAR(255) },
+      unique: ['name'],
+    });
+    throwErrorIfNamingConventionsNotFollowed({ entity: exampleEntity });
+    expect(throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock).toHaveBeenCalledTimes(1);
+    expect(throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock).toHaveBeenCalledWith({
       entity: exampleEntity,
     });
   });

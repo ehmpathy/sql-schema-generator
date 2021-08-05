@@ -12,16 +12,21 @@ export const castPropertyToSelector = ({
 }) => {
   // if property is an array, the selector should CONCAT_WS from the mapping table
   if (definition.array) {
-    const mappingTableKeys = defineMappingTableKeysForEntityProperty({ entityName, propertyDefinition: definition });
+    const mappingTableKeys = defineMappingTableKeysForEntityProperty({
+      entityName,
+      propertyName: name,
+      propertyDefinition: definition,
+    });
     const entityReferenceTableNameAlias = definition.updatable ? 'v' : 's';
     const arrayValueSelector = `${mappingTableKeys.tableName}.${mappingTableKeys.mappedEntityReferenceColumnName}`;
     const arrayIndexSelector = `${mappingTableKeys.tableName}.${mappingTableKeys.arrayOrderIndexColumnName}`;
+    const arrayDataType = `${mappingTableKeys.mappedEntityReferenceColumnType}[]`;
     const entityReferenceSelector = `${mappingTableKeys.tableName}.${mappingTableKeys.entityReferenceColumnName}`;
     const entityReferenceId = `${entityReferenceTableNameAlias}.id`;
     const mappingTableName = mappingTableKeys.tableName;
     return `
 (
-  SELECT coalesce(array_agg(${arrayValueSelector} ORDER BY ${arrayIndexSelector}), array[]::bigint[]) as array_agg
+  SELECT coalesce(array_agg(${arrayValueSelector} ORDER BY ${arrayIndexSelector}), array[]::${arrayDataType}) as array_agg
   FROM ${mappingTableName} WHERE ${entityReferenceSelector} = ${entityReferenceId}
 ) as ${name}
     `.trim();

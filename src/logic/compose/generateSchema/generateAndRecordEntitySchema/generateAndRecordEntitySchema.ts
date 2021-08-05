@@ -44,11 +44,14 @@ const saveResource = async ({
   const dir = `${targetDirPath}/${resourceSpecificDir[type]}`;
   await mkdir(dir, { recursive: true }).catch((error) => {
     if (error.code !== 'EEXIST') throw error;
-  }); // mkdir and ignore if dir already exists
+  }); // mkdir and ignore if dir already existsa
+
+  // ensure content of file has terminal newline
+  const contentWithTerminalNewline = sql.slice(-1)[0] === '\n' ? sql : `${sql}\n`;
 
   // write the resource sql to that dir
   const filePath = `${dir}/${name}.sql`;
-  await writeFile(filePath, sql);
+  await writeFile(filePath, contentWithTerminalNewline);
 };
 
 export const generateAndRecordEntitySchema = async ({

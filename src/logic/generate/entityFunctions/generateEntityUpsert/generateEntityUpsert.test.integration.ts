@@ -416,6 +416,11 @@ describe('generateEntityUpsert', () => {
           ...prop.ARRAY_OF(prop.REFERENCES(language)),
           updatable: true, // the languages a movie is available in can change over time
         },
+        studio_uuids: prop.ARRAY_OF(prop.UUID()), // the studios that helped make the movie (tracked in a separate database)
+        poster_uuids: {
+          ...prop.ARRAY_OF(prop.UUID()),
+          updatable: true, // the posters advertising this movie may be updated over time
+        },
       },
       unique: ['name', 'producer_ids'],
     });
@@ -461,22 +466,30 @@ describe('generateEntityUpsert', () => {
       name,
       producer_ids,
       language_ids,
+      studio_uuids,
+      poster_uuids,
     }: {
       name: string;
       producer_ids: number[];
       language_ids: number[];
+      studio_uuids: string[];
+      poster_uuids: string[];
     }) => {
       const result = await dbConnection.query(
         prepare(`
         SELECT * FROM upsert_${movie.name}(
           :name,
           :producer_ids,
-          :language_ids
+          :language_ids,
+          :studio_uuids,
+          :poster_uuids
         );
       `)({
           name,
           producer_ids: `{${producer_ids.join(',')}}`,
           language_ids: `{${language_ids.join(',')}}`,
+          studio_uuids: `{${studio_uuids.join(',')}}`,
+          poster_uuids: `{${poster_uuids.join(',')}}`,
         }),
       );
       return result.rows[0].id;
@@ -521,6 +534,22 @@ describe('generateEntityUpsert', () => {
       );
       return result.rows;
     };
+    const getStudioUuidMappingTableEntries = async ({ id }: { id: number }) => {
+      const result = await dbConnection.query(
+        prepare(`
+        select * from ${movie.name}_to_studio_uuid where ${movie.name}_id = :id
+      `)({ id }),
+      );
+      return result.rows;
+    };
+    const getPosterUuidMappingTableEntries = async ({ versionId }: { versionId: number }) => {
+      const result = await dbConnection.query(
+        prepare(`
+        select * from ${movie.name}_version_to_poster_uuid where ${movie.name}_version_id = :versionId
+      `)({ versionId }),
+      );
+      return result.rows;
+    };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: movie });
       const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
@@ -538,6 +567,8 @@ describe('generateEntityUpsert', () => {
         name: uuidV4(),
         producer_ids: producerIds,
         language_ids: languageIds,
+        studio_uuids: [uuidV4()],
+        poster_uuids: [uuidV4(), uuidV4()],
       };
       const id = await upsertMovie(movieProps);
 
@@ -545,11 +576,13 @@ describe('generateEntityUpsert', () => {
       const entityStatic = await getEntityStatic({ id });
       expect(entityStatic.uuid.length).toEqual(36); // uuid was generated
       expect(entityStatic.producer_ids_hash.toString('hex')).toEqual(sha256.sync(movieProps.producer_ids.join(',')));
+      expect(entityStatic.studio_uuids_hash.toString('hex')).toEqual(sha256.sync(movieProps.studio_uuids.join(',')));
 
       // check that the versioned part is accurate
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(1);
       expect(versions[0].language_ids_hash.toString('hex')).toEqual(sha256.sync(movieProps.language_ids.join(',')));
+      expect(versions[0].poster_uuids_hash.toString('hex')).toEqual(sha256.sync(movieProps.poster_uuids.join(',')));
 
       // check that the current version table is initialized accurately
       const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
@@ -569,6 +602,18 @@ describe('generateEntityUpsert', () => {
         expect(languageMappings[index].language_id).toEqual(languageId); // at the expected index
         expect(languageMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
       });
+      const studioUuidMappings = await getStudioUuidMappingTableEntries({ id });
+      expect(studioUuidMappings.length).toEqual(studioUuidMappings.length);
+      movieProps.studio_uuids.forEach((studioUuid, index) => {
+        expect(studioUuidMappings[index].studio_uuid).toEqual(studioUuid); // at the expected index
+        expect(studioUuidMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
+      });
+      const posterUuidMappings = await getPosterUuidMappingTableEntries({ versionId: versions[0].id });
+      expect(posterUuidMappings.length).toEqual(posterUuidMappings.length);
+      movieProps.poster_uuids.forEach((posterUuid, index) => {
+        expect(posterUuidMappings[index].poster_uuid).toEqual(posterUuid); // at the expected index
+        expect(posterUuidMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
+      });
     });
     it('should update the entity if the updateable array has changed', async () => {
       const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
@@ -581,6 +626,8 @@ describe('generateEntityUpsert', () => {
         name: uuidV4(),
         producer_ids: producerIds,
         language_ids: languageIds,
+        studio_uuids: [uuidV4()],
+        poster_uuids: [uuidV4(), uuidV4(), uuidV4()],
       };
 
       // create the movie
@@ -588,7 +635,12 @@ describe('generateEntityUpsert', () => {
 
       // alter the languages its in and upsert it again
       const updatedLanguageIds = [languageIds[2], languageIds[0]]; // drop middle, swap first and last
-      const idAgain = await upsertMovie({ ...movieProps, language_ids: updatedLanguageIds });
+      const updatedPosterUuids = [movieProps.poster_uuids[1], movieProps.poster_uuids[0]]; // drop last, swap first and middle
+      const idAgain = await upsertMovie({
+        ...movieProps,
+        language_ids: updatedLanguageIds,
+        poster_uuids: updatedPosterUuids,
+      });
       expect(id).toEqual(idAgain); // should update the same entity
 
       // expect two versions now
@@ -597,6 +649,7 @@ describe('generateEntityUpsert', () => {
 
       // check that new version data is accurate
       expect(versions[1].language_ids_hash.toString('hex')).toEqual(sha256.sync(updatedLanguageIds.join(',')));
+      expect(versions[1].poster_uuids_hash.toString('hex')).toEqual(sha256.sync(updatedPosterUuids.join(',')));
 
       // check that the current version table is pointing to the right version
       const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
@@ -610,6 +663,12 @@ describe('generateEntityUpsert', () => {
         expect(languageMappings[index].language_id).toEqual(languageId); // at the expected index
         expect(languageMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
       });
+      const posterUuidMappings = await getPosterUuidMappingTableEntries({ versionId: versions[1].id });
+      expect(posterUuidMappings.length).toEqual(updatedPosterUuids.length);
+      updatedPosterUuids.forEach((posterUuid, index) => {
+        expect(posterUuidMappings[index].poster_uuid).toEqual(posterUuid); // at the expected index
+        expect(posterUuidMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
+      });
     });
     it('should not create a new version if the updateable array did not change', async () => {
       const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
@@ -622,6 +681,8 @@ describe('generateEntityUpsert', () => {
         name: uuidV4(),
         producer_ids: producerIds,
         language_ids: languageIds,
+        studio_uuids: [uuidV4()],
+        poster_uuids: [uuidV4(), uuidV4()],
       };
 
       // create the movie
@@ -653,6 +714,8 @@ describe('generateEntityUpsert', () => {
         name: uuidV4(),
         producer_ids: producerIds,
         language_ids: languageIds,
+        studio_uuids: [uuidV4()],
+        poster_uuids: [uuidV4(), uuidV4()],
       };
 
       // create the movie
@@ -666,6 +729,10 @@ describe('generateEntityUpsert', () => {
       expect(producerMappings.length).toEqual(producerIds.length);
       const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
       expect(languageMappings.length).toEqual(languageIds.length);
+      const studioUuidMappings = await getStudioUuidMappingTableEntries({ id });
+      expect(studioUuidMappings.length).toEqual(movieProps.studio_uuids.length);
+      const posterUuidMappings = await getPosterUuidMappingTableEntries({ versionId: versions[0].id });
+      expect(posterUuidMappings.length).toEqual(movieProps.poster_uuids.length);
       const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
       expect(currentVersionPointers.length).toEqual(1);
 
@@ -673,6 +740,8 @@ describe('generateEntityUpsert', () => {
       expect(versions[0].created_at).toEqual(entityStatic.created_at);
       producerMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
       languageMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
+      studioUuidMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
+      posterUuidMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
       expect(currentVersionPointers[0].updated_at).toEqual(entityStatic.created_at);
     });
     it('should be able to insert empty arrays', async () => {
@@ -680,6 +749,8 @@ describe('generateEntityUpsert', () => {
         name: uuidV4(),
         producer_ids: [],
         language_ids: [],
+        studio_uuids: [],
+        poster_uuids: [],
       };
 
       // create the movie

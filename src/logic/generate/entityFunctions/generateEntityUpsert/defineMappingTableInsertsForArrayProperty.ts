@@ -20,7 +20,11 @@ export const defineMappingTableInsertsForArrayProperty = ({
   entityName: string;
 }) => {
   const inputVariableName = castPropertyToInputVariableName({ name });
-  const mappingTableKeys = defineMappingTableKeysForEntityProperty({ entityName, propertyDefinition: definition });
+  const mappingTableKeys = defineMappingTableKeysForEntityProperty({
+    entityName,
+    propertyName: name,
+    propertyDefinition: definition,
+  });
   const mappingTableEntityReferenceVariable = definition.updatable ? 'v_matching_version_id' : 'v_static_id';
 
   return `

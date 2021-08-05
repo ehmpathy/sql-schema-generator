@@ -1,11 +1,15 @@
 import { Entity } from '../../../../../domain';
 import { throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix';
 import { throwErrorIfAnythingNotUnderscoreCase } from './throwErrorIfAnythingNotUnderscoreCase';
+import { throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix';
 
 export const throwErrorIfNamingConventionsNotFollowed = ({ entity }: { entity: Entity }) => {
-  // 1. check that any properties that "reference" an entity have `_id` or `_ids` as their suffix
+  // check that any properties that "reference" an entity have `_id` or `_ids` as their suffix
   throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix({ entity });
 
-  // 2. check that all names use underscore case
+  // check that any properties that store uuid have `_uuid` or `_uuids` as their suffix
+  throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix({ entity });
+
+  // check that all names use underscore case
   throwErrorIfAnythingNotUnderscoreCase({ entity });
 };

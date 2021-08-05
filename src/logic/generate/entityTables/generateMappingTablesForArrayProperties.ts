@@ -1,4 +1,4 @@
-import { Property } from '../../../domain';
+import { Properties, Property } from '../../../domain';
 import { prop } from '../../define';
 import { defineMappingTableKeysForEntityProperty } from '../utils/defineMappingTableKeysForEntityProperty';
 import { generateTable } from './generateTable';
@@ -13,13 +13,15 @@ import { generateTable } from './generateTable';
 */
 const generateMappingTableForArrayProperty = ({
   entityName,
+  propertyName,
   propertyDefinition,
 }: {
   entityName: string;
+  propertyName: string;
   propertyDefinition: Property;
 }) => {
   // 1. define keys for mapping table
-  const mappingTableKeys = defineMappingTableKeysForEntityProperty({ entityName, propertyDefinition }); // defined in module because this data is used in the upsert and view
+  const mappingTableKeys = defineMappingTableKeysForEntityProperty({ entityName, propertyName, propertyDefinition }); // defined in module because this data is used in the upsert and view
 
   // 3. define the full table properties for the mapping table
   const mappingTableProps = {
@@ -32,10 +34,12 @@ const generateMappingTableForArrayProperty = ({
       ...prop.BIGINT(),
       references: mappingTableKeys.entityReferenceTableName,
     }),
-    [mappingTableKeys.mappedEntityReferenceColumnName]: new Property({
-      ...prop.BIGINT(),
-      references: mappingTableKeys.mappedEntityReferenceTableName,
-    }),
+    [mappingTableKeys.mappedEntityReferenceColumnName]: propertyDefinition.references
+      ? new Property({
+          ...prop.BIGINT(),
+          references: propertyDefinition.references,
+        })
+      : prop.UUID(),
     [mappingTableKeys.arrayOrderIndexColumnName]: prop.SMALLINT(), // smallint because if someone needs more than 30k properties in an array, something is terribly wrong!
   };
 
@@ -56,11 +60,11 @@ export const generateMappingTablesForArrayProperties = ({
   properties,
 }: {
   entityName: string;
-  properties: { [index: string]: Property };
+  properties: Properties;
 }) => {
   // define a mapping table for each property
   const mappingTables = Object.entries(properties).map((entry) =>
-    generateMappingTableForArrayProperty({ entityName, propertyDefinition: entry[1] }),
+    generateMappingTableForArrayProperty({ entityName, propertyName: entry[0], propertyDefinition: entry[1] }),
   );
 
   // return the mapping tables
