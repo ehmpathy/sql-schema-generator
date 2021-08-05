@@ -41,9 +41,10 @@ describe('generateTable', () => {
       references: 'generate_table_test_referenced',
     });
     const status = prop.ENUM(['QUEUED', 'ATTEMPTED', 'FULFILLED']);
+    const approval = prop.ENUM(['GRANTED', 'PENDING']);
     const createTableSql = await generateTable({
       tableName: 'generate_table_test',
-      properties: { id: pk, reference_id: reference, second_reference_id: reference, status },
+      properties: { id: pk, reference_id: reference, second_reference_id: reference, status, approval },
       unique: ['reference_id'],
     });
     await testTableIsCreateable({ createTableSql });
