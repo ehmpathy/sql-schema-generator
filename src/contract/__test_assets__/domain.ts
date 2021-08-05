@@ -1,3 +1,4 @@
+import { Event } from '../../domain';
 import { Entity, prop, ValueObject } from '../module';
 
 const photo = new ValueObject({
@@ -46,5 +47,14 @@ const home = new Entity({
   },
   unique: ['name', 'host_ids'],
 });
+const welcomedHomeEvent = new Event({
+  name: 'welcomed_home_event',
+  properties: {
+    occurred_at: prop.DATE(),
+    home_id: prop.REFERENCES(home),
+    user_id: prop.REFERENCES(user),
+  },
+  unique: ['occurred_at', 'home_id'], // only one user can be welcomed at a time
+});
 
-export const generateSqlSchemasFor = [photo, user, host, home];
+export const generateSqlSchemasFor = [photo, user, host, home, welcomedHomeEvent];
