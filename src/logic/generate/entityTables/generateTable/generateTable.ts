@@ -41,7 +41,8 @@ export const generateTable = ({
     .filter((entry) => !!entry[1].check)
     .map((entry) => {
       return `CONSTRAINT ${tableName}_${entry[0]}_check CHECK ${entry[1].check!.replace(/\$COLUMN_NAME/g, entry[0])}`;
-    });
+    })
+    .sort();
 
   // 2. define the lines of content of the table
   const contents = [

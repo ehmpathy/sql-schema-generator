@@ -22,7 +22,7 @@ module.exports = {
   testEnvironment: 'node',
 
   // The glob patterns Jest uses to detect test files
-  testMatch: ['**/src/**/?(*.)+(test.integration).(js|ts)'],
+  testMatch: ['**/*.integration.test.ts'],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/acceptance-tests/'],
