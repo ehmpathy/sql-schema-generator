@@ -24,6 +24,7 @@ export const generateSchema = async ({ configPath, targetDirPath }: { configPath
   );
   const taskSuite = new Listr(tasks);
   await taskSuite.run().catch((err) => {
+    // console.error(err); // tslint:disable-line no-console ; // TODO: choose full error when debugging
     console.error(err.message); // tslint:disable-line no-console
   });
 };

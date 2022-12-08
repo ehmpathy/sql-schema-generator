@@ -21,7 +21,13 @@ export const generateEntityTables = ({ entity }: { entity: Entity }) => {
   });
 
   // 2. validate the props
-  // TODO: throw error if the unique constraint has dynamic properties
+  const updatableUniqueKeys = Object.keys(updatableProps).filter((key) => entity.unique.includes(key));
+  if (updatableUniqueKeys.length)
+    throw new Error(
+      `Detected a unique key on '${
+        entity.name
+      }' which references an updatable property. This is not supported. Keys ${JSON.stringify(updatableUniqueKeys)}`,
+    );
 
   // 3. define the sql
   const entityTable = generateTableForStaticProperties({
