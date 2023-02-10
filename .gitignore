@@ -1,7 +1,13 @@
 *-debug.log
 *-error.log
+.artifact
+.env
+.serverless
+.terraform
+.terraform.lock
 /.nyc_output
 /dist
 /tmp
-node_modules
 coverage
+dist
+node_modules
