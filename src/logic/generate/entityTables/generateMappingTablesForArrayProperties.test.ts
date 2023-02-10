@@ -18,7 +18,7 @@ describe('generateMappingTablesForArrayProperties', () => {
         properties,
       });
       expect(entityMappingTables.length).toEqual(1);
-      expect(entityMappingTables[0].name).toEqual('wrench_to_diameter');
+      expect(entityMappingTables[0]!.name).toEqual('wrench_to_diameter');
       expect(generateTableMock).toHaveBeenCalledTimes(1);
       expect(generateTableMock).toHaveBeenCalledWith({
         tableName: 'wrench_to_diameter',
@@ -50,7 +50,7 @@ describe('generateMappingTablesForArrayProperties', () => {
         properties,
       });
       expect(entityMappingTables.length).toEqual(1);
-      expect(entityMappingTables[0].name).toEqual('wrench_version_to_tag'); // since updatable, only the version of a wrench points to a tag
+      expect(entityMappingTables[0]!.name).toEqual('wrench_version_to_tag'); // since updatable, only the version of a wrench points to a tag
       expect(generateTableMock).toHaveBeenCalledTimes(1);
       expect(generateTableMock).toHaveBeenCalledWith({
         tableName: 'wrench_version_to_tag',
@@ -79,7 +79,7 @@ describe('generateMappingTablesForArrayProperties', () => {
         properties,
       });
       expect(entityMappingTables.length).toEqual(1);
-      expect(entityMappingTables[0].name).toEqual('wrench_to_diameter_uuid');
+      expect(entityMappingTables[0]!.name).toEqual('wrench_to_diameter_uuid');
       expect(generateTableMock).toHaveBeenCalledTimes(1);
       expect(generateTableMock).toHaveBeenCalledWith({
         tableName: 'wrench_to_diameter_uuid',
@@ -103,7 +103,9 @@ describe('generateMappingTablesForArrayProperties', () => {
         properties,
       });
       expect(entityMappingTables.length).toEqual(1);
-      expect(entityMappingTables[0].name).toEqual('wrench_version_to_tag_uuid'); // since updatable, only the version of a wrench points to a tag
+      expect(entityMappingTables[0]!.name).toEqual(
+        'wrench_version_to_tag_uuid',
+      ); // since updatable, only the version of a wrench points to a tag
       expect(generateTableMock).toHaveBeenCalledTimes(1);
       expect(generateTableMock).toHaveBeenCalledWith({
         tableName: 'wrench_version_to_tag_uuid',

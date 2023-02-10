@@ -45,7 +45,7 @@ export const generateTableForStaticProperties = ({
       ? 'uuid' // uuid is special case as we can be unique on it without user specifying it explicitly - so, if its uuid, we know its not going to need a name change
       : castPropertyToColumnName({
           name: propertyName,
-          definition: properties[propertyName],
+          definition: properties[propertyName]!,
         }),
   );
   const tableSql = generateTable({

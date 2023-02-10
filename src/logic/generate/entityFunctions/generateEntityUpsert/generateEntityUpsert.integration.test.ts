@@ -1,9 +1,9 @@
 import sha256 from 'simple-sha256';
-import uuidV4 from 'uuid/v4';
 import { pg as prepare } from 'yesql';
 
 import { normalizeCreateFunctionDdl } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateFunction/normalizeCreateFunctionDdl';
 import { getShowCreateFunction } from '../../../../__test_utils__/getShowCreateFunction';
+import { uuid as uuidV4 } from '../../../../deps';
 import { Entity, ValueObject } from '../../../../domain';
 import * as prop from '../../../define/defineProperty';
 import {
@@ -727,8 +727,8 @@ describe('generateEntityUpsert', () => {
       // alter the languages its in and upsert it again
       const updatedLanguageIds = [languageIds[2], languageIds[0]]; // drop middle, swap first and last
       const updatedPosterUuids = [
-        movieProps.poster_uuids[1],
-        movieProps.poster_uuids[0],
+        movieProps.poster_uuids[1]!,
+        movieProps.poster_uuids[0]!,
       ]; // drop last, swap first and middle
       const idAgain = await upsertMovie({
         ...movieProps,

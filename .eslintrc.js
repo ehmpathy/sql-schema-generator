@@ -41,5 +41,6 @@ module.exports = {
     'lines-between-class-members': 'off',
     '@typescript-eslint/lines-between-class-members': 'off',
     'no-return-await': 'off', // this does not help anything and actually leads to bugs if we subsequently wrap the return in a try catch without remembering to _then_ add await
+    '@typescript-eslint/return-await': 'off',
   },
 };

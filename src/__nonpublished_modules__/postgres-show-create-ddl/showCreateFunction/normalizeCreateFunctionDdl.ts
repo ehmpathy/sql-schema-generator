@@ -22,7 +22,7 @@ export const normalizeCreateFunctionDdl = ({ ddl }: { ddl: string }) => {
   // make sure that function inputs each have their own line. postgres returns them all on one line - hard to read
   prettierSql = (() => {
     const partsSplitOnParens = prettierSql.split(/([\(\)])/g);
-    const functionParams = partsSplitOnParens[2];
+    const functionParams = partsSplitOnParens[2]!;
     const functionParamsWithNewlines = `\n  ${functionParams
       .replace(/, /g, ',\n  ')
       .trim()}\n`;

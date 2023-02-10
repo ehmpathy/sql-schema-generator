@@ -18,7 +18,7 @@ describe('castPropertyToWhereClauseConditional', () => {
   it('should define the conditional accurately for a unit property', () => {
     const definition = castPropertyToWhereClauseConditional({
       name: 'creator_id',
-      definition: plan.properties.creator_id,
+      definition: plan.properties.creator_id!,
       tableAlias: 't',
     });
     expect(definition).toMatchSnapshot();
@@ -26,7 +26,7 @@ describe('castPropertyToWhereClauseConditional', () => {
   it('should define the conditional accurately for a array property', () => {
     const definition = castPropertyToWhereClauseConditional({
       name: 'participant_ids',
-      definition: plan.properties.participant_ids,
+      definition: plan.properties.participant_ids!,
       tableAlias: 't',
     });
     expect(definition).toContain(

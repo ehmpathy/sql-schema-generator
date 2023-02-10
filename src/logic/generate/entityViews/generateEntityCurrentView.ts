@@ -39,14 +39,14 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
     castPropertyToSelector({
       entityName: entity.name,
       name,
-      definition: entity.properties[name],
+      definition: entity.properties[name]!,
     }),
   );
   const updateablePropertySelectors = updateablePropertyNames.map((name) =>
     castPropertyToSelector({
       entityName: entity.name,
       name,
-      definition: entity.properties[name],
+      definition: entity.properties[name]!,
     }),
   );
 

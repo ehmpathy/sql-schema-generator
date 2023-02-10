@@ -20,13 +20,13 @@ export const defineInsertVersionIfDynamicDataChangedLogic = ({
 
   // define the column names and the column value references for the updatable properties
   const updatablePropertyColumnNames = updatablePropertyNames.map((name) =>
-    castPropertyToColumnName({ name, definition: entity.properties[name] }),
+    castPropertyToColumnName({ name, definition: entity.properties[name]! }),
   );
   const updatablePropertyColumnValueReferences = updatablePropertyNames.map(
     (name) =>
       castPropertyToTableColumnValueReference({
         name,
-        definition: entity.properties[name],
+        definition: entity.properties[name]!,
       }),
   );
 
@@ -35,7 +35,7 @@ export const defineInsertVersionIfDynamicDataChangedLogic = ({
     (name) =>
       castPropertyToWhereClauseConditional({
         name,
-        definition: entity.properties[name],
+        definition: entity.properties[name]!,
         tableAlias: 'v',
       }),
   );

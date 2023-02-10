@@ -1,4 +1,3 @@
-import uuid from 'uuid/v4';
 import { pg as prepare } from 'yesql';
 
 import {
@@ -6,6 +5,7 @@ import {
   getDatabaseConnection,
 } from '../../../__test_utils__/databaseConnection';
 import { getShowCreateFunction } from '../../../__test_utils__/getShowCreateFunction';
+import { uuid } from '../../../deps';
 import { Entity } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { generateEntityTables } from '../entityTables/generateEntityTables';
@@ -84,8 +84,10 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       return { name, sql: upsertSql };
     };
     const recreateTheBackfillMethod = async () => {
-      const { name, sql: upsertSql } =
-        generateEntityBackfillCurrentVersionPointers({ entity: car });
+      const {
+        name,
+        sql: upsertSql,
+      } = generateEntityBackfillCurrentVersionPointers({ entity: car });
       await dbConnection.query({ sql: `DROP FUNCTION IF EXISTS ${name}` });
       await dbConnection.query({ sql: upsertSql });
       return { name, sql: upsertSql };
@@ -258,7 +260,7 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
 
       // manually update each row, ensuring that ids are out of sync
       await Promise.all(
-        idsOfNewCars.map(async (id) => deleteCvpRecordForCarById({ id })),
+        idsOfNewCars.map(async id => deleteCvpRecordForCarById({ id })),
       );
 
       // show that limit is respected
@@ -268,8 +270,9 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfillNow).toEqual(3);
 
       // and double prove it by showing that the remainder will be backfilled on running it again
-      const rowsAffectedByBackfillNowAgain =
-        await backfillCurrentVersionPointers({ limit: 1000 });
+      const rowsAffectedByBackfillNowAgain = await backfillCurrentVersionPointers(
+        { limit: 1000 },
+      );
       expect(rowsAffectedByBackfillNowAgain).toEqual(2);
     });
 
@@ -302,7 +305,7 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
 
       // manually update each row, ensuring that ids are out of sync
       await Promise.all(
-        idsOfNewCars.map(async (id) => manuallyChangeVersionOfCarById({ id })),
+        idsOfNewCars.map(async id => manuallyChangeVersionOfCarById({ id })),
       );
 
       // show that limit is respected
@@ -312,8 +315,9 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfillNow).toEqual(3);
 
       // and double prove it by showing that the remainder will be backfilled on running it again
-      const rowsAffectedByBackfillNowAgain =
-        await backfillCurrentVersionPointers({ limit: 1000 });
+      const rowsAffectedByBackfillNowAgain = await backfillCurrentVersionPointers(
+        { limit: 1000 },
+      );
       expect(rowsAffectedByBackfillNowAgain).toEqual(2);
     });
     it('should respect the limit on combinations of inserts and updates', async () => {
@@ -342,12 +346,12 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
 
       // manually update each row, ensuring that ids are out of sync
       await Promise.all(
-        idsOfNewCarsToDeleteRecordsFor.map(async (id) =>
+        idsOfNewCarsToDeleteRecordsFor.map(async id =>
           deleteCvpRecordForCarById({ id }),
         ),
       );
       await Promise.all(
-        idsOfNewCarsToUpdate.map(async (id) =>
+        idsOfNewCarsToUpdate.map(async id =>
           manuallyChangeVersionOfCarById({ id }),
         ),
       );
@@ -359,8 +363,9 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfillNow).toEqual(7);
 
       // and double prove it by showing that the remainder will be backfilled on running it again
-      const rowsAffectedByBackfillNowAgain =
-        await backfillCurrentVersionPointers({ limit: 1000 });
+      const rowsAffectedByBackfillNowAgain = await backfillCurrentVersionPointers(
+        { limit: 1000 },
+      );
       expect(rowsAffectedByBackfillNowAgain).toEqual(3);
     });
   });
