@@ -4,7 +4,11 @@ import { throwErrorIfAnythingNotUnderscoreCase } from './throwErrorIfAnythingNot
 
 describe('throwErrorIfAnythingNotUnderscoreCase', () => {
   it('should throw an error if entity name is not underscore case', () => {
-    const treeHouse = new Entity({ name: 'treeHouse', properties: { name: prop.VARCHAR(255) }, unique: ['name'] });
+    const treeHouse = new Entity({
+      name: 'treeHouse',
+      properties: { name: prop.VARCHAR(255) },
+      unique: ['name'],
+    });
     try {
       throwErrorIfAnythingNotUnderscoreCase({ entity: treeHouse });
       throw new Error('should not reach here');

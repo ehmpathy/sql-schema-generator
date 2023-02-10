@@ -1,7 +1,10 @@
 import { normalizeCreateTableDdl } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable/normalizeCreateTableDdl';
 import { provisionShowCreateTableFunction } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable/provisionShowCreateTableFunction';
 import { showCreateTable } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateTable/showCreateTable';
-import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
+import {
+  DatabaseConnection,
+  getDatabaseConnection,
+} from '../../../../__test_utils__/databaseConnection';
 import { DataType, DataTypeName, Property } from '../../../../domain';
 import { prop } from '../../../define';
 import { generateColumn } from './generateColumn';
@@ -17,8 +20,14 @@ describe('generateColumn', () => {
   afterAll(async () => {
     await dbConnection.end();
   });
-  const testColumnIsCreatable = async ({ columnSql }: { columnSql: string }) => {
-    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_column_test_table;' });
+  const testColumnIsCreatable = async ({
+    columnSql,
+  }: {
+    columnSql: string;
+  }) => {
+    await dbConnection.query({
+      sql: 'DROP TABLE IF EXISTS generate_table_column_test_table;',
+    });
     await dbConnection.query({
       sql: `
       CREATE TABLE generate_table_column_test_table (
@@ -29,7 +38,11 @@ describe('generateColumn', () => {
   };
   const getShowCreateNow = async () => {
     await provisionShowCreateTableFunction({ dbConnection });
-    const ddl = await showCreateTable({ dbConnection, schema: 'public', table: 'generate_table_column_test_table' });
+    const ddl = await showCreateTable({
+      dbConnection,
+      schema: 'public',
+      table: 'generate_table_column_test_table',
+    });
     return normalizeCreateTableDdl({ ddl });
   };
   it('can create a table with basic column definition, w/ same syntax as from SHOW CREATE TABLE', async () => {
@@ -119,7 +132,9 @@ describe('generateColumn', () => {
         it(testName, async () => {
           const property = (prop as any)[propertyKey.name](...propertyKey.args);
           const sql = generateColumn({ columnName: 'test_column', property });
-          expect(sql.toLowerCase()).toContain(propertyKey.name.toLowerCase().replace(/_/g, ' ')); // it should have the prop name in there
+          expect(sql.toLowerCase()).toContain(
+            propertyKey.name.toLowerCase().replace(/_/g, ' '),
+          ); // it should have the prop name in there
           await testColumnIsCreatable({ columnSql: sql });
           const createTableSQL = await getShowCreateNow();
           expect(createTableSQL).toContain(sql); // should contain the exact string

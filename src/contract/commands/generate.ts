@@ -1,4 +1,5 @@
 import { Command, flags } from '@oclif/command';
+
 import { generateSchema } from '../../logic/compose/generateSchema/generateSchema';
 
 export default class Generate extends Command {
@@ -26,8 +27,10 @@ export default class Generate extends Command {
     const config = flags.declarations!;
     const target = flags.target!;
     // get and display the plans
-    const configPath = config.slice(0, 1) === '/' ? config : `${process.cwd()}/${config}`; // if starts with /, consider it as an absolute path
-    const targetDir = target.slice(0, 1) === '/' ? target : `${process.cwd()}/${target}`; // if starts with /, consider it as an absolute path
+    const configPath =
+      config.slice(0, 1) === '/' ? config : `${process.cwd()}/${config}`; // if starts with /, consider it as an absolute path
+    const targetDir =
+      target.slice(0, 1) === '/' ? target : `${process.cwd()}/${target}`; // if starts with /, consider it as an absolute path
     await generateSchema({ configPath, targetDirPath: targetDir });
   }
 }

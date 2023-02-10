@@ -10,7 +10,9 @@ export const defineDeclarations = ({ entity }: { entity: Entity }) => {
   );
 
   // add the dynamic version table declarations, if needed
-  const hasUpdatableProperties = Object.values(entity.properties).some((property) => !!property.updatable);
+  const hasUpdatableProperties = Object.values(entity.properties).some(
+    (property) => !!property.updatable,
+  );
   if (hasUpdatableProperties) {
     declarations.push(
       'v_matching_version_id bigint;',
@@ -21,7 +23,9 @@ export const defineDeclarations = ({ entity }: { entity: Entity }) => {
   }
 
   // add the mapping table loop declarations, if needed
-  const hasArrayProperties = Object.values(entity.properties).some((property) => !!property.array);
+  const hasArrayProperties = Object.values(entity.properties).some(
+    (property) => !!property.array,
+  );
   if (hasArrayProperties) {
     declarations.push(
       'v_array_access_index int;', // tracks the index of the array that we're at

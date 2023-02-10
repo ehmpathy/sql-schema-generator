@@ -1,4 +1,7 @@
-import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
+import {
+  DatabaseConnection,
+  getDatabaseConnection,
+} from '../../../../__test_utils__/databaseConnection';
 import { getShowCreateTable } from '../../../../__test_utils__/getShowCreateTable';
 import { DataType, DataTypeName, Property } from '../../../../domain';
 import { prop } from '../../../define';
@@ -15,9 +18,17 @@ describe('generateTable', () => {
   afterAll(async () => {
     await dbConnection.end();
   });
-  const testTableIsCreateable = async ({ createTableSql }: { createTableSql: string }) => {
-    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test CASCADE;' });
-    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_test_referenced CASCADE;' });
+  const testTableIsCreateable = async ({
+    createTableSql,
+  }: {
+    createTableSql: string;
+  }) => {
+    await dbConnection.query({
+      sql: 'DROP TABLE IF EXISTS generate_table_test CASCADE;',
+    });
+    await dbConnection.query({
+      sql: 'DROP TABLE IF EXISTS generate_table_test_referenced CASCADE;',
+    });
     await dbConnection.query({
       sql: `
       CREATE TABLE generate_table_test_referenced (
@@ -27,7 +38,8 @@ describe('generateTable', () => {
     });
     await dbConnection.query({ sql: createTableSql });
   };
-  const getShowCreateNow = async () => getShowCreateTable({ table: 'generate_table_test', dbConnection });
+  const getShowCreateNow = async () =>
+    getShowCreateTable({ table: 'generate_table_test', dbConnection });
   it('can create a table with basic column definition, w/ same syntax as from SHOW CREATE TABLE', async () => {
     const pk = new Property({
       type: new DataType({
@@ -44,7 +56,13 @@ describe('generateTable', () => {
     const approval = prop.ENUM(['GRANTED', 'PENDING']);
     const createTableSql = await generateTable({
       tableName: 'generate_table_test',
-      properties: { id: pk, reference_id: reference, second_reference_id: reference, status, approval },
+      properties: {
+        id: pk,
+        reference_id: reference,
+        second_reference_id: reference,
+        status,
+        approval,
+      },
       unique: ['reference_id'],
     });
     await testTableIsCreateable({ createTableSql });

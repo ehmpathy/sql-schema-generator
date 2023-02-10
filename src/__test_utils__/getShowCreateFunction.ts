@@ -9,7 +9,11 @@ export const getShowCreateFunction = async ({
   func: string;
   dbConnection: DatabaseConnection;
 }) => {
-  const ddl = await showCreateFunction({ dbConnection, schema: 'public', func });
+  const ddl = await showCreateFunction({
+    dbConnection,
+    schema: 'public',
+    func,
+  });
   return normalizeCreateFunctionDdl({ ddl })
     .replace(/public./g, '') // also, remove the schema namespace ('public' in this case)
     .trim();

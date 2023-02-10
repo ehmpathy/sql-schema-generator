@@ -29,7 +29,11 @@ describe('Event', () => {
       new Event({
         name: 'item_purchased_event',
         properties: {
-          product_uuid: new Property({ type, updatable: false, nullable: false }),
+          product_uuid: new Property({
+            type,
+            updatable: false,
+            nullable: false,
+          }),
           occurred_at: new Property({
             type,
             updatable: true,
@@ -40,7 +44,9 @@ describe('Event', () => {
       });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual('events can not have updateable properties, by definition');
+      expect(error.message).toEqual(
+        'events can not have updateable properties, by definition',
+      );
     }
   });
 });

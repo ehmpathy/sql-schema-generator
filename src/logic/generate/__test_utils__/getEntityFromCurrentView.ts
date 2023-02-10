@@ -13,7 +13,9 @@ export const getEntityFromCurrentView = async ({
 }) => {
   const view = generateEntityCurrentView({ entity });
   const name = view!.name;
-  const results = await dbConnection.query({ sql: `select * from ${name} where id = ${id}` });
+  const results = await dbConnection.query({
+    sql: `select * from ${name} where id = ${id}`,
+  });
   expect(results.rows.length).toEqual(1);
   const entityData = results.rows[0];
   return entityData;

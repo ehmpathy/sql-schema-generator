@@ -3,6 +3,7 @@
 */
 import { serialize } from 'domain-objects';
 import { isAFunction } from 'type-fns';
+
 import { DataType, DataTypeName, Entity, Property } from '../../domain';
 
 /**
@@ -188,7 +189,9 @@ export const ENUM = (values: string[]) =>
     type: new DataType({
       name: DataTypeName.VARCHAR,
     }),
-    check: `($COLUMN_NAME IN (${values.map((value) => `'${value}'`).join(', ')}))`, // $COLUMN_NAME is replaced with the name of the column, at DDL output time
+    check: `($COLUMN_NAME IN (${values
+      .map((value) => `'${value}'`)
+      .join(', ')}))`, // $COLUMN_NAME is replaced with the name of the column, at DDL output time
   });
 
 /**
@@ -287,7 +290,9 @@ export const DATE = () =>
 export const REFERENCES = (entityOrGetEntity: Entity | (() => Entity)) =>
   new Property({
     ...BIGINT(), // pk type is always a bigint
-    references: isAFunction(entityOrGetEntity) ? entityOrGetEntity().name : entityOrGetEntity.name, // name of entity's table
+    references: isAFunction(entityOrGetEntity)
+      ? entityOrGetEntity().name
+      : entityOrGetEntity.name, // name of entity's table
   });
 
 /**
@@ -297,11 +302,19 @@ export const REFERENCES = (entityOrGetEntity: Entity | (() => Entity)) =>
  * - this is only valid if the referenced entity has updatable properties, as otherwise there will not be a version table for the entity.
  * - the input can be a function that returns your entity, to support cases where your entity references itself
  */
-export const REFERENCES_VERSION = (entityOrGetEntity: Entity | (() => Entity)) => {
-  const entity = isAFunction(entityOrGetEntity) ? entityOrGetEntity() : entityOrGetEntity;
-  const referencedEntityHasUpdatableProperties = Object.values(entity.properties).some((prop) => !!prop.updatable);
+export const REFERENCES_VERSION = (
+  entityOrGetEntity: Entity | (() => Entity),
+) => {
+  const entity = isAFunction(entityOrGetEntity)
+    ? entityOrGetEntity()
+    : entityOrGetEntity;
+  const referencedEntityHasUpdatableProperties = Object.values(
+    entity.properties,
+  ).some((prop) => !!prop.updatable);
   if (!referencedEntityHasUpdatableProperties) {
-    throw new Error('REFERENCES_VERSION can only be applied to an entity that has updatable properties');
+    throw new Error(
+      'REFERENCES_VERSION can only be applied to an entity that has updatable properties',
+    );
   }
   return new Property({
     ...BIGINT(), // pk type is always a bigint
@@ -319,6 +332,7 @@ export const REFERENCES_VERSION = (entityOrGetEntity: Entity | (() => Entity)) =
 export const ARRAY_OF = (property: Property) => {
   const isArrayOfReferences = !!property.references;
   const isArrayOfUuids = serialize(property) === serialize(UUID());
-  if (!isArrayOfReferences && !isArrayOfUuids) throw new Error('only arrays of REFERENCEs or UUIDs are supported');
+  if (!isArrayOfReferences && !isArrayOfUuids)
+    throw new Error('only arrays of REFERENCEs or UUIDs are supported');
   return new Property({ ...property, array: true });
 };

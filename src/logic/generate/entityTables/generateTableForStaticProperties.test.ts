@@ -12,7 +12,10 @@ describe('generateTableForStaticProperties', () => {
     await generateTableForStaticProperties({
       entityName: '__ENTITY_NAME__',
       unique: ['uniqueProp'],
-      properties: { testProp: '__TEST_PROP__' as any, uniqueProp: '__TEST_PROP__' as any },
+      properties: {
+        testProp: '__TEST_PROP__' as any,
+        uniqueProp: '__TEST_PROP__' as any,
+      },
     });
     expect(generateTableMock).toHaveBeenCalledTimes(1);
     expect(generateTableMock).toHaveBeenCalledWith({
@@ -28,7 +31,10 @@ describe('generateTableForStaticProperties', () => {
     await generateTableForStaticProperties({
       entityName: '__ENTITY_NAME__',
       unique: ['uniqueProp'],
-      properties: { testProp: '__TEST_PROP__' as any, uniqueProp: '__TEST_PROP__' as any },
+      properties: {
+        testProp: '__TEST_PROP__' as any,
+        uniqueProp: '__TEST_PROP__' as any,
+      },
     });
     expect(generateTableMock).toHaveBeenCalledTimes(1);
     expect(generateTableMock).toHaveBeenCalledWith(
@@ -55,7 +61,10 @@ describe('generateTableForStaticProperties', () => {
     await generateTableForStaticProperties({
       entityName: '__ENTITY_NAME__',
       unique: ['uniqueProp'],
-      properties: { testProp: { type: 'TEST_PROP', array: true } as any, uniqueProp: '__TEST_PROP__' as any },
+      properties: {
+        testProp: { type: 'TEST_PROP', array: true } as any,
+        uniqueProp: '__TEST_PROP__' as any,
+      },
     });
     expect(generateTableMock).toHaveBeenCalledTimes(1);
     expect(generateTableMock).toHaveBeenCalledWith(

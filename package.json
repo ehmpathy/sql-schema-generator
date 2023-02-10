@@ -43,6 +43,7 @@
     "provision:docker:extensions": "docker-compose -f ./provision/docker/integration_test_db/docker-compose.yml exec -T postgres /root/provision-extensions.sh",
     "commit:with-cli": "npx cz",
     "fix:format:prettier": "prettier --write '**/*.ts' --config ./prettier.config.js",
+    "fix:format:terraform": "echo 'no terraform'",
     "fix:format": "npm run fix:format:prettier && npm run fix:format:terraform",
     "fix:lint": "eslint -c ./.eslintrc.js src/**/*.ts --fix",
     "build:clean": "rm dist/ -rf",

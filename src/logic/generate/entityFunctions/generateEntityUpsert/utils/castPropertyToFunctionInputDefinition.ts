@@ -7,8 +7,16 @@ import { castPropertyToInputVariableName } from './castPropertyToInputVariableNa
     For array properties, the input type is different from that defined on the property - due to being an "array" of those properties
 */
 
-export const castPropertyToFunctionInputDefinition = ({ name, definition }: { name: string; definition: Property }) => {
+export const castPropertyToFunctionInputDefinition = ({
+  name,
+  definition,
+}: {
+  name: string;
+  definition: Property;
+}) => {
   const inputVariableName = castPropertyToInputVariableName({ name });
-  const inputVariableType = extractDataTypeDefinitionFromProperty({ property: definition });
+  const inputVariableType = extractDataTypeDefinitionFromProperty({
+    property: definition,
+  });
   return `${inputVariableName} ${inputVariableType}`;
 };

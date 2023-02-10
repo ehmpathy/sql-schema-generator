@@ -16,7 +16,9 @@ export const castArrayPropertiesToValuesHashProperties = ({
   const castedProperties: { [index: string]: Property } = {};
   Object.entries(properties).forEach(([name, definition]) => {
     if (!definition.array) {
-      throw new Error('error - non array property was asked to have been casted into values hash property');
+      throw new Error(
+        'error - non array property was asked to have been casted into values hash property',
+      );
     }
     const columnName = castPropertyToColumnName({ name, definition });
     castedProperties[columnName] = prop.BYTEA();

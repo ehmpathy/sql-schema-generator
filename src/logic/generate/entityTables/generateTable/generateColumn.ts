@@ -1,7 +1,13 @@
 import { Property } from '../../../../domain';
 import { extractDataTypeDefinitionFromProperty } from '../../utils/extractDataTypeDefinitionFromProperty';
 
-export const generateColumn = ({ columnName, property }: { columnName: string; property: Property }) => {
+export const generateColumn = ({
+  columnName,
+  property,
+}: {
+  columnName: string;
+  property: Property;
+}) => {
   const modifiers = [
     columnName,
 

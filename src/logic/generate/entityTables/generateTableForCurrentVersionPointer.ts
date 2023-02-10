@@ -2,7 +2,11 @@ import { Property } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { generateTable } from './generateTable';
 
-export const generateTableForCurrentVersionPointer = ({ entityName }: { entityName: string }) => {
+export const generateTableForCurrentVersionPointer = ({
+  entityName,
+}: {
+  entityName: string;
+}) => {
   // 0. add metadata properties
   const staticTableReferenceName = `${entityName}_id`;
   const versionTableReferenceName = `${entityName}_version_id`;

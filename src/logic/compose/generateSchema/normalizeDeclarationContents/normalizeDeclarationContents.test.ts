@@ -7,13 +7,16 @@ import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingCo
 import { throwErrorIfNotUniqueOnAnything } from './throwErrorIfNotUniqueOnAnything';
 
 jest.mock('./throwErrorIfAnyReservedPropertyNamesAreUsed');
-const throwErrorIfAnyReservedPropertyNamesAreUsedMock = throwErrorIfAnyReservedPropertyNamesAreUsed as jest.Mock;
+const throwErrorIfAnyReservedPropertyNamesAreUsedMock =
+  throwErrorIfAnyReservedPropertyNamesAreUsed as jest.Mock;
 
 jest.mock('./throwErrorIfNamingConventionsNotFollowed');
-const throwErrorIfNamingConventionsNotFollowedMock = throwErrorIfNamingConventionsNotFollowed as jest.Mock;
+const throwErrorIfNamingConventionsNotFollowedMock =
+  throwErrorIfNamingConventionsNotFollowed as jest.Mock;
 
 jest.mock('./throwErrorIfAnyUniqueIsNotInProperties');
-const throwErrorIfAnyUniqueIsNotInPropertiesMock = throwErrorIfAnyUniqueIsNotInProperties;
+const throwErrorIfAnyUniqueIsNotInPropertiesMock =
+  throwErrorIfAnyUniqueIsNotInProperties;
 
 jest.mock('./throwErrorIfNotUniqueOnAnything');
 const throwErrorIfNotUniqueOnAnythingMock = throwErrorIfNotUniqueOnAnything;
@@ -37,40 +40,76 @@ describe('normalizeDeclarationContents', () => {
       normalizeDeclarationContents({ contents });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual('all exported entities must be of, or extend, class Entity');
+      expect(error.message).toEqual(
+        'all exported entities must be of, or extend, class Entity',
+      );
     }
   });
   it("should throw an error if any entity's properties use a reserved name", () => {
-    const exampleEntity = new Entity({ name: 'burrito', properties: { lbs: prop.INT() }, unique: ['lbs'] });
+    const exampleEntity = new Entity({
+      name: 'burrito',
+      properties: { lbs: prop.INT() },
+      unique: ['lbs'],
+    });
     const contents = { entities: [exampleEntity] };
     normalizeDeclarationContents({ contents });
-    expect(throwErrorIfAnyReservedPropertyNamesAreUsedMock).toHaveBeenCalledTimes(1);
-    expect(throwErrorIfAnyReservedPropertyNamesAreUsedMock).toHaveBeenCalledWith({ entity: exampleEntity });
+    expect(
+      throwErrorIfAnyReservedPropertyNamesAreUsedMock,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      throwErrorIfAnyReservedPropertyNamesAreUsedMock,
+    ).toHaveBeenCalledWith({ entity: exampleEntity });
   });
   it("should throw an error if any entity's properties do not follow naming conventions", () => {
-    const exampleEntity = new Entity({ name: 'burrito', properties: { lbs: prop.INT() }, unique: ['lbs'] });
+    const exampleEntity = new Entity({
+      name: 'burrito',
+      properties: { lbs: prop.INT() },
+      unique: ['lbs'],
+    });
     const contents = { entities: [exampleEntity] };
     normalizeDeclarationContents({ contents });
-    expect(throwErrorIfNamingConventionsNotFollowedMock).toHaveBeenCalledTimes(1);
-    expect(throwErrorIfNamingConventionsNotFollowedMock).toHaveBeenCalledWith({ entity: exampleEntity });
+    expect(throwErrorIfNamingConventionsNotFollowedMock).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(throwErrorIfNamingConventionsNotFollowedMock).toHaveBeenCalledWith({
+      entity: exampleEntity,
+    });
   });
   it('should throw an error if any keys the entity is unique on are not defined in its properties', () => {
-    const exampleEntity = new Entity({ name: 'burrito', properties: { lbs: prop.INT() }, unique: ['lbs'] });
+    const exampleEntity = new Entity({
+      name: 'burrito',
+      properties: { lbs: prop.INT() },
+      unique: ['lbs'],
+    });
     const contents = { entities: [exampleEntity] };
     normalizeDeclarationContents({ contents });
     expect(throwErrorIfAnyUniqueIsNotInPropertiesMock).toHaveBeenCalledTimes(1);
-    expect(throwErrorIfAnyUniqueIsNotInPropertiesMock).toHaveBeenCalledWith({ entity: exampleEntity });
+    expect(throwErrorIfAnyUniqueIsNotInPropertiesMock).toHaveBeenCalledWith({
+      entity: exampleEntity,
+    });
   });
   it('should throw an error if entity is unique on nothing', () => {
-    const exampleEntity = new Entity({ name: 'burrito', properties: { lbs: prop.INT() }, unique: ['lbs'] });
+    const exampleEntity = new Entity({
+      name: 'burrito',
+      properties: { lbs: prop.INT() },
+      unique: ['lbs'],
+    });
     const contents = { entities: [exampleEntity] };
     normalizeDeclarationContents({ contents });
     expect(throwErrorIfNotUniqueOnAnythingMock).toHaveBeenCalledTimes(1);
-    expect(throwErrorIfNotUniqueOnAnythingMock).toHaveBeenCalledWith({ entity: exampleEntity });
+    expect(throwErrorIfNotUniqueOnAnythingMock).toHaveBeenCalledWith({
+      entity: exampleEntity,
+    });
   });
   it('should return the entities and value objects found in the contents', () => {
-    const plant = new ValueObject({ name: 'plant', properties: { genus: prop.VARCHAR(255) } });
-    const vase = new ValueObject({ name: 'vase', properties: { plants: prop.ARRAY_OF(prop.REFERENCES(plant)) } });
+    const plant = new ValueObject({
+      name: 'plant',
+      properties: { genus: prop.VARCHAR(255) },
+    });
+    const vase = new ValueObject({
+      name: 'vase',
+      properties: { plants: prop.ARRAY_OF(prop.REFERENCES(plant)) },
+    });
     const customer = new Entity({
       name: 'customer',
       properties: { phone_number: prop.VARCHAR(10) },
@@ -78,7 +117,10 @@ describe('normalizeDeclarationContents', () => {
     });
     const order = new Entity({
       name: 'order',
-      properties: { customer_id: prop.REFERENCES(customer), vase_id: prop.REFERENCES(vase) },
+      properties: {
+        customer_id: prop.REFERENCES(customer),
+        vase_id: prop.REFERENCES(vase),
+      },
       unique: ['uuid'], // logically unique on nothing - same order can be placed many times! -> we'll require the user to pass in a uuid for idempotency
     });
     const contents = {
@@ -90,8 +132,14 @@ describe('normalizeDeclarationContents', () => {
     expect(entities).toEqual([plant, vase, customer, order]);
   });
   it('should return the entities and value objects found in the contents - when specified with the generateSqlSchemasFor syntax', () => {
-    const plant = new ValueObject({ name: 'plant', properties: { genus: prop.VARCHAR(255) } });
-    const vase = new ValueObject({ name: 'vase', properties: { plants: prop.ARRAY_OF(prop.REFERENCES(plant)) } });
+    const plant = new ValueObject({
+      name: 'plant',
+      properties: { genus: prop.VARCHAR(255) },
+    });
+    const vase = new ValueObject({
+      name: 'vase',
+      properties: { plants: prop.ARRAY_OF(prop.REFERENCES(plant)) },
+    });
     const customer = new Entity({
       name: 'customer',
       properties: { phone_number: prop.VARCHAR(10) },
@@ -99,7 +147,10 @@ describe('normalizeDeclarationContents', () => {
     });
     const order = new Entity({
       name: 'order',
-      properties: { customer_id: prop.REFERENCES(customer), vase_id: prop.REFERENCES(vase) },
+      properties: {
+        customer_id: prop.REFERENCES(customer),
+        vase_id: prop.REFERENCES(vase),
+      },
       unique: ['uuid'], // logically unique on nothing - same order can be placed many times! -> we'll require the user to pass in a uuid for idempotency
     });
     const contents = {

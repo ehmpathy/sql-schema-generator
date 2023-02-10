@@ -12,7 +12,10 @@ export const normalizeCreateTableDdl = ({ ddl }: { ddl: string }) => {
 
   // swap back to better aliases
   let aliasedSql = prettyDdl;
-  aliasedSql = aliasedSql.replace(/int NOT NULL DEFAULT nextval\([\'\w: \n]+\)/g, 'serial NOT NULL'); // e.g., `bigint DEFAULT nextval('test_tb_for_show_create_on_id_seq' :: regclass)` -> `bigserial`; although 'bigint default ...' is the canonical def, its just too verbose to be useful
+  aliasedSql = aliasedSql.replace(
+    /int NOT NULL DEFAULT nextval\([\'\w: \n]+\)/g,
+    'serial NOT NULL',
+  ); // e.g., `bigint DEFAULT nextval('test_tb_for_show_create_on_id_seq' :: regclass)` -> `bigserial`; although 'bigint default ...' is the canonical def, its just too verbose to be useful
   aliasedSql = aliasedSql.replace(/character varying/g, 'varchar'); // although `character varying` is the canonical term, `varchar` is used more regularly in practice -> more helpful
   aliasedSql = aliasedSql.replace(/ integer /g, ' int '); // postgres converts `int` to `integer`, but `bigint` is kept as `bigint`.... lets be consistent and just use the shorthand
   aliasedSql = aliasedSql.replace(/ ?:: ?\w+( ?\[\])?/g, ''); // remove any ":: __TYPE__" casting that could exist in the DDL. this level of information has not been found as useful yet
@@ -24,7 +27,10 @@ export const normalizeCreateTableDdl = ({ ddl }: { ddl: string }) => {
   );
 
   // replace `REFERENCES table_name(id)` with `REFERENCES table_name (id)` for consistency
-  aliasedSql = aliasedSql.replace(/REFERENCES ([\w_]+)\(([\w_]+)\)/g, 'REFERENCES $1 ($2)');
+  aliasedSql = aliasedSql.replace(
+    /REFERENCES ([\w_]+)\(([\w_]+)\)/g,
+    'REFERENCES $1 ($2)',
+  );
 
   // reprettify the ddl
   const reprettyDdl = sqlFormatter.format(aliasedSql);

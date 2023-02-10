@@ -21,7 +21,11 @@ const generateMappingTableForArrayProperty = ({
   propertyDefinition: Property;
 }) => {
   // 1. define keys for mapping table
-  const mappingTableKeys = defineMappingTableKeysForEntityProperty({ entityName, propertyName, propertyDefinition }); // defined in module because this data is used in the upsert and view
+  const mappingTableKeys = defineMappingTableKeysForEntityProperty({
+    entityName,
+    propertyName,
+    propertyDefinition,
+  }); // defined in module because this data is used in the upsert and view
 
   // 3. define the full table properties for the mapping table
   const mappingTableProps = {
@@ -34,19 +38,27 @@ const generateMappingTableForArrayProperty = ({
       ...prop.BIGINT(),
       references: mappingTableKeys.entityReferenceTableName,
     }),
-    [mappingTableKeys.mappedEntityReferenceColumnName]: propertyDefinition.references
-      ? new Property({
-          ...prop.BIGINT(),
-          references: propertyDefinition.references,
-        })
-      : prop.UUID(),
+    [mappingTableKeys.mappedEntityReferenceColumnName]:
+      propertyDefinition.references
+        ? new Property({
+            ...prop.BIGINT(),
+            references: propertyDefinition.references,
+          })
+        : prop.UUID(),
     [mappingTableKeys.arrayOrderIndexColumnName]: prop.SMALLINT(), // smallint because if someone needs more than 30k properties in an array, something is terribly wrong!
   };
 
   // 4. build the table
   const tableName = mappingTableKeys.tableName;
-  const unique = [mappingTableKeys.entityReferenceColumnName, mappingTableKeys.arrayOrderIndexColumnName]; // unique on the index per entity (note: we explicitly allow the same mapped entity to be repeated in the array)
-  const tableSql = generateTable({ tableName, unique, properties: mappingTableProps });
+  const unique = [
+    mappingTableKeys.entityReferenceColumnName,
+    mappingTableKeys.arrayOrderIndexColumnName,
+  ]; // unique on the index per entity (note: we explicitly allow the same mapped entity to be repeated in the array)
+  const tableSql = generateTable({
+    tableName,
+    unique,
+    properties: mappingTableProps,
+  });
 
   // 5. return the table definition
   return {
@@ -64,7 +76,11 @@ export const generateMappingTablesForArrayProperties = ({
 }) => {
   // define a mapping table for each property
   const mappingTables = Object.entries(properties).map((entry) =>
-    generateMappingTableForArrayProperty({ entityName, propertyName: entry[0], propertyDefinition: entry[1] }),
+    generateMappingTableForArrayProperty({
+      entityName,
+      propertyName: entry[0],
+      propertyDefinition: entry[1],
+    }),
   );
 
   // return the mapping tables

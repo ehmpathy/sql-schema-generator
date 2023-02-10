@@ -24,7 +24,12 @@ describe('defineMappingTableNameForEntityProperty', () => {
     });
     it('should generate a mapping table per updatable property accurately', async () => {
       const properties = {
-        tag_ids: { ...prop.BIGINT(), array: true, updatable: true, references: 'tag' },
+        tag_ids: {
+          ...prop.BIGINT(),
+          array: true,
+          updatable: true,
+          references: 'tag',
+        },
       };
       const keys = defineMappingTableKeysForEntityProperty({
         entityName: 'wrench',

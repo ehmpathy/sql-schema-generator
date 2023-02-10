@@ -1,4 +1,7 @@
-import { DatabaseConnection, getDatabaseConnection } from '../../../../__test_utils__/databaseConnection';
+import {
+  DatabaseConnection,
+  getDatabaseConnection,
+} from '../../../../__test_utils__/databaseConnection';
 import { getShowCreateTable } from '../../../../__test_utils__/getShowCreateTable';
 import { DataType, DataTypeName, Property } from '../../../../domain';
 import { generateColumn } from './generateColumn';
@@ -24,8 +27,12 @@ describe('generateConstraintForeignKey', () => {
     constraintSql: string;
     indexSql: string;
   }) => {
-    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_constraint_fk_test;' });
-    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS generate_table_constraint_fk_test_referenced;' });
+    await dbConnection.query({
+      sql: 'DROP TABLE IF EXISTS generate_table_constraint_fk_test;',
+    });
+    await dbConnection.query({
+      sql: 'DROP TABLE IF EXISTS generate_table_constraint_fk_test_referenced;',
+    });
     await dbConnection.query({
       sql: `
       CREATE TABLE generate_table_constraint_fk_test_referenced (
@@ -43,7 +50,11 @@ describe('generateConstraintForeignKey', () => {
     `,
     });
   };
-  const getShowCreateNow = async () => getShowCreateTable({ table: 'generate_table_constraint_fk_test', dbConnection });
+  const getShowCreateNow = async () =>
+    getShowCreateTable({
+      table: 'generate_table_constraint_fk_test',
+      dbConnection,
+    });
   const property = new Property({
     type: new DataType({
       name: DataTypeName.BIGINT,
@@ -58,7 +69,11 @@ describe('generateConstraintForeignKey', () => {
       columnName: 'user_id',
       property,
     });
-    await testFkIsCreateable({ columnSql, constraintSql: constraintSql.constraint, indexSql: constraintSql.index });
+    await testFkIsCreateable({
+      columnSql,
+      constraintSql: constraintSql.constraint,
+      indexSql: constraintSql.index,
+    });
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
     const createTableSQL = await getShowCreateNow();

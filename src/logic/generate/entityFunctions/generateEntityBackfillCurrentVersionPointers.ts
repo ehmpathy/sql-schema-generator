@@ -12,7 +12,11 @@ note: insert on conflict update was not used because there would be no efficient
   - since "on conflict update" shows as "two" rows affected... https://stackoverflow.com/questions/3747314/why-are-2-rows-affected-in-my-insert-on-duplicate-key-update
 */
 
-export const generateEntityBackfillCurrentVersionPointers = ({ entity }: { entity: Entity }) => {
+export const generateEntityBackfillCurrentVersionPointers = ({
+  entity,
+}: {
+  entity: Entity;
+}) => {
   // define select statement for getting current version for entity
   const selectCurrentVersionIdForEntity = `
 SELECT

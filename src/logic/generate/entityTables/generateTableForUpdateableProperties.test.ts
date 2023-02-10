@@ -58,7 +58,9 @@ describe('generateTableForUpdateableProperties', () => {
     */
     await generateTableForUpdateableProperties({
       entityName: '__ENTITY_NAME__',
-      properties: { testProp: { type: 'TEST_PROP', updatable: true, array: true } as any },
+      properties: {
+        testProp: { type: 'TEST_PROP', updatable: true, array: true } as any,
+      },
     });
     expect(generateTableMock).toHaveBeenCalledTimes(1);
     expect(generateTableMock).toHaveBeenCalledWith(

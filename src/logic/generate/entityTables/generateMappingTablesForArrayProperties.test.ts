@@ -13,7 +13,10 @@ describe('generateMappingTablesForArrayProperties', () => {
       const properties = {
         diameter_ids: { ...prop.BIGINT(), array: true, references: 'diameter' },
       };
-      const entityMappingTables = generateMappingTablesForArrayProperties({ entityName: 'wrench', properties });
+      const entityMappingTables = generateMappingTablesForArrayProperties({
+        entityName: 'wrench',
+        properties,
+      });
       expect(entityMappingTables.length).toEqual(1);
       expect(entityMappingTables[0].name).toEqual('wrench_to_diameter');
       expect(generateTableMock).toHaveBeenCalledTimes(1);
@@ -35,9 +38,17 @@ describe('generateMappingTablesForArrayProperties', () => {
     });
     it('should generate a mapping table per updatable property accurately', async () => {
       const properties = {
-        tag_ids: { ...prop.BIGINT(), array: true, updatable: true, references: 'tag' },
+        tag_ids: {
+          ...prop.BIGINT(),
+          array: true,
+          updatable: true,
+          references: 'tag',
+        },
       };
-      const entityMappingTables = generateMappingTablesForArrayProperties({ entityName: 'wrench', properties });
+      const entityMappingTables = generateMappingTablesForArrayProperties({
+        entityName: 'wrench',
+        properties,
+      });
       expect(entityMappingTables.length).toEqual(1);
       expect(entityMappingTables[0].name).toEqual('wrench_version_to_tag'); // since updatable, only the version of a wrench points to a tag
       expect(generateTableMock).toHaveBeenCalledTimes(1);
@@ -63,7 +74,10 @@ describe('generateMappingTablesForArrayProperties', () => {
       const properties = {
         diameter_uuids: { ...prop.UUID(), array: true },
       };
-      const entityMappingTables = generateMappingTablesForArrayProperties({ entityName: 'wrench', properties });
+      const entityMappingTables = generateMappingTablesForArrayProperties({
+        entityName: 'wrench',
+        properties,
+      });
       expect(entityMappingTables.length).toEqual(1);
       expect(entityMappingTables[0].name).toEqual('wrench_to_diameter_uuid');
       expect(generateTableMock).toHaveBeenCalledTimes(1);
@@ -84,7 +98,10 @@ describe('generateMappingTablesForArrayProperties', () => {
       const properties = {
         tag_uuids: { ...prop.UUID(), array: true, updatable: true },
       };
-      const entityMappingTables = generateMappingTablesForArrayProperties({ entityName: 'wrench', properties });
+      const entityMappingTables = generateMappingTablesForArrayProperties({
+        entityName: 'wrench',
+        properties,
+      });
       expect(entityMappingTables.length).toEqual(1);
       expect(entityMappingTables[0].name).toEqual('wrench_version_to_tag_uuid'); // since updatable, only the version of a wrench points to a tag
       expect(generateTableMock).toHaveBeenCalledTimes(1);

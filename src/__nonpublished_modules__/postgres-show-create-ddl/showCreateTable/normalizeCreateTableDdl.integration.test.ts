@@ -1,4 +1,7 @@
-import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
+import {
+  DatabaseConnection,
+  getDatabaseConnection,
+} from '../../../__test_utils__/databaseConnection';
 import { normalizeCreateTableDdl } from './normalizeCreateTableDdl';
 import { provisionShowCreateTableFunction } from './provisionShowCreateTableFunction';
 import { showCreateTable } from './showCreateTable';
@@ -13,7 +16,9 @@ describe('showCreateTable', () => {
   });
   it('should be possible to get create statement of table', async () => {
     await provisionShowCreateTableFunction({ dbConnection });
-    await dbConnection.query({ sql: 'DROP TABLE IF EXISTS test_tb_for_show_create_on;' });
+    await dbConnection.query({
+      sql: 'DROP TABLE IF EXISTS test_tb_for_show_create_on;',
+    });
     await dbConnection.query({
       sql: `
 CREATE TABLE test_tb_for_show_create_on (
@@ -24,7 +29,11 @@ CREATE TABLE test_tb_for_show_create_on (
 )
     `.trim(),
     });
-    const ddl = await showCreateTable({ dbConnection, schema: 'public', table: 'test_tb_for_show_create_on' });
+    const ddl = await showCreateTable({
+      dbConnection,
+      schema: 'public',
+      table: 'test_tb_for_show_create_on',
+    });
     const normalizedDdl = await normalizeCreateTableDdl({ ddl });
     expect(normalizedDdl).toMatchSnapshot();
   });

@@ -21,12 +21,16 @@ export const generateEntityTables = ({ entity }: { entity: Entity }) => {
   });
 
   // 2. validate the props
-  const updatableUniqueKeys = Object.keys(updatableProps).filter((key) => entity.unique.includes(key));
+  const updatableUniqueKeys = Object.keys(updatableProps).filter((key) =>
+    entity.unique.includes(key),
+  );
   if (updatableUniqueKeys.length)
     throw new Error(
       `Detected a unique key on '${
         entity.name
-      }' which references an updatable property. This is not supported. Keys ${JSON.stringify(updatableUniqueKeys)}`,
+      }' which references an updatable property. This is not supported. Keys ${JSON.stringify(
+        updatableUniqueKeys,
+      )}`,
     );
 
   // 3. define the sql
@@ -36,12 +40,18 @@ export const generateEntityTables = ({ entity }: { entity: Entity }) => {
     properties: staticProps,
   });
   const entityVersionTable = Object.keys(updatableProps).length
-    ? generateTableForUpdateableProperties({ entityName: entity.name, properties: updatableProps })
+    ? generateTableForUpdateableProperties({
+        entityName: entity.name,
+        properties: updatableProps,
+      })
     : undefined;
   const entityCurrentVersionPointerTable = entityVersionTable
     ? generateTableForCurrentVersionPointer({ entityName: entity.name })
     : undefined;
-  const mappingTables = generateMappingTablesForArrayProperties({ entityName: entity.name, properties: arrayProps });
+  const mappingTables = generateMappingTablesForArrayProperties({
+    entityName: entity.name,
+    properties: arrayProps,
+  });
 
   // 4. remove the string
   return {

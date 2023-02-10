@@ -25,11 +25,17 @@ describe('generateAndRecordEntitySchema', () => {
     });
 
     // check static table was created
-    const tableStaticSql = await readFile(`${targetDirPath}/tables/${address.name}.sql`, 'utf8');
+    const tableStaticSql = await readFile(
+      `${targetDirPath}/tables/${address.name}.sql`,
+      'utf8',
+    );
     expect(tableStaticSql).toContain('CREATE TABLE');
 
     // check that the upsert function was created
-    const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${address.name}.sql`, 'utf8');
+    const upsertSql = await readFile(
+      `${targetDirPath}/functions/upsert_${address.name}.sql`,
+      'utf8',
+    );
     expect(upsertSql).toContain('CREATE OR REPLACE FUNCTION');
   });
   it('should record all resources for an updatable entity', async () => {
@@ -55,19 +61,31 @@ describe('generateAndRecordEntitySchema', () => {
     });
 
     // check static table was created
-    const tableStaticSql = await readFile(`${targetDirPath}/tables/${user.name}.sql`, 'utf8');
+    const tableStaticSql = await readFile(
+      `${targetDirPath}/tables/${user.name}.sql`,
+      'utf8',
+    );
     expect(tableStaticSql).toContain('CREATE TABLE');
 
     // check that the version table was created
-    const tableVersionSql = await readFile(`${targetDirPath}/tables/${user.name}_version.sql`, 'utf8');
+    const tableVersionSql = await readFile(
+      `${targetDirPath}/tables/${user.name}_version.sql`,
+      'utf8',
+    );
     expect(tableVersionSql).toContain('CREATE TABLE');
 
     // check that the current version pointer table was created
-    const tableCurrentVersionPointerSql = await readFile(`${targetDirPath}/tables/${user.name}_cvp.sql`, 'utf8');
+    const tableCurrentVersionPointerSql = await readFile(
+      `${targetDirPath}/tables/${user.name}_cvp.sql`,
+      'utf8',
+    );
     expect(tableCurrentVersionPointerSql).toContain('CREATE TABLE');
 
     // check that the upsert function was created
-    const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${user.name}.sql`, 'utf8');
+    const upsertSql = await readFile(
+      `${targetDirPath}/functions/upsert_${user.name}.sql`,
+      'utf8',
+    );
     expect(upsertSql).toContain('CREATE OR REPLACE FUNCTION');
 
     // check that the backfill current version pointer function was created
@@ -75,10 +93,15 @@ describe('generateAndRecordEntitySchema', () => {
       `${targetDirPath}/functions/backfill_${user.name}_cvp.sql`,
       'utf8',
     );
-    expect(backfillCurrentVersionPointerSql).toContain('CREATE OR REPLACE FUNCTION');
+    expect(backfillCurrentVersionPointerSql).toContain(
+      'CREATE OR REPLACE FUNCTION',
+    );
 
     // check that the _current view was created
-    const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${user.name}_current.sql`, 'utf8');
+    const viewCurrentSql = await readFile(
+      `${targetDirPath}/views/view_${user.name}_current.sql`,
+      'utf8',
+    );
     expect(viewCurrentSql).toContain('CREATE OR REPLACE VIEW');
   });
   it('should record all resources for an updatable entity with array properties', async () => {
@@ -112,19 +135,31 @@ describe('generateAndRecordEntitySchema', () => {
     });
 
     // check static table was created
-    const tableStaticSql = await readFile(`${targetDirPath}/tables/${movie.name}.sql`, 'utf8');
+    const tableStaticSql = await readFile(
+      `${targetDirPath}/tables/${movie.name}.sql`,
+      'utf8',
+    );
     expect(tableStaticSql).toContain('CREATE TABLE');
 
     // check that the version table was created
-    const tableVersionSql = await readFile(`${targetDirPath}/tables/${movie.name}_version.sql`, 'utf8');
+    const tableVersionSql = await readFile(
+      `${targetDirPath}/tables/${movie.name}_version.sql`,
+      'utf8',
+    );
     expect(tableVersionSql).toContain('CREATE TABLE');
 
     // check that the current version pointer table was created
-    const tableCurrentVersionPointerSql = await readFile(`${targetDirPath}/tables/${movie.name}_cvp.sql`, 'utf8');
+    const tableCurrentVersionPointerSql = await readFile(
+      `${targetDirPath}/tables/${movie.name}_cvp.sql`,
+      'utf8',
+    );
     expect(tableCurrentVersionPointerSql).toContain('CREATE TABLE');
 
     // check that both mapping tables were created
-    const mappingTableOne = await readFile(`${targetDirPath}/tables/${movie.name}_to_${producer.name}.sql`, 'utf8');
+    const mappingTableOne = await readFile(
+      `${targetDirPath}/tables/${movie.name}_to_${producer.name}.sql`,
+      'utf8',
+    );
     expect(mappingTableOne).toContain('CREATE TABLE');
     const mappingTableTwo = await readFile(
       `${targetDirPath}/tables/${movie.name}_version_to_${language.name}.sql`, // note: this mapping table has the _version entity reference, since the mapping is per version
@@ -133,7 +168,10 @@ describe('generateAndRecordEntitySchema', () => {
     expect(mappingTableTwo).toContain('CREATE TABLE');
 
     // check that the upsert function was created
-    const upsertSql = await readFile(`${targetDirPath}/functions/upsert_${movie.name}.sql`, 'utf8');
+    const upsertSql = await readFile(
+      `${targetDirPath}/functions/upsert_${movie.name}.sql`,
+      'utf8',
+    );
     expect(upsertSql).toContain('CREATE OR REPLACE FUNCTION');
 
     // check that the backfill current version pointer function was created
@@ -141,17 +179,24 @@ describe('generateAndRecordEntitySchema', () => {
       `${targetDirPath}/functions/backfill_${movie.name}_cvp.sql`,
       'utf8',
     );
-    expect(backfillCurrentVersionPointerSql).toContain('CREATE OR REPLACE FUNCTION');
+    expect(backfillCurrentVersionPointerSql).toContain(
+      'CREATE OR REPLACE FUNCTION',
+    );
 
     // check that the getFromDelimiterSplitString function was created
     const getFromDelimiterSplitStringSql = await readFile(
       `${targetDirPath}/functions/upsert_${movie.name}.sql`,
       'utf8',
     );
-    expect(getFromDelimiterSplitStringSql).toContain('CREATE OR REPLACE FUNCTION');
+    expect(getFromDelimiterSplitStringSql).toContain(
+      'CREATE OR REPLACE FUNCTION',
+    );
 
     // check that the _current view was created
-    const viewCurrentSql = await readFile(`${targetDirPath}/views/view_${movie.name}_current.sql`, 'utf8');
+    const viewCurrentSql = await readFile(
+      `${targetDirPath}/views/view_${movie.name}_current.sql`,
+      'utf8',
+    );
     expect(viewCurrentSql).toContain('CREATE OR REPLACE VIEW');
   });
 });

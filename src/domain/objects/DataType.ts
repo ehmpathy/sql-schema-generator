@@ -1,5 +1,6 @@
 import { DomainObject } from 'domain-objects';
 import Joi from 'joi';
+
 import { DataTypeName } from '../constants';
 
 /*

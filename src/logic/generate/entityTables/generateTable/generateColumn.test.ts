@@ -3,8 +3,11 @@ import { extractDataTypeDefinitionFromProperty } from '../../utils/extractDataTy
 import { generateColumn } from './generateColumn';
 
 jest.mock('../../utils/extractDataTypeDefinitionFromProperty');
-const extractDataTypeDefinitionFromPropertyMock = extractDataTypeDefinitionFromProperty as jest.Mock;
-extractDataTypeDefinitionFromPropertyMock.mockReturnValue('__MOCKED_TYPE_DEFINITION__');
+const extractDataTypeDefinitionFromPropertyMock =
+  extractDataTypeDefinitionFromProperty as jest.Mock;
+extractDataTypeDefinitionFromPropertyMock.mockReturnValue(
+  '__MOCKED_TYPE_DEFINITION__',
+);
 
 describe('generateColumn', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -25,8 +28,12 @@ describe('generateColumn', () => {
       }),
     });
     const sql = generateColumn({ columnName: 'user_id', property });
-    expect(extractDataTypeDefinitionFromPropertyMock.mock.calls.length).toEqual(1);
-    expect(extractDataTypeDefinitionFromPropertyMock.mock.calls[0][0]).toMatchObject({ property });
+    expect(extractDataTypeDefinitionFromPropertyMock.mock.calls.length).toEqual(
+      1,
+    );
+    expect(
+      extractDataTypeDefinitionFromPropertyMock.mock.calls[0][0],
+    ).toMatchObject({ property });
     expect(sql).toContain('__MOCKED_TYPE_DEFINITION__');
   });
   it('should specify NOT NULL by default', () => {

@@ -1,7 +1,11 @@
 import { Property } from '../../../domain';
 
 // https://www.postgresql.org/docs/10/datatype.html
-export const extractDataTypeDefinitionFromProperty = ({ property }: { property: Property }) => {
+export const extractDataTypeDefinitionFromProperty = ({
+  property,
+}: {
+  property: Property;
+}) => {
   let typeModifier = '';
   if (property.type.precision) {
     typeModifier = `(${property.type.precision})`;

@@ -27,12 +27,18 @@ export const generateEntityUpsert = ({ entity }: { entity: Entity }) => {
   const declarations = defineDeclarations({ entity });
 
   // define all of the different logic required for a complete upsert
-  const findOrCreateStaticEntityLogic = defineFindOrCreateStaticEntityLogic({ entity });
-  const insertVersionIfDynamicDataChangedLogic = defineInsertVersionIfDynamicDataChangedLogic({ entity });
-  const upsertCurrentVersionPointerIfNeededLogic = defineUpsertCurrentVersionPointerIfNeededLogic({ entity });
+  const findOrCreateStaticEntityLogic = defineFindOrCreateStaticEntityLogic({
+    entity,
+  });
+  const insertVersionIfDynamicDataChangedLogic =
+    defineInsertVersionIfDynamicDataChangedLogic({ entity });
+  const upsertCurrentVersionPointerIfNeededLogic =
+    defineUpsertCurrentVersionPointerIfNeededLogic({ entity });
 
   // define the return statement
-  const hasVersionTable = Object.values(entity.properties).some((property) => !!property.updatable);
+  const hasVersionTable = Object.values(entity.properties).some(
+    (property) => !!property.updatable,
+  );
   const returnsDefinition = `
 TABLE(${[
     'id bigint',
@@ -56,7 +62,9 @@ TABLE(${[
         .join(', ')}
       FROM ${entity.name} s
       ${[
-        hasVersionTable ? `JOIN ${entity.name}_version v ON v.id = v_matching_version_id` : null,
+        hasVersionTable
+          ? `JOIN ${entity.name}_version v ON v.id = v_matching_version_id`
+          : null,
         'WHERE s.id = v_static_id',
       ]
         .filter(isPresent)
@@ -74,7 +82,11 @@ AS $$
   DECLARE
     ${declarations.join('\n    ')}
   BEGIN
-    ${[findOrCreateStaticEntityLogic, insertVersionIfDynamicDataChangedLogic, upsertCurrentVersionPointerIfNeededLogic]
+    ${[
+      findOrCreateStaticEntityLogic,
+      insertVersionIfDynamicDataChangedLogic,
+      upsertCurrentVersionPointerIfNeededLogic,
+    ]
       .filter((sql): sql is string => !!sql)
       .map((sql) => indentString(sql, 4))
       .join('\n\n')

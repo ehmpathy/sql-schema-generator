@@ -67,4 +67,11 @@ const message = new Entity({
   unique: ['uuid'],
 });
 
-export const generateSqlSchemasFor = [photo, user, host, home, welcomedHomeEvent, message];
+export const generateSqlSchemasFor = [
+  photo,
+  user,
+  host,
+  home,
+  welcomedHomeEvent,
+  message,
+];

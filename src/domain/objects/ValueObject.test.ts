@@ -36,7 +36,9 @@ describe('ValueObject', () => {
       });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual('value objects can not have updateable properties, by definition');
+      expect(error.message).toEqual(
+        'value objects can not have updateable properties, by definition',
+      );
     }
   });
 });

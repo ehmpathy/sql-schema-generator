@@ -16,7 +16,9 @@ describe('throwErrorIfAnyReservedPropertyNamesAreUsed', () => {
       throwErrorIfAnyReservedPropertyNamesAreUsed({ entity: user });
       throw new Error('should not reach here');
     } catch (error) {
-      expect(error.message).toEqual('property can not be named "user.uuid" because "uuid" is a reserved property name');
+      expect(error.message).toEqual(
+        'property can not be named "user.uuid" because "uuid" is a reserved property name',
+      );
     }
   });
 });

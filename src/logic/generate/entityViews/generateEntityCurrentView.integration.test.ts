@@ -1,7 +1,10 @@
 import uuid from 'uuid/v4';
 import { pg as prepare } from 'yesql';
 
-import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
+import {
+  DatabaseConnection,
+  getDatabaseConnection,
+} from '../../../__test_utils__/databaseConnection';
 import { Entity, ValueObject } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
@@ -58,7 +61,13 @@ describe('generateEntityViewCurrent', () => {
           lock_ids: prop.ARRAY_OF(prop.REFERENCES(lock)), // e.g., can have one lock or two locks
         },
       });
-      const upsertLock = async ({ manufacturer, manufacturerId }: { manufacturer: string; manufacturerId: string }) => {
+      const upsertLock = async ({
+        manufacturer,
+        manufacturerId,
+      }: {
+        manufacturer: string;
+        manufacturerId: string;
+      }) => {
         const result = await dbConnection.query(
           prepare(`
             SELECT * FROM upsert_${lock.name}(
@@ -72,7 +81,13 @@ describe('generateEntityViewCurrent', () => {
         );
         return result.rows[0].id;
       };
-      const upsertDoor = async ({ color, lock_ids }: { color: string; lock_ids: string }) => {
+      const upsertDoor = async ({
+        color,
+        lock_ids,
+      }: {
+        color: string;
+        lock_ids: string;
+      }) => {
         const result = await dbConnection.query(
           prepare(`
             SELECT * FROM upsert_${door.name}(
@@ -93,8 +108,14 @@ describe('generateEntityViewCurrent', () => {
         await dropTablesForEntity({ entity: lock, dbConnection });
         await createTablesForEntity({ entity: lock, dbConnection });
         await createTablesForEntity({ entity: door, dbConnection });
-        await dropAndCreateUpsertFunctionForEntity({ entity: lock, dbConnection });
-        await dropAndCreateUpsertFunctionForEntity({ entity: door, dbConnection });
+        await dropAndCreateUpsertFunctionForEntity({
+          entity: lock,
+          dbConnection,
+        });
+        await dropAndCreateUpsertFunctionForEntity({
+          entity: door,
+          dbConnection,
+        });
       });
       it('should generate good looking and consistent sql', () => {
         const view = generateEntityCurrentView({ entity: door });
@@ -118,7 +139,10 @@ describe('generateEntityViewCurrent', () => {
 
         // // check that the static part was accurate
         const entity = await getEntityFromView({ id });
-        expect({ ...entity, lock_ids: `{${entity.lock_ids.join(',')}}` }).toMatchObject(props);
+        expect({
+          ...entity,
+          lock_ids: `{${entity.lock_ids.join(',')}}`,
+        }).toMatchObject(props);
         expect(entity.uuid.length).toEqual(36); // sanity check that its a uuid
         expect(entity.id).toEqual(id);
       });
@@ -159,11 +183,22 @@ describe('generateEntityViewCurrent', () => {
       beforeAll(async () => {
         await dropTablesForEntity({ entity: user, dbConnection });
         await createTablesForEntity({ entity: user, dbConnection });
-        await dropAndCreateUpsertFunctionForEntity({ entity: user, dbConnection });
+        await dropAndCreateUpsertFunctionForEntity({
+          entity: user,
+          dbConnection,
+        });
       });
       const getEntityFromView = async ({ id }: { id: number }) =>
         getEntityFromCurrentView({ id, entity: user, dbConnection });
-      const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
+      const upsertUser = async ({
+        cognito_uuid,
+        name,
+        bio,
+      }: {
+        cognito_uuid: string;
+        name: string;
+        bio?: string;
+      }) => {
         const result = await dbConnection.query(
           prepare(`
         SELECT * FROM upsert_${user.name}(
@@ -213,7 +248,11 @@ describe('generateEntityViewCurrent', () => {
 
         // check that the updated part is still accurate
         const entity = await getEntityFromView({ id });
-        expect(entity).toMatchObject({ ...props, name: 'Hank Hillbody', bio: null });
+        expect(entity).toMatchObject({
+          ...props,
+          name: 'Hank Hillbody',
+          bio: null,
+        });
       });
     });
     describe('with array properties', () => {
@@ -241,8 +280,14 @@ describe('generateEntityViewCurrent', () => {
         await createTablesForEntity({ entity: wheel, dbConnection });
         await createTablesForEntity({ entity: vehicle, dbConnection });
 
-        await dropAndCreateUpsertFunctionForEntity({ entity: wheel, dbConnection });
-        await dropAndCreateUpsertFunctionForEntity({ entity: vehicle, dbConnection });
+        await dropAndCreateUpsertFunctionForEntity({
+          entity: wheel,
+          dbConnection,
+        });
+        await dropAndCreateUpsertFunctionForEntity({
+          entity: vehicle,
+          dbConnection,
+        });
       });
       const getEntityFromView = async ({ id }: { id: number }) =>
         getEntityFromCurrentView({ id, entity: vehicle, dbConnection });
@@ -332,10 +377,7 @@ describe('generateEntityViewCurrent', () => {
         // update the entity dynamic properties
         const updatedProps = {
           ...props,
-          wheel_ids: `{${wheelIds
-            .split(',')
-            .slice(1, 2)
-            .join(',')}}`,
+          wheel_ids: `{${wheelIds.split(',').slice(1, 2).join(',')}}`,
         };
         const idAgain = await upsertVehicle(updatedProps);
         expect(idAgain).toEqual(id);

@@ -4,7 +4,11 @@ import pg, { Client, QueryResult } from 'pg';
 pg.types.setTypeParser(20, (value) => parseInt(value, 10)); // cast bigints to numbers; by default, pg returns bigints as strings, since max val of bigint is bigger than max safe value in js
 
 export interface DatabaseConnection {
-  query: (args: { sql?: string; text?: string; values?: (string | number)[] }) => Promise<QueryResult<any>>;
+  query: (args: {
+    sql?: string;
+    text?: string;
+    values?: (string | number)[];
+  }) => Promise<QueryResult<any>>;
   end: () => Promise<void>;
 }
 export const getDatabaseConnection = async (): Promise<DatabaseConnection> => {
@@ -18,7 +22,15 @@ export const getDatabaseConnection = async (): Promise<DatabaseConnection> => {
   });
   await client.connect();
   const connection = {
-    query: ({ sql, text, values }: { sql?: string; text?: string; values?: (string | number)[] }) => {
+    query: ({
+      sql,
+      text,
+      values,
+    }: {
+      sql?: string;
+      text?: string;
+      values?: (string | number)[];
+    }) => {
       if (!sql && !text) throw new Error('either sql or text must be defined');
       return client.query(sql || text!, values);
     },

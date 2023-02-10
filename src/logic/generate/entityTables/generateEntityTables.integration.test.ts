@@ -1,4 +1,7 @@
-import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
+import {
+  DatabaseConnection,
+  getDatabaseConnection,
+} from '../../../__test_utils__/databaseConnection';
 import { getShowCreateTable } from '../../../__test_utils__/getShowCreateTable';
 import { Entity, ValueObject } from '../../../domain';
 import * as prop from '../../define/defineProperty';
@@ -29,12 +32,16 @@ describe('generateEntityTables', () => {
       unique: ['street', 'city', 'country'],
     });
     const tables = await generateEntityTables({ entity: address });
-    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
+    await dbConnection.query({
+      sql: `DROP TABLE IF EXISTS ${tables.static.name};`,
+    });
     await dbConnection.query({ sql: tables.static.sql });
     expect(tables.version).toEqual(undefined);
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
-    const createStaticSql = await getShowCreateNow({ tableName: tables.static.name });
+    const createStaticSql = await getShowCreateNow({
+      tableName: tables.static.name,
+    });
     expect(createStaticSql).toEqual(tables.static.sql); // should be the exact string
   });
   it('generates tables for a static entity that is unique on uuid, w/ same syntax as SHOW CREATE', async () => {
@@ -47,12 +54,16 @@ describe('generateEntityTables', () => {
       unique: ['uuid'], // unique on uuid because same order can be placed many different times, so uuid is the only unique attribute
     });
     const tables = await generateEntityTables({ entity: order });
-    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
+    await dbConnection.query({
+      sql: `DROP TABLE IF EXISTS ${tables.static.name};`,
+    });
     await dbConnection.query({ sql: tables.static.sql });
     expect(tables.version).toEqual(undefined);
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
-    const createStaticSql = await getShowCreateNow({ tableName: tables.static.name });
+    const createStaticSql = await getShowCreateNow({
+      tableName: tables.static.name,
+    });
     expect(createStaticSql).toEqual(tables.static.sql); // should be the exact string
   });
   it('generates tables for a versioned entity, w/ same syntax as SHOW CREATE', async () => {
@@ -73,20 +84,34 @@ describe('generateEntityTables', () => {
       unique: ['cognito_uuid'],
     });
     const tables = await generateEntityTables({ entity: contractor });
-    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};` });
-    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.version!.name};` });
-    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
+    await dbConnection.query({
+      sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};`,
+    });
+    await dbConnection.query({
+      sql: `DROP TABLE IF EXISTS ${tables.version!.name};`,
+    });
+    await dbConnection.query({
+      sql: `DROP TABLE IF EXISTS ${tables.static.name};`,
+    });
     await dbConnection.query({ sql: tables.static.sql });
     await dbConnection.query({ sql: tables.version!.sql });
     await dbConnection.query({ sql: tables.currentVersionPointer!.sql });
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
-    const createStaticSql = await getShowCreateNow({ tableName: tables.static.name });
+    const createStaticSql = await getShowCreateNow({
+      tableName: tables.static.name,
+    });
     expect(createStaticSql).toEqual(tables.static.sql); // should be the exact string
-    const createVersionSql = await getShowCreateNow({ tableName: tables.version!.name });
+    const createVersionSql = await getShowCreateNow({
+      tableName: tables.version!.name,
+    });
     expect(createVersionSql).toEqual(tables.version!.sql); // should be the exact string
-    const createCurrentVersionPointerSql = await getShowCreateNow({ tableName: tables.currentVersionPointer!.name });
-    expect(createCurrentVersionPointerSql).toEqual(tables.currentVersionPointer!.sql); // should be the exact string
+    const createCurrentVersionPointerSql = await getShowCreateNow({
+      tableName: tables.currentVersionPointer!.name,
+    });
+    expect(createCurrentVersionPointerSql).toEqual(
+      tables.currentVersionPointer!.sql,
+    ); // should be the exact string
   });
   it('generates tables for an entity that references other entities - including by version', async () => {
     const wikiUser = new Entity({
@@ -111,8 +136,16 @@ describe('generateEntityTables', () => {
         wiki_page_id: prop.REFERENCES(wikiPage),
         editor_id: prop.REFERENCES(wikiUser),
         final_text: { ...prop.VARCHAR(255), updatable: true },
-        status: { ...prop.ENUM(['APPROVED', 'EDITABLE', 'REJECTED']), nullable: true, updatable: true },
-        produced_wiki_page_version: { ...prop.REFERENCES_VERSION(wikiPage), nullable: true, updatable: true }, // i.e., what version it produced
+        status: {
+          ...prop.ENUM(['APPROVED', 'EDITABLE', 'REJECTED']),
+          nullable: true,
+          updatable: true,
+        },
+        produced_wiki_page_version: {
+          ...prop.REFERENCES_VERSION(wikiPage),
+          nullable: true,
+          updatable: true,
+        }, // i.e., what version it produced
       },
       unique: ['uuid'], // unique on uuid alone since the same user can edit the same page many times, so no natural keys
     });
@@ -127,9 +160,13 @@ describe('generateEntityTables', () => {
 
     // check syntax is the same as that returned by SHOW CREATE TABLE
     const tables = await generateEntityTables({ entity: wikiEdit });
-    const createStaticTable = await getShowCreateNow({ tableName: tables.static.name });
+    const createStaticTable = await getShowCreateNow({
+      tableName: tables.static.name,
+    });
     expect(createStaticTable).toEqual(tables.static.sql); // should be the exact string
-    const createVersionTable = await getShowCreateNow({ tableName: tables.version!.name });
+    const createVersionTable = await getShowCreateNow({
+      tableName: tables.version!.name,
+    });
     expect(createVersionTable).toEqual(tables.version!.sql); // should be the exact string
   });
   it('generates tables for an entity with array properties (both updatable and static) and unique on one array, w/ the same syntax as show create', async () => {
@@ -174,13 +211,21 @@ describe('generateEntityTables', () => {
     // check syntax is the same as that returned by SHOW CREATE TABLE, for each mapping table
     const tables = await generateEntityTables({ entity: home });
     expect(tables.mappings.length).toEqual(4); // two mapping tables, since two array properties
-    const createMappingTableSqlOne = await getShowCreateNow({ tableName: tables.mappings[0]!.name });
+    const createMappingTableSqlOne = await getShowCreateNow({
+      tableName: tables.mappings[0]!.name,
+    });
     expect(createMappingTableSqlOne).toEqual(tables.mappings[0]!.sql); // should be the exact string
-    const createMappingTableSqlTwo = await getShowCreateNow({ tableName: tables.mappings[1]!.name });
+    const createMappingTableSqlTwo = await getShowCreateNow({
+      tableName: tables.mappings[1]!.name,
+    });
     expect(createMappingTableSqlTwo).toEqual(tables.mappings[1]!.sql); // should be the exact string
-    const createMappingTableSqlThree = await getShowCreateNow({ tableName: tables.mappings[2]!.name });
+    const createMappingTableSqlThree = await getShowCreateNow({
+      tableName: tables.mappings[2]!.name,
+    });
     expect(createMappingTableSqlThree).toEqual(tables.mappings[2]!.sql); // should be the exact string
-    const createMappingTableSqlFour = await getShowCreateNow({ tableName: tables.mappings[3]!.name });
+    const createMappingTableSqlFour = await getShowCreateNow({
+      tableName: tables.mappings[3]!.name,
+    });
     expect(createMappingTableSqlFour).toEqual(tables.mappings[3]!.sql); // should be the exact string
 
     // record a snapshot to confirm aesthetic acceptability

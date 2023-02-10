@@ -47,7 +47,8 @@ const saveResource = async ({
   }); // mkdir and ignore if dir already existsa
 
   // ensure content of file has terminal newline
-  const contentWithTerminalNewline = sql.slice(-1)[0] === '\n' ? sql : `${sql}\n`;
+  const contentWithTerminalNewline =
+    sql.slice(-1)[0] === '\n' ? sql : `${sql}\n`;
 
   // write the resource sql to that dir
   const filePath = `${dir}/${name}.sql`;

@@ -1,7 +1,10 @@
 import uuid from 'uuid/v4';
 import { pg as prepare } from 'yesql';
 
-import { DatabaseConnection, getDatabaseConnection } from '../../../__test_utils__/databaseConnection';
+import {
+  DatabaseConnection,
+  getDatabaseConnection,
+} from '../../../__test_utils__/databaseConnection';
 import { getShowCreateFunction } from '../../../__test_utils__/getShowCreateFunction';
 import { Entity } from '../../../domain';
 import * as prop from '../../define/defineProperty';
@@ -37,14 +40,28 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
     beforeAll(async () => {
       // provision the table
       const tables = await generateEntityTables({ entity: car });
-      await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};` });
-      await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.version!.name};` });
-      await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name};` });
+      await dbConnection.query({
+        sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer!.name};`,
+      });
+      await dbConnection.query({
+        sql: `DROP TABLE IF EXISTS ${tables.version!.name};`,
+      });
+      await dbConnection.query({
+        sql: `DROP TABLE IF EXISTS ${tables.static.name};`,
+      });
       await dbConnection.query({ sql: tables.static.sql });
       await dbConnection.query({ sql: tables.version!.sql });
       await dbConnection.query({ sql: tables.currentVersionPointer!.sql });
     });
-    const upsertCar = async ({ vin, name, wheels }: { vin: string; name?: string; wheels: number }) => {
+    const upsertCar = async ({
+      vin,
+      name,
+      wheels,
+    }: {
+      vin: string;
+      name?: string;
+      wheels: number;
+    }) => {
       const result = await dbConnection.query(
         prepare(`
         SELECT * FROM upsert_${car.name}(
@@ -67,12 +84,15 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       return { name, sql: upsertSql };
     };
     const recreateTheBackfillMethod = async () => {
-      const { name, sql: upsertSql } = generateEntityBackfillCurrentVersionPointers({ entity: car });
+      const { name, sql: upsertSql } =
+        generateEntityBackfillCurrentVersionPointers({ entity: car });
       await dbConnection.query({ sql: `DROP FUNCTION IF EXISTS ${name}` });
       await dbConnection.query({ sql: upsertSql });
       return { name, sql: upsertSql };
     };
-    const backfillCurrentVersionPointers = async (params?: { limit: number }) => {
+    const backfillCurrentVersionPointers = async (params?: {
+      limit: number;
+    }) => {
       const result = await dbConnection.query(
         prepare(`
           SELECT backfill_${car.name}_cvp (:limit) as rows_affected;
@@ -98,7 +118,10 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = await recreateTheBackfillMethod();
-      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
+      const showCreateSql = await getShowCreateFunction({
+        dbConnection,
+        func: name,
+      });
       expect(sql).toEqual(showCreateSql);
       expect(sql).toMatchSnapshot();
     });
@@ -142,7 +165,9 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfill).toEqual(0);
 
       // delete all the cvp records
-      await dbConnection.query({ sql: `delete from ${car.name}_cvp where ${car.name}_id = ${id}` });
+      await dbConnection.query({
+        sql: `delete from ${car.name}_cvp where ${car.name}_id = ${id}`,
+      });
 
       // prove that the target record was affected
       const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers();
@@ -152,8 +177,12 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       const currentVersions = await getEntityVersions({ id });
       expect(currentVersions.length).toEqual(1); // we expect this in the test
       const currentVersionId = currentVersions[0].id;
-      const [currentVersionPointer] = await getEntityCurrentVersionPointer({ id });
-      expect(currentVersionPointer[`${car.name}_version_id`]).toEqual(currentVersionId);
+      const [currentVersionPointer] = await getEntityCurrentVersionPointer({
+        id,
+      });
+      expect(currentVersionPointer[`${car.name}_version_id`]).toEqual(
+        currentVersionId,
+      );
     });
     it('should update records in cvp table, if for some reason the record is out of sync', async () => {
       await recreateTheBackfillMethod();
@@ -189,8 +218,12 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       const currentVersions = await getEntityVersions({ id });
       expect(currentVersions.length).toEqual(2); // we expect this in the test
       const currentVersionId = currentVersions[1].id;
-      const [currentVersionPointer] = await getEntityCurrentVersionPointer({ id });
-      expect(currentVersionPointer[`${car.name}_version_id`]).toEqual(currentVersionId);
+      const [currentVersionPointer] = await getEntityCurrentVersionPointer({
+        id,
+      });
+      expect(currentVersionPointer[`${car.name}_version_id`]).toEqual(
+        currentVersionId,
+      );
     });
 
     const upsertNewCar = async () => {
@@ -202,7 +235,9 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       return await upsertCar(props);
     };
     const deleteCvpRecordForCarById = async ({ id }: { id: number }) => {
-      await dbConnection.query({ sql: `delete from ${car.name}_cvp where ${car.name}_id = ${id}` });
+      await dbConnection.query({
+        sql: `delete from ${car.name}_cvp where ${car.name}_id = ${id}`,
+      });
     };
     it('should respect the limit on inserts', async () => {
       await recreateTheBackfillMethod();
@@ -222,14 +257,19 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfill).toEqual(0);
 
       // manually update each row, ensuring that ids are out of sync
-      await Promise.all(idsOfNewCars.map(async (id) => deleteCvpRecordForCarById({ id })));
+      await Promise.all(
+        idsOfNewCars.map(async (id) => deleteCvpRecordForCarById({ id })),
+      );
 
       // show that limit is respected
-      const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers({ limit: 3 });
+      const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers({
+        limit: 3,
+      });
       expect(rowsAffectedByBackfillNow).toEqual(3);
 
       // and double prove it by showing that the remainder will be backfilled on running it again
-      const rowsAffectedByBackfillNowAgain = await backfillCurrentVersionPointers({ limit: 1000 });
+      const rowsAffectedByBackfillNowAgain =
+        await backfillCurrentVersionPointers({ limit: 1000 });
       expect(rowsAffectedByBackfillNowAgain).toEqual(2);
     });
 
@@ -261,14 +301,19 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfill).toEqual(0);
 
       // manually update each row, ensuring that ids are out of sync
-      await Promise.all(idsOfNewCars.map(async (id) => manuallyChangeVersionOfCarById({ id })));
+      await Promise.all(
+        idsOfNewCars.map(async (id) => manuallyChangeVersionOfCarById({ id })),
+      );
 
       // show that limit is respected
-      const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers({ limit: 3 });
+      const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers({
+        limit: 3,
+      });
       expect(rowsAffectedByBackfillNow).toEqual(3);
 
       // and double prove it by showing that the remainder will be backfilled on running it again
-      const rowsAffectedByBackfillNowAgain = await backfillCurrentVersionPointers({ limit: 1000 });
+      const rowsAffectedByBackfillNowAgain =
+        await backfillCurrentVersionPointers({ limit: 1000 });
       expect(rowsAffectedByBackfillNowAgain).toEqual(2);
     });
     it('should respect the limit on combinations of inserts and updates', async () => {
@@ -296,15 +341,26 @@ describe('generateEntityBackfillCurrentVersionPointers', () => {
       expect(rowsAffectedByBackfill).toEqual(0);
 
       // manually update each row, ensuring that ids are out of sync
-      await Promise.all(idsOfNewCarsToDeleteRecordsFor.map(async (id) => deleteCvpRecordForCarById({ id })));
-      await Promise.all(idsOfNewCarsToUpdate.map(async (id) => manuallyChangeVersionOfCarById({ id })));
+      await Promise.all(
+        idsOfNewCarsToDeleteRecordsFor.map(async (id) =>
+          deleteCvpRecordForCarById({ id }),
+        ),
+      );
+      await Promise.all(
+        idsOfNewCarsToUpdate.map(async (id) =>
+          manuallyChangeVersionOfCarById({ id }),
+        ),
+      );
 
       // show that limit is respected
-      const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers({ limit: 7 });
+      const rowsAffectedByBackfillNow = await backfillCurrentVersionPointers({
+        limit: 7,
+      });
       expect(rowsAffectedByBackfillNow).toEqual(7);
 
       // and double prove it by showing that the remainder will be backfilled on running it again
-      const rowsAffectedByBackfillNowAgain = await backfillCurrentVersionPointers({ limit: 1000 });
+      const rowsAffectedByBackfillNowAgain =
+        await backfillCurrentVersionPointers({ limit: 1000 });
       expect(rowsAffectedByBackfillNowAgain).toEqual(3);
     });
   });

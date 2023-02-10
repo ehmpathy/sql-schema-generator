@@ -7,25 +7,32 @@ import { generateTableForStaticProperties } from './generateTableForStaticProper
 import { generateTableForUpdateableProperties } from './generateTableForUpdateableProperties';
 
 jest.mock('./generateTableForStaticProperties');
-const generateTableForStaticPropertiesMock = generateTableForStaticProperties as jest.Mock;
-generateTableForStaticPropertiesMock.mockReturnValue({ name: '__ENTITY_NAME__', sql: '__STATIC_ENTITY_SQL__' });
+const generateTableForStaticPropertiesMock =
+  generateTableForStaticProperties as jest.Mock;
+generateTableForStaticPropertiesMock.mockReturnValue({
+  name: '__ENTITY_NAME__',
+  sql: '__STATIC_ENTITY_SQL__',
+});
 
 jest.mock('./generateTableForUpdateableProperties');
-const generateTableForUpdateablePropertiesMock = generateTableForUpdateableProperties as jest.Mock;
+const generateTableForUpdateablePropertiesMock =
+  generateTableForUpdateableProperties as jest.Mock;
 generateTableForUpdateablePropertiesMock.mockReturnValue({
   name: '__ENTITY_NAME___version',
   sql: '__VERSIONED_ENTITY_SQL__',
 });
 
 jest.mock('./generateTableForCurrentVersionPointer');
-const generateTableForCurrentVersionPointerMock = generateTableForCurrentVersionPointer as jest.Mock;
+const generateTableForCurrentVersionPointerMock =
+  generateTableForCurrentVersionPointer as jest.Mock;
 generateTableForCurrentVersionPointerMock.mockReturnValue({
   name: '__ENTITY_NAME___cvp',
   sql: '__CURRENT_VERSION_POINTER_SQL__',
 });
 
 jest.mock('./generateMappingTablesForArrayProperties');
-const generateMappingTablesForArrayPropertiesMock = generateMappingTablesForArrayProperties as jest.Mock;
+const generateMappingTablesForArrayPropertiesMock =
+  generateMappingTablesForArrayProperties as jest.Mock;
 generateMappingTablesForArrayPropertiesMock.mockReturnValue({
   name: '__MAPPING_TABLE__',
   sql: '__MAPPING_TABLE_SQL__',
@@ -52,16 +59,22 @@ describe('generateEntityTables', () => {
   it('should generateTableForStaticProperties for the static properties only', () => {
     generateEntityTables({ entity: user });
     expect(generateTableForStaticPropertiesMock.mock.calls.length).toEqual(1);
-    expect(generateTableForStaticPropertiesMock.mock.calls[0][0]).toMatchObject({
-      properties: {
-        cognito_uuid: user.properties.cognito_uuid,
+    expect(generateTableForStaticPropertiesMock.mock.calls[0][0]).toMatchObject(
+      {
+        properties: {
+          cognito_uuid: user.properties.cognito_uuid,
+        },
       },
-    });
+    );
   });
   it('should generateTableForStaticProperties for the updateable properties only', () => {
     generateEntityTables({ entity: user });
-    expect(generateTableForUpdateablePropertiesMock.mock.calls.length).toEqual(1);
-    expect(generateTableForUpdateablePropertiesMock.mock.calls[0][0]).toMatchObject({
+    expect(generateTableForUpdateablePropertiesMock.mock.calls.length).toEqual(
+      1,
+    );
+    expect(
+      generateTableForUpdateablePropertiesMock.mock.calls[0][0],
+    ).toMatchObject({
       properties: {
         name: user.properties.name,
         bio: user.properties.bio,
@@ -70,7 +83,9 @@ describe('generateEntityTables', () => {
   });
   it('should generateTableForCurrentVersionPointer', () => {
     generateEntityTables({ entity: user });
-    expect(generateTableForCurrentVersionPointerMock.mock.calls.length).toEqual(1);
+    expect(generateTableForCurrentVersionPointerMock.mock.calls.length).toEqual(
+      1,
+    );
   });
   it('should generateMappingTablesForArrayProperties for the array properties only', () => {
     const language = new ValueObject({
@@ -100,7 +115,9 @@ describe('generateEntityTables', () => {
       unique: ['data_source', 'external_id'],
     });
     generateEntityTables({ entity: movie });
-    expect(generateMappingTablesForArrayPropertiesMock).toHaveBeenCalledTimes(1);
+    expect(generateMappingTablesForArrayPropertiesMock).toHaveBeenCalledTimes(
+      1,
+    );
     expect(generateMappingTablesForArrayPropertiesMock).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: {

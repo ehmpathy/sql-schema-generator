@@ -14,7 +14,9 @@ describe('throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix', () => {
       unique: ['name'],
     });
     try {
-      throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix({ entity: user });
+      throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix({
+        entity: user,
+      });
       throw new Error('should not reach here');
     } catch (error) {
       expect(error.message).toEqual(
@@ -29,11 +31,16 @@ describe('throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix', () => {
     });
     const user = new Entity({
       name: 'user',
-      properties: { name: prop.VARCHAR(255), pics: prop.ARRAY_OF(prop.REFERENCES(photo)) },
+      properties: {
+        name: prop.VARCHAR(255),
+        pics: prop.ARRAY_OF(prop.REFERENCES(photo)),
+      },
       unique: ['name'],
     });
     try {
-      throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix({ entity: user });
+      throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix({
+        entity: user,
+      });
       throw new Error('should not reach here');
     } catch (error) {
       expect(error.message).toEqual(

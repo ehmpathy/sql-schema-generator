@@ -21,7 +21,10 @@ describe('throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix', () => {
   it('should throw an error if an array property holds uuids but does not have correct name', () => {
     const user = new Entity({
       name: 'user',
-      properties: { name: prop.VARCHAR(255), pic_uuid: prop.ARRAY_OF(prop.UUID()) },
+      properties: {
+        name: prop.VARCHAR(255),
+        pic_uuid: prop.ARRAY_OF(prop.UUID()),
+      },
       unique: ['name'],
     });
     try {

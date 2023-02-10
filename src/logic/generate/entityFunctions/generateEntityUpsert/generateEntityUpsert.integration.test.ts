@@ -50,7 +50,10 @@ describe('generateEntityUpsert', () => {
       await createTablesForEntity({ entity: address, dbConnection });
 
       // provision the upsert
-      await dropAndCreateUpsertFunctionForEntity({ entity: address, dbConnection });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: address,
+        dbConnection,
+      });
     });
     const upsertAddress = async ({
       street,
@@ -95,7 +98,10 @@ describe('generateEntityUpsert', () => {
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: address });
-      const showCreateSql = await getShowCreateFunction({ func: name, dbConnection });
+      const showCreateSql = await getShowCreateFunction({
+        func: name,
+        dbConnection,
+      });
       expect(sql).toEqual(showCreateSql);
 
       // show an example of the upsert function
@@ -147,7 +153,10 @@ describe('generateEntityUpsert', () => {
         country: 'US',
       };
       const { id } = await upsertAddress(props);
-      const { id: idAgain } = await upsertAddress({ ...props, weekday_found: 'friday' });
+      const { id: idAgain } = await upsertAddress({
+        ...props,
+        weekday_found: 'friday',
+      });
       expect(id).toEqual(idAgain);
     });
     it('should be case sensitive in deciding whether values are unique', async () => {
@@ -159,7 +168,10 @@ describe('generateEntityUpsert', () => {
         country: 'US',
       };
       const { id } = await upsertAddress(props);
-      const { id: idAgain } = await upsertAddress({ ...props, city: props.city.toLowerCase() });
+      const { id: idAgain } = await upsertAddress({
+        ...props,
+        city: props.city.toLowerCase(),
+      });
       expect(id).not.toEqual(idAgain);
     });
   });
@@ -187,9 +199,20 @@ describe('generateEntityUpsert', () => {
       await createTablesForEntity({ entity: user, dbConnection });
 
       // provision the upsert
-      await dropAndCreateUpsertFunctionForEntity({ entity: user, dbConnection });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: user,
+        dbConnection,
+      });
     });
-    const upsertUser = async ({ cognito_uuid, name, bio }: { cognito_uuid: string; name: string; bio?: string }) => {
+    const upsertUser = async ({
+      cognito_uuid,
+      name,
+      bio,
+    }: {
+      cognito_uuid: string;
+      name: string;
+      bio?: string;
+    }) => {
       const result = await dbConnection.query(
         prepare(`
         SELECT * FROM upsert_${user.name}(
@@ -238,7 +261,10 @@ describe('generateEntityUpsert', () => {
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: user });
-      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
+      const showCreateSql = await getShowCreateFunction({
+        dbConnection,
+        func: name,
+      });
       expect(normalizeCreateFunctionDdl({ ddl: sql })).toEqual(showCreateSql);
 
       // show an example of the upsert function
@@ -250,7 +276,9 @@ describe('generateEntityUpsert', () => {
         name: 'hank hill',
         bio: 'i sell propane and propane accessories',
       };
-      const { id, uuid, createdAt, effectiveAt, updatedAt } = await upsertUser(props);
+      const { id, uuid, createdAt, effectiveAt, updatedAt } = await upsertUser(
+        props,
+      );
 
       // check that the static part was accurate
       const entityStatic = await getEntityStatic({ id });
@@ -268,9 +296,13 @@ describe('generateEntityUpsert', () => {
       expect(updatedAt).toEqual(versions[0].created_at); // updated_at of entity = created_at of version
 
       // check that the current version table is initialized accurately
-      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      const currentVersionPointers = await getEntityCurrentVersionPointer({
+        id,
+      });
       expect(currentVersionPointers.length).toEqual(1);
-      expect(currentVersionPointers[0][`${user.name}_version_id`]).toEqual(versions[0].id);
+      expect(currentVersionPointers[0][`${user.name}_version_id`]).toEqual(
+        versions[0].id,
+      );
     });
     it('should update the entity if the updateable data changed', async () => {
       const props = {
@@ -279,7 +311,10 @@ describe('generateEntityUpsert', () => {
         bio: 'i sell propane and propane accessories',
       };
       const { id, effectiveAt } = await upsertUser(props);
-      const { id: idAgain, effectiveAt: effectiveAtAgain } = await upsertUser({ ...props, name: "Hank's Hill" });
+      const { id: idAgain, effectiveAt: effectiveAtAgain } = await upsertUser({
+        ...props,
+        name: "Hank's Hill",
+      });
       expect(idAgain).toEqual(id);
       expect(effectiveAtAgain).not.toEqual(effectiveAt);
 
@@ -293,9 +328,13 @@ describe('generateEntityUpsert', () => {
       expect(versions[1].name).toEqual("Hank's Hill");
 
       // expect the current version pointer to be pointing to the newest version
-      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      const currentVersionPointers = await getEntityCurrentVersionPointer({
+        id,
+      });
       expect(currentVersionPointers.length).toEqual(1);
-      expect(currentVersionPointers[0][`${user.name}_version_id`]).toEqual(versions[1].id);
+      expect(currentVersionPointers[0][`${user.name}_version_id`]).toEqual(
+        versions[1].id,
+      );
     });
     it('should be case sensitive in determining updateable data has changed', async () => {
       // mysql is not case sensitive by default, so we must make sure that somehow we meet this condition (options include default encode on table/column, binary on search, and data hashing)
@@ -354,7 +393,9 @@ describe('generateEntityUpsert', () => {
       const { id } = await upsertUser(props);
 
       // check the pointer before the no-op upsert
-      const initialVersionPointers = await getEntityCurrentVersionPointer({ id });
+      const initialVersionPointers = await getEntityCurrentVersionPointer({
+        id,
+      });
       expect(initialVersionPointers.length).toEqual(1);
       const initialVersionPointer = initialVersionPointers[0];
 
@@ -368,9 +409,13 @@ describe('generateEntityUpsert', () => {
       expect(versions.length).toEqual(1);
 
       // now prove that the current version pointer table was not updated since the initial pointer was defined
-      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      const currentVersionPointers = await getEntityCurrentVersionPointer({
+        id,
+      });
       expect(currentVersionPointers.length).toEqual(1);
-      expect(initialVersionPointer.created_at).toEqual(currentVersionPointers[0].created_at); // timestamps should be identical
+      expect(initialVersionPointer.created_at).toEqual(
+        currentVersionPointers[0].created_at,
+      ); // timestamps should be identical
     });
 
     it('should have the same exact created_at timestamp on both the static and version rows, on first insert', async () => {
@@ -385,12 +430,16 @@ describe('generateEntityUpsert', () => {
       const entityStatic = await getEntityStatic({ id });
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(1);
-      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      const currentVersionPointers = await getEntityCurrentVersionPointer({
+        id,
+      });
       expect(currentVersionPointers.length).toEqual(1);
 
       // check that all have same timestamp
       expect(versions[0].created_at).toEqual(entityStatic.created_at);
-      expect(currentVersionPointers[0].updated_at).toEqual(entityStatic.created_at);
+      expect(currentVersionPointers[0].updated_at).toEqual(
+        entityStatic.created_at,
+      );
     });
   });
 
@@ -434,9 +483,18 @@ describe('generateEntityUpsert', () => {
       await createTablesForEntity({ entity: movie, dbConnection });
 
       // provision the upserts
-      await dropAndCreateUpsertFunctionForEntity({ entity: language, dbConnection });
-      await dropAndCreateUpsertFunctionForEntity({ entity: producer, dbConnection });
-      await dropAndCreateUpsertFunctionForEntity({ entity: movie, dbConnection });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: language,
+        dbConnection,
+      });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: producer,
+        dbConnection,
+      });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: movie,
+        dbConnection,
+      });
     });
     const upsertLanguage = async ({ name }: { name: string }) => {
       const result = await dbConnection.query(
@@ -526,7 +584,11 @@ describe('generateEntityUpsert', () => {
       );
       return result.rows;
     };
-    const getLanguageMappingTableEntries = async ({ versionId }: { versionId: number }) => {
+    const getLanguageMappingTableEntries = async ({
+      versionId,
+    }: {
+      versionId: number;
+    }) => {
       const result = await dbConnection.query(
         prepare(`
         select * from ${movie.name}_version_to_${language.name} where ${movie.name}_version_id = :versionId
@@ -542,7 +604,11 @@ describe('generateEntityUpsert', () => {
       );
       return result.rows;
     };
-    const getPosterUuidMappingTableEntries = async ({ versionId }: { versionId: number }) => {
+    const getPosterUuidMappingTableEntries = async ({
+      versionId,
+    }: {
+      versionId: number;
+    }) => {
       const result = await dbConnection.query(
         prepare(`
         select * from ${movie.name}_version_to_poster_uuid where ${movie.name}_version_id = :versionId
@@ -552,12 +618,18 @@ describe('generateEntityUpsert', () => {
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: movie });
-      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
+      const showCreateSql = await getShowCreateFunction({
+        dbConnection,
+        func: name,
+      });
       expect(sql).toEqual(showCreateSql);
       expect(sql).toMatchSnapshot();
     });
     it('should define the array values properly', async () => {
-      const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
+      const producerIds = [
+        await upsertProducer({ name: uuidV4() }),
+        await upsertProducer({ name: uuidV4() }),
+      ];
       const languageIds = [
         await upsertLanguage({ name: uuidV4() }),
         await upsertLanguage({ name: uuidV4() }),
@@ -575,19 +647,31 @@ describe('generateEntityUpsert', () => {
       // check that the static part was accurate
       const entityStatic = await getEntityStatic({ id });
       expect(entityStatic.uuid.length).toEqual(36); // uuid was generated
-      expect(entityStatic.producer_ids_hash.toString('hex')).toEqual(sha256.sync(movieProps.producer_ids.join(',')));
-      expect(entityStatic.studio_uuids_hash.toString('hex')).toEqual(sha256.sync(movieProps.studio_uuids.join(',')));
+      expect(entityStatic.producer_ids_hash.toString('hex')).toEqual(
+        sha256.sync(movieProps.producer_ids.join(',')),
+      );
+      expect(entityStatic.studio_uuids_hash.toString('hex')).toEqual(
+        sha256.sync(movieProps.studio_uuids.join(',')),
+      );
 
       // check that the versioned part is accurate
       const versions = await getEntityVersions({ id });
       expect(versions.length).toEqual(1);
-      expect(versions[0].language_ids_hash.toString('hex')).toEqual(sha256.sync(movieProps.language_ids.join(',')));
-      expect(versions[0].poster_uuids_hash.toString('hex')).toEqual(sha256.sync(movieProps.poster_uuids.join(',')));
+      expect(versions[0].language_ids_hash.toString('hex')).toEqual(
+        sha256.sync(movieProps.language_ids.join(',')),
+      );
+      expect(versions[0].poster_uuids_hash.toString('hex')).toEqual(
+        sha256.sync(movieProps.poster_uuids.join(',')),
+      );
 
       // check that the current version table is initialized accurately
-      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      const currentVersionPointers = await getEntityCurrentVersionPointer({
+        id,
+      });
       expect(currentVersionPointers.length).toEqual(1);
-      expect(currentVersionPointers[0][`${movie.name}_version_id`]).toEqual(versions[0].id);
+      expect(currentVersionPointers[0][`${movie.name}_version_id`]).toEqual(
+        versions[0].id,
+      );
 
       // check that the mapping tables are accurate
       const producerMappings = await getProducerMappingTableEntries({ id });
@@ -596,7 +680,9 @@ describe('generateEntityUpsert', () => {
         expect(producerMappings[index].producer_id).toEqual(producerId); // at the expected index
         expect(producerMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
       });
-      const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
+      const languageMappings = await getLanguageMappingTableEntries({
+        versionId: versions[0].id,
+      });
       expect(languageMappings.length).toEqual(languageIds.length);
       languageIds.forEach((languageId, index) => {
         expect(languageMappings[index].language_id).toEqual(languageId); // at the expected index
@@ -608,7 +694,9 @@ describe('generateEntityUpsert', () => {
         expect(studioUuidMappings[index].studio_uuid).toEqual(studioUuid); // at the expected index
         expect(studioUuidMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
       });
-      const posterUuidMappings = await getPosterUuidMappingTableEntries({ versionId: versions[0].id });
+      const posterUuidMappings = await getPosterUuidMappingTableEntries({
+        versionId: versions[0].id,
+      });
       expect(posterUuidMappings.length).toEqual(posterUuidMappings.length);
       movieProps.poster_uuids.forEach((posterUuid, index) => {
         expect(posterUuidMappings[index].poster_uuid).toEqual(posterUuid); // at the expected index
@@ -616,7 +704,10 @@ describe('generateEntityUpsert', () => {
       });
     });
     it('should update the entity if the updateable array has changed', async () => {
-      const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
+      const producerIds = [
+        await upsertProducer({ name: uuidV4() }),
+        await upsertProducer({ name: uuidV4() }),
+      ];
       const languageIds = [
         await upsertLanguage({ name: uuidV4() }),
         await upsertLanguage({ name: uuidV4() }),
@@ -635,7 +726,10 @@ describe('generateEntityUpsert', () => {
 
       // alter the languages its in and upsert it again
       const updatedLanguageIds = [languageIds[2], languageIds[0]]; // drop middle, swap first and last
-      const updatedPosterUuids = [movieProps.poster_uuids[1], movieProps.poster_uuids[0]]; // drop last, swap first and middle
+      const updatedPosterUuids = [
+        movieProps.poster_uuids[1],
+        movieProps.poster_uuids[0],
+      ]; // drop last, swap first and middle
       const idAgain = await upsertMovie({
         ...movieProps,
         language_ids: updatedLanguageIds,
@@ -648,22 +742,34 @@ describe('generateEntityUpsert', () => {
       expect(versions.length).toEqual(2);
 
       // check that new version data is accurate
-      expect(versions[1].language_ids_hash.toString('hex')).toEqual(sha256.sync(updatedLanguageIds.join(',')));
-      expect(versions[1].poster_uuids_hash.toString('hex')).toEqual(sha256.sync(updatedPosterUuids.join(',')));
+      expect(versions[1].language_ids_hash.toString('hex')).toEqual(
+        sha256.sync(updatedLanguageIds.join(',')),
+      );
+      expect(versions[1].poster_uuids_hash.toString('hex')).toEqual(
+        sha256.sync(updatedPosterUuids.join(',')),
+      );
 
       // check that the current version table is pointing to the right version
-      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      const currentVersionPointers = await getEntityCurrentVersionPointer({
+        id,
+      });
       expect(currentVersionPointers.length).toEqual(1);
-      expect(currentVersionPointers[0][`${movie.name}_version_id`]).toEqual(versions[1].id);
+      expect(currentVersionPointers[0][`${movie.name}_version_id`]).toEqual(
+        versions[1].id,
+      );
 
       // check that the mapping tables are accurate
-      const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[1].id });
+      const languageMappings = await getLanguageMappingTableEntries({
+        versionId: versions[1].id,
+      });
       expect(languageMappings.length).toEqual(updatedLanguageIds.length);
       updatedLanguageIds.forEach((languageId, index) => {
         expect(languageMappings[index].language_id).toEqual(languageId); // at the expected index
         expect(languageMappings[index].array_order_index).toEqual(index + 1); // explicitly tracked. note: postgres arrays start at 1
       });
-      const posterUuidMappings = await getPosterUuidMappingTableEntries({ versionId: versions[1].id });
+      const posterUuidMappings = await getPosterUuidMappingTableEntries({
+        versionId: versions[1].id,
+      });
       expect(posterUuidMappings.length).toEqual(updatedPosterUuids.length);
       updatedPosterUuids.forEach((posterUuid, index) => {
         expect(posterUuidMappings[index].poster_uuid).toEqual(posterUuid); // at the expected index
@@ -671,7 +777,10 @@ describe('generateEntityUpsert', () => {
       });
     });
     it('should not create a new version if the updateable array did not change', async () => {
-      const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
+      const producerIds = [
+        await upsertProducer({ name: uuidV4() }),
+        await upsertProducer({ name: uuidV4() }),
+      ];
       const languageIds = [
         await upsertLanguage({ name: uuidV4() }),
         await upsertLanguage({ name: uuidV4() }),
@@ -697,14 +806,21 @@ describe('generateEntityUpsert', () => {
       expect(versions.length).toEqual(1);
 
       // check that the mapping tables are accurate
-      const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
+      const languageMappings = await getLanguageMappingTableEntries({
+        versionId: versions[0].id,
+      });
       expect(languageMappings.length).toEqual(languageIds.length);
       languageIds.forEach((languageId) => {
-        expect(languageMappings.map((mapping: any) => mapping.language_id)).toContainEqual(languageId);
+        expect(
+          languageMappings.map((mapping: any) => mapping.language_id),
+        ).toContainEqual(languageId);
       });
     });
     it('should have the same exact created_at timestamp on both the static, version, and mapping rows, on first insert', async () => {
-      const producerIds = [await upsertProducer({ name: uuidV4() }), await upsertProducer({ name: uuidV4() })];
+      const producerIds = [
+        await upsertProducer({ name: uuidV4() }),
+        await upsertProducer({ name: uuidV4() }),
+      ];
       const languageIds = [
         await upsertLanguage({ name: uuidV4() }),
         await upsertLanguage({ name: uuidV4() }),
@@ -727,22 +843,38 @@ describe('generateEntityUpsert', () => {
       expect(versions.length).toEqual(1);
       const producerMappings = await getProducerMappingTableEntries({ id });
       expect(producerMappings.length).toEqual(producerIds.length);
-      const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
+      const languageMappings = await getLanguageMappingTableEntries({
+        versionId: versions[0].id,
+      });
       expect(languageMappings.length).toEqual(languageIds.length);
       const studioUuidMappings = await getStudioUuidMappingTableEntries({ id });
       expect(studioUuidMappings.length).toEqual(movieProps.studio_uuids.length);
-      const posterUuidMappings = await getPosterUuidMappingTableEntries({ versionId: versions[0].id });
+      const posterUuidMappings = await getPosterUuidMappingTableEntries({
+        versionId: versions[0].id,
+      });
       expect(posterUuidMappings.length).toEqual(movieProps.poster_uuids.length);
-      const currentVersionPointers = await getEntityCurrentVersionPointer({ id });
+      const currentVersionPointers = await getEntityCurrentVersionPointer({
+        id,
+      });
       expect(currentVersionPointers.length).toEqual(1);
 
       // check that they all have same timestamp
       expect(versions[0].created_at).toEqual(entityStatic.created_at);
-      producerMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
-      languageMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
-      studioUuidMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
-      posterUuidMappings.forEach((mapping: any) => expect(mapping.created_at).toEqual(entityStatic.created_at));
-      expect(currentVersionPointers[0].updated_at).toEqual(entityStatic.created_at);
+      producerMappings.forEach((mapping: any) =>
+        expect(mapping.created_at).toEqual(entityStatic.created_at),
+      );
+      languageMappings.forEach((mapping: any) =>
+        expect(mapping.created_at).toEqual(entityStatic.created_at),
+      );
+      studioUuidMappings.forEach((mapping: any) =>
+        expect(mapping.created_at).toEqual(entityStatic.created_at),
+      );
+      posterUuidMappings.forEach((mapping: any) =>
+        expect(mapping.created_at).toEqual(entityStatic.created_at),
+      );
+      expect(currentVersionPointers[0].updated_at).toEqual(
+        entityStatic.created_at,
+      );
     });
     it('should be able to insert empty arrays', async () => {
       const movieProps = {
@@ -767,7 +899,9 @@ describe('generateEntityUpsert', () => {
       // check that the mapping tables are accurate
       const producerMappings = await getProducerMappingTableEntries({ id });
       expect(producerMappings.length).toEqual(0);
-      const languageMappings = await getLanguageMappingTableEntries({ versionId: versions[0].id });
+      const languageMappings = await getLanguageMappingTableEntries({
+        versionId: versions[0].id,
+      });
       expect(languageMappings.length).toEqual(0);
     });
   });
@@ -788,7 +922,10 @@ describe('generateEntityUpsert', () => {
       await createTablesForEntity({ entity: plantOrder, dbConnection });
 
       // provision the upsert
-      await dropAndCreateUpsertFunctionForEntity({ entity: plantOrder, dbConnection });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: plantOrder,
+        dbConnection,
+      });
     });
     const upsertPlantOrder = async ({
       uuid,
@@ -828,7 +965,10 @@ describe('generateEntityUpsert', () => {
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: plantOrder });
-      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
+      const showCreateSql = await getShowCreateFunction({
+        dbConnection,
+        func: name,
+      });
       expect(sql).toEqual(showCreateSql);
 
       // show an example of the upsert function
@@ -877,7 +1017,10 @@ describe('generateEntityUpsert', () => {
       await createTablesForEntity({ entity: webstore, dbConnection });
 
       // provision the upsert
-      await dropAndCreateUpsertFunctionForEntity({ entity: webstore, dbConnection });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: webstore,
+        dbConnection,
+      });
     });
     const upsertWebstore = async ({
       uuid,
@@ -929,7 +1072,10 @@ describe('generateEntityUpsert', () => {
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: webstore });
-      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
+      const showCreateSql = await getShowCreateFunction({
+        dbConnection,
+        func: name,
+      });
       expect(sql).toEqual(showCreateSql);
 
       // show an example of the upsert function
@@ -966,7 +1112,10 @@ describe('generateEntityUpsert', () => {
         logo_url: 'https://...',
       };
       const id = await upsertWebstore(props);
-      const idAgain = await upsertWebstore({ ...props, name: "Donnie's Donuts and More" }); // Donnie had feature creep
+      const idAgain = await upsertWebstore({
+        ...props,
+        name: "Donnie's Donuts and More",
+      }); // Donnie had feature creep
       expect(id).toEqual(idAgain);
 
       // expect two versions
@@ -1004,8 +1153,14 @@ describe('generateEntityUpsert', () => {
       await createTablesForEntity({ entity: crashReport, dbConnection });
 
       // provision the upserts
-      await dropAndCreateUpsertFunctionForEntity({ entity: vehicle, dbConnection });
-      await dropAndCreateUpsertFunctionForEntity({ entity: crashReport, dbConnection });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: vehicle,
+        dbConnection,
+      });
+      await dropAndCreateUpsertFunctionForEntity({
+        entity: crashReport,
+        dbConnection,
+      });
     });
     const upsertVehicle = async ({
       make,
@@ -1073,7 +1228,10 @@ describe('generateEntityUpsert', () => {
     };
     it('should produce the same syntax as the SHOW CREATE FUNCTION query', async () => {
       const { sql, name } = generateEntityUpsert({ entity: crashReport });
-      const showCreateSql = await getShowCreateFunction({ dbConnection, func: name });
+      const showCreateSql = await getShowCreateFunction({
+        dbConnection,
+        func: name,
+      });
       expect(sql).toEqual(showCreateSql);
       expect(sql).toMatchSnapshot();
     });
@@ -1084,7 +1242,9 @@ describe('generateEntityUpsert', () => {
         year: '2002',
         software_version: '0.7.3',
       });
-      const vehicleVersionId = (await getVehicleEntityVersions({ id: vehicleId }))[0].id;
+      const vehicleVersionId = (
+        await getVehicleEntityVersions({ id: vehicleId })
+      )[0].id;
       const crashReportProps = {
         location_id: 721,
         vehicle_version_id: vehicleVersionId,
@@ -1093,7 +1253,9 @@ describe('generateEntityUpsert', () => {
 
       // check that it succeeded accurately
       const entityStatic = await getEntityStatic({ id });
-      expect(entityStatic.vehicle_version_id).toEqual(crashReportProps.vehicle_version_id);
+      expect(entityStatic.vehicle_version_id).toEqual(
+        crashReportProps.vehicle_version_id,
+      );
     });
   });
 });

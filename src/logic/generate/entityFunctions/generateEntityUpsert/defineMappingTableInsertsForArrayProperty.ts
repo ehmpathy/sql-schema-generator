@@ -25,7 +25,9 @@ export const defineMappingTableInsertsForArrayProperty = ({
     propertyName: name,
     propertyDefinition: definition,
   });
-  const mappingTableEntityReferenceVariable = definition.updatable ? 'v_matching_version_id' : 'v_static_id';
+  const mappingTableEntityReferenceVariable = definition.updatable
+    ? 'v_matching_version_id'
+    : 'v_static_id';
 
   return `
   -- insert a row into the mapping table for each value in array ${inputVariableName}

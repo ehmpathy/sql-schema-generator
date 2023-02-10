@@ -25,5 +25,9 @@ export const createTablesForEntity = async ({
   }
 
   // create each mapping table
-  await Promise.all(tables.mappings.map((mappingTable) => dbConnection.query({ sql: mappingTable.sql })));
+  await Promise.all(
+    tables.mappings.map((mappingTable) =>
+      dbConnection.query({ sql: mappingTable.sql }),
+    ),
+  );
 };

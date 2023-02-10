@@ -34,15 +34,19 @@ export const defineMappingTableKeysForEntityProperty = ({
 } => {
   // determine what kind of reference we're tracking (direct fk reference, or distributed uuid reference)
   const referenceType = (() => {
-    if (propertyDefinition.references) return EntityReferenceType.DIRECT_FK_REFERENCE;
-    if (propertyDefinition.type.name === DataTypeName.UUID) return EntityReferenceType.IMPLICIT_UUID_REFERENCE; // arrays should only be used to reference other tables, so we assume that this case implies its an uuid reference
+    if (propertyDefinition.references)
+      return EntityReferenceType.DIRECT_FK_REFERENCE;
+    if (propertyDefinition.type.name === DataTypeName.UUID)
+      return EntityReferenceType.IMPLICIT_UUID_REFERENCE; // arrays should only be used to reference other tables, so we assume that this case implies its an uuid reference
     throw new Error(
       'Array properties should only be used to reference other entities either directly by foreign-key or implicitly by uuid. Therefore, arrays must REFERENCE an entity or store a UUID, in order to create a mapping table.', // https://stackoverflow.com/a/17371788/3068233
     );
   })();
 
   // determine if mapping table should reference version table or static table
-  const entityReferenceTableName = propertyDefinition.updatable ? `${entityName}_version` : entityName;
+  const entityReferenceTableName = propertyDefinition.updatable
+    ? `${entityName}_version`
+    : entityName;
 
   // define what the array order index column is named
   const arrayOrderIndexColumnName = 'array_order_index'; // goal: be self evident to people who will be seeing this for the first time
@@ -62,13 +66,18 @@ export const defineMappingTableKeysForEntityProperty = ({
 
   // handle case where we are mapping implicitly to an entity, potentially in a different database, by uuid
   if (referenceType === EntityReferenceType.IMPLICIT_UUID_REFERENCE) {
-    const propertyNameEndsWithUuidsSuffix = new RegExp(/_uuids$/).test(propertyName);
+    const propertyNameEndsWithUuidsSuffix = new RegExp(/_uuids$/).test(
+      propertyName,
+    );
     if (!propertyNameEndsWithUuidsSuffix)
       // sanity check
       throw new Error(
         `an array of uuids must end with the '_uuids' suffix. not satisfied by '${entityName}.${propertyName}'`, // fail fast if not met
       );
-    const impliedMappedEntityReferenceTableName = propertyName.replace(/_uuids$/, ''); // this is the name of the referenced table that the property name _implies_
+    const impliedMappedEntityReferenceTableName = propertyName.replace(
+      /_uuids$/,
+      '',
+    ); // this is the name of the referenced table that the property name _implies_
     return {
       tableName: `${entityReferenceTableName}_to_${impliedMappedEntityReferenceTableName}_uuid`, // note the _uuid suffix -> to make it extra explicit that we're tracking uuids of these ones + they may not be real name of an entity
       entityReferenceColumnName: `${entityReferenceTableName}_id`,

@@ -33,7 +33,9 @@ export const generateTableForStaticProperties = ({
       default: 'now()',
     }),
     ...staticSingularProperties,
-    ...castArrayPropertiesToValuesHashProperties({ properties: staticArrayProperties }),
+    ...castArrayPropertiesToValuesHashProperties({
+      properties: staticArrayProperties,
+    }),
   };
 
   // 2. generate the table
@@ -41,9 +43,16 @@ export const generateTableForStaticProperties = ({
   const uniqueColumnNames = unique.map((propertyName) =>
     propertyName === 'uuid'
       ? 'uuid' // uuid is special case as we can be unique on it without user specifying it explicitly - so, if its uuid, we know its not going to need a name change
-      : castPropertyToColumnName({ name: propertyName, definition: properties[propertyName] }),
+      : castPropertyToColumnName({
+          name: propertyName,
+          definition: properties[propertyName],
+        }),
   );
-  const tableSql = generateTable({ tableName, unique: uniqueColumnNames, properties: staticProps });
+  const tableSql = generateTable({
+    tableName,
+    unique: uniqueColumnNames,
+    properties: staticProps,
+  });
 
   // 3. return sql
   return {

@@ -1,5 +1,7 @@
 import { Entity } from '../../../../domain';
-import { prop } from '../../../define'; // import from module, since this is what we expose to users
+import { prop } from '../../../define';
+
+// import from module, since this is what we expose to users
 
 const chat = new Entity({
   name: 'chat',

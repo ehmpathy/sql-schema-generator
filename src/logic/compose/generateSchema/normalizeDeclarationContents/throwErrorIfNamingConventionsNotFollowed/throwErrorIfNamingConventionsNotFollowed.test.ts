@@ -1,18 +1,21 @@
 import { Entity } from '../../../../../domain';
 import { prop } from '../../../../define';
 import { throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix';
-import { throwErrorIfAnythingNotUnderscoreCase } from './throwErrorIfAnythingNotUnderscoreCase';
 import { throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix';
+import { throwErrorIfAnythingNotUnderscoreCase } from './throwErrorIfAnythingNotUnderscoreCase';
 import { throwErrorIfNamingConventionsNotFollowed } from './throwErrorIfNamingConventionsNotFollowed';
 
 jest.mock('./throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix');
-const throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock = throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix;
+const throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock =
+  throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix;
 
 jest.mock('./throwErrorIfAnythingNotUnderscoreCase');
-const throwErrorIfAnythingNotUnderscoreCaseMock = throwErrorIfAnythingNotUnderscoreCase;
+const throwErrorIfAnythingNotUnderscoreCaseMock =
+  throwErrorIfAnythingNotUnderscoreCase;
 
 jest.mock('./throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix');
-const throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock = throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix;
+const throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock =
+  throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffix;
 
 describe('throwErrorIfNamingConventionsNotFollowed', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -23,8 +26,12 @@ describe('throwErrorIfNamingConventionsNotFollowed', () => {
       unique: ['name'],
     });
     throwErrorIfNamingConventionsNotFollowed({ entity: exampleEntity });
-    expect(throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock).toHaveBeenCalledTimes(1);
-    expect(throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock).toHaveBeenCalledWith({
+    expect(
+      throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffixMock,
+    ).toHaveBeenCalledWith({
       entity: exampleEntity,
     });
   });
@@ -35,8 +42,12 @@ describe('throwErrorIfNamingConventionsNotFollowed', () => {
       unique: ['name'],
     });
     throwErrorIfNamingConventionsNotFollowed({ entity: exampleEntity });
-    expect(throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock).toHaveBeenCalledTimes(1);
-    expect(throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock).toHaveBeenCalledWith({
+    expect(
+      throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      throwErrorIfAnyUuidPropertyDoesNotHaveExplicitSuffixMock,
+    ).toHaveBeenCalledWith({
       entity: exampleEntity,
     });
   });

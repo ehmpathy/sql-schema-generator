@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import Listr from 'listr';
+
 import { generateAndRecordEntitySchema } from './generateAndRecordEntitySchema';
 import { normalizeDeclarationContents } from './normalizeDeclarationContents';
 import { readDeclarationFile } from './readDeclarationFile';
@@ -9,7 +10,13 @@ import { readDeclarationFile } from './readDeclarationFile';
     - validate that each is of proper constructor
   2. generate and record resources for each schema
 */
-export const generateSchema = async ({ configPath, targetDirPath }: { configPath: string; targetDirPath: string }) => {
+export const generateSchema = async ({
+  configPath,
+  targetDirPath,
+}: {
+  configPath: string;
+  targetDirPath: string;
+}) => {
   // 1. read the entities from source file
   const contents = await readDeclarationFile({ configPath });
   const { entities } = await normalizeDeclarationContents({ contents });

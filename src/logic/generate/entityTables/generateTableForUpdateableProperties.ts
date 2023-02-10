@@ -38,7 +38,9 @@ export const generateTableForUpdateableProperties = ({
       default: 'now()',
     }),
     ...updatableSingularProperties,
-    ...castArrayPropertiesToValuesHashProperties({ properties: updatableArrayProperties }),
+    ...castArrayPropertiesToValuesHashProperties({
+      properties: updatableArrayProperties,
+    }),
   };
 
   // 2. generate the version table

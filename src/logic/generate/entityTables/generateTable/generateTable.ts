@@ -13,7 +13,9 @@ export const generateTable = ({
 }) => {
   // 0. validate input
   if (unique.length === 0) {
-    throw new Error('must have atleast one unique property; otherwise, idempotency cant be enforced');
+    throw new Error(
+      'must have atleast one unique property; otherwise, idempotency cant be enforced',
+    );
   }
 
   // define sql per column
@@ -25,22 +27,33 @@ export const generateTable = ({
   const primaryKeySql = `CONSTRAINT ${tableName}_pk PRIMARY KEY (id)`;
 
   // define unique index
-  const uniqueConstraintSql = `CONSTRAINT ${tableName}_ux1 UNIQUE (${unique.join(', ')})`; // unique key definition; required since it is required for idempotency
+  const uniqueConstraintSql = `CONSTRAINT ${tableName}_ux1 UNIQUE (${unique.join(
+    ', ',
+  )})`; // unique key definition; required since it is required for idempotency
 
   // define foreign keys
   const foreignKeySqls = Object.entries(properties)
     .filter((entry) => !!entry[1].references)
     .map((entry, index) =>
-      generateConstraintForeignKey({ index, columnName: entry[0], tableName, property: entry[1] }),
+      generateConstraintForeignKey({
+        index,
+        columnName: entry[0],
+        tableName,
+        property: entry[1],
+      }),
     );
   const foreignKeyIndexSqls = foreignKeySqls.map((sqls) => sqls.index);
-  const foreignKeyConstraintSqls = foreignKeySqls.map((sqls) => sqls.constraint);
+  const foreignKeyConstraintSqls = foreignKeySqls.map(
+    (sqls) => sqls.constraint,
+  );
 
   // define check constraints
   const checkConstraintSqls = Object.entries(properties)
     .filter((entry) => !!entry[1].check)
     .map((entry) => {
-      return `CONSTRAINT ${tableName}_${entry[0]}_check CHECK ${entry[1].check!.replace(/\$COLUMN_NAME/g, entry[0])}`;
+      return `CONSTRAINT ${tableName}_${
+        entry[0]
+      }_check CHECK ${entry[1].check!.replace(/\$COLUMN_NAME/g, entry[0])}`;
     })
     .sort();
 

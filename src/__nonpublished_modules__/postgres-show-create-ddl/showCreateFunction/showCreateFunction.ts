@@ -20,6 +20,7 @@ WHERE 1=1
       `.trim(),
     values: [schema, func],
   });
-  if (!result.rows) throw new Error(`could not find function '${schema}.${func}'`);
+  if (!result.rows)
+    throw new Error(`could not find function '${schema}.${func}'`);
   return result.rows[0].ddl;
 };

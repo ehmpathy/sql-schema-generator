@@ -1,6 +1,10 @@
 import { Entity } from '../../../../domain';
 
-export const defineUpsertCurrentVersionPointerIfNeededLogic = ({ entity }: { entity: Entity }) => {
+export const defineUpsertCurrentVersionPointerIfNeededLogic = ({
+  entity,
+}: {
+  entity: Entity;
+}) => {
   // define the updatable property names
   const updatablePropertyNames = Object.entries(entity.properties)
     .filter((entry) => !!entry[1].updatable)

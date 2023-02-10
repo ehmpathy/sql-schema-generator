@@ -14,20 +14,28 @@ export const dropTablesForEntity = async ({
   // drop each mapping table
   await Promise.all(
     tables.mappings.map((mappingTable) =>
-      dbConnection.query({ sql: `DROP TABLE IF EXISTS ${mappingTable.name} CASCADE;` }),
+      dbConnection.query({
+        sql: `DROP TABLE IF EXISTS ${mappingTable.name} CASCADE;`,
+      }),
     ),
   );
 
   // drop the cvp table, if exists
   if (tables.currentVersionPointer) {
-    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer.name} CASCADE;` });
+    await dbConnection.query({
+      sql: `DROP TABLE IF EXISTS ${tables.currentVersionPointer.name} CASCADE;`,
+    });
   }
 
   // drop the version table, if exists
   if (tables.version) {
-    await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.version!.name} CASCADE;` });
+    await dbConnection.query({
+      sql: `DROP TABLE IF EXISTS ${tables.version!.name} CASCADE;`,
+    });
   }
 
   // drop the static table
-  await dbConnection.query({ sql: `DROP TABLE IF EXISTS ${tables.static.name} CASCADE;` });
+  await dbConnection.query({
+    sql: `DROP TABLE IF EXISTS ${tables.static.name} CASCADE;`,
+  });
 };
