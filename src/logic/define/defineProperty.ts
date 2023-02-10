@@ -2,6 +2,7 @@
   purpose: provide convenient tools to define types
 */
 import { serialize } from 'domain-objects';
+import { isAFunction } from 'type-fns';
 import { DataType, DataTypeName, Entity, Property } from '../../domain';
 
 /**
@@ -279,19 +280,25 @@ export const DATE = () =>
 
 /**
  * REFERENCES creates a column which has a Foreign Key constraint to the `entity`.
+ *
+ * note
+ * - the input can be a function that returns your entity, to support cases where your entity references itself
  */
-export const REFERENCES = (entity: Entity) =>
+export const REFERENCES = (entityOrGetEntity: Entity | (() => Entity)) =>
   new Property({
     ...BIGINT(), // pk type is always a bigint
-    references: entity.name, // name of entity's table
+    references: isAFunction(entityOrGetEntity) ? entityOrGetEntity().name : entityOrGetEntity.name, // name of entity's table
   });
 
 /**
  * REFERENCES_VERSION creates a column which has a Foreign Key constraint to the `entity_version`.
  *
- * NOTE: this is only valid if the referenced entity has updatable properties, as otherwise there will not be a version table for the entity.
+ * note:
+ * - this is only valid if the referenced entity has updatable properties, as otherwise there will not be a version table for the entity.
+ * - the input can be a function that returns your entity, to support cases where your entity references itself
  */
-export const REFERENCES_VERSION = (entity: Entity) => {
+export const REFERENCES_VERSION = (entityOrGetEntity: Entity | (() => Entity)) => {
+  const entity = isAFunction(entityOrGetEntity) ? entityOrGetEntity() : entityOrGetEntity;
   const referencedEntityHasUpdatableProperties = Object.values(entity.properties).some((prop) => !!prop.updatable);
   if (!referencedEntityHasUpdatableProperties) {
     throw new Error('REFERENCES_VERSION can only be applied to an entity that has updatable properties');
