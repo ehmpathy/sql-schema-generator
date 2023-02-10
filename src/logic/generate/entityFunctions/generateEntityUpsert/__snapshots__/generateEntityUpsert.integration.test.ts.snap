@@ -50,7 +50,7 @@ AS $$
     v_static_id bigint;
     v_created_at timestamptz := now(); -- define a common created_at timestamp to use
     v_matching_version_id bigint;
-    v_effective_at timestamptz := v_created_at; -- i.e., effective \\"now\\"
+    v_effective_at timestamptz := v_created_at; -- i.e., effective "now"
     v_current_version_id_recorded_in_pointer_table bigint;
     v_effective_at_of_current_version_recorded_in_pointer_table timestamptz;
     v_array_access_index int;
@@ -92,7 +92,7 @@ AS $$
     FROM movie_version AS v
     WHERE 1=1
       AND v.movie_id = v_static_id -- for this entity
-      AND v.effective_at = ( -- and is the version record effective at the time of \\"v_effective_at\\"
+      AND v.effective_at = ( -- and is the version record effective at the time of "v_effective_at"
         SELECT MAX(ssv.effective_at)
         FROM movie_version ssv
         WHERE ssv.movie_id = v_static_id
@@ -142,7 +142,7 @@ AS $$
       SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
       FROM movie_version AS v
       WHERE v.id = v_current_version_id_recorded_in_pointer_table;
-      IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
+      IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is "newer" than the currently cached version
         UPDATE movie_cvp
         SET
           movie_version_id = v_matching_version_id,
@@ -177,7 +177,7 @@ AS $$
     v_static_id bigint;
     v_created_at timestamptz := now(); -- define a common created_at timestamp to use
     v_matching_version_id bigint;
-    v_effective_at timestamptz := v_created_at; -- i.e., effective \\"now\\"
+    v_effective_at timestamptz := v_created_at; -- i.e., effective "now"
     v_current_version_id_recorded_in_pointer_table bigint;
     v_effective_at_of_current_version_recorded_in_pointer_table timestamptz;
   BEGIN
@@ -199,7 +199,7 @@ AS $$
     FROM webstore_version AS v
     WHERE 1=1
       AND v.webstore_id = v_static_id -- for this entity
-      AND v.effective_at = ( -- and is the version record effective at the time of \\"v_effective_at\\"
+      AND v.effective_at = ( -- and is the version record effective at the time of "v_effective_at"
         SELECT MAX(ssv.effective_at)
         FROM webstore_version ssv
         WHERE ssv.webstore_id = v_static_id
@@ -233,7 +233,7 @@ AS $$
       SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
       FROM webstore_version AS v
       WHERE v.id = v_current_version_id_recorded_in_pointer_table;
-      IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
+      IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is "newer" than the currently cached version
         UPDATE webstore_cvp
         SET
           webstore_version_id = v_matching_version_id,
@@ -342,7 +342,7 @@ AS $$
     v_static_id bigint;
     v_created_at timestamptz := now(); -- define a common created_at timestamp to use
     v_matching_version_id bigint;
-    v_effective_at timestamptz := v_created_at; -- i.e., effective \\"now\\"
+    v_effective_at timestamptz := v_created_at; -- i.e., effective "now"
     v_current_version_id_recorded_in_pointer_table bigint;
     v_effective_at_of_current_version_recorded_in_pointer_table timestamptz;
   BEGIN
@@ -364,7 +364,7 @@ AS $$
     FROM alternative_user_version AS v
     WHERE 1=1
       AND v.alternative_user_id = v_static_id -- for this entity
-      AND v.effective_at = ( -- and is the version record effective at the time of \\"v_effective_at\\"
+      AND v.effective_at = ( -- and is the version record effective at the time of "v_effective_at"
         SELECT MAX(ssv.effective_at)
         FROM alternative_user_version ssv
         WHERE ssv.alternative_user_id = v_static_id
@@ -396,7 +396,7 @@ AS $$
       SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
       FROM alternative_user_version AS v
       WHERE v.id = v_current_version_id_recorded_in_pointer_table;
-      IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is \\"newer\\" than the currently cached version
+      IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is "newer" than the currently cached version
         UPDATE alternative_user_cvp
         SET
           alternative_user_version_id = v_matching_version_id,

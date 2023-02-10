@@ -18,14 +18,14 @@ export const defineFindOrCreateStaticEntityLogic = ({
 
   // define the static property names
   const staticPropertyNames = Object.entries(entity.properties)
-    .filter(entry => !entry[1].updatable)
-    .map(entry => entry[0]);
+    .filter((entry) => !entry[1].updatable)
+    .map((entry) => entry[0]);
 
   // define the column names and the column value references for the static properties
-  const staticPropertyColumnNames = staticPropertyNames.map(name =>
+  const staticPropertyColumnNames = staticPropertyNames.map((name) =>
     castPropertyToColumnName({ name, definition: entity.properties[name]! }),
   );
-  const staticPropertyColumnValueReferences = staticPropertyNames.map(name =>
+  const staticPropertyColumnValueReferences = staticPropertyNames.map((name) =>
     castPropertyToTableColumnValueReference({
       name,
       definition: entity.properties[name]!,
@@ -46,10 +46,10 @@ export const defineFindOrCreateStaticEntityLogic = ({
     }
 
     // otherwise, define the where clause conditionals as normal
-    const uniqueStaticPropertyNames = staticPropertyNames.filter(name =>
+    const uniqueStaticPropertyNames = staticPropertyNames.filter((name) =>
       entity.unique.includes(name),
     );
-    return uniqueStaticPropertyNames.map(name =>
+    return uniqueStaticPropertyNames.map((name) =>
       castPropertyToWhereClauseConditional({
         name,
         definition: entity.properties[name]!,
@@ -61,7 +61,7 @@ export const defineFindOrCreateStaticEntityLogic = ({
   // define the array properties, for which we'll need to insert into a mapping table
   const staticArrayProperties = pickKeysFromObject({
     object: entity.properties,
-    keep: property => !!property.array && !property.updatable,
+    keep: (property) => !!property.array && !property.updatable,
   });
   const mappingTableInserts = Object.entries(staticArrayProperties).map(
     ([name, definition]) =>

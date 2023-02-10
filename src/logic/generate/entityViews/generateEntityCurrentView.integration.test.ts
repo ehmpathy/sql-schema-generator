@@ -377,10 +377,7 @@ describe('generateEntityViewCurrent', () => {
         // update the entity dynamic properties
         const updatedProps = {
           ...props,
-          wheel_ids: `{${wheelIds
-            .split(',')
-            .slice(1, 2)
-            .join(',')}}`,
+          wheel_ids: `{${wheelIds.split(',').slice(1, 2).join(',')}}`,
         };
         const idAgain = await upsertVehicle(updatedProps);
         expect(idAgain).toEqual(id);
