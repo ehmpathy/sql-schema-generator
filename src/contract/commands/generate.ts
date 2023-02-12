@@ -1,20 +1,21 @@
-import { Command, flags } from '@oclif/command';
+import { Command, Flags } from '@oclif/core';
 
 import { generateSchema } from '../../logic/compose/generateSchema/generateSchema';
 
+// eslint-disable-next-line import/no-default-export
 export default class Generate extends Command {
   public static description =
     'generate sql schema for immutable and mutable entities: tables, upsert method, and views';
 
   public static flags = {
-    help: flags.help({ char: 'h' }),
-    declarations: flags.string({
+    help: Flags.help({ char: 'h' }),
+    declarations: Flags.string({
       char: 'd',
       description: 'path to config file, containing entity definitions',
       required: true,
       default: 'declarations.ts',
     }),
-    target: flags.string({
+    target: Flags.string({
       char: 't',
       description: 'target directory to record generated schema into',
       required: true,
@@ -23,7 +24,7 @@ export default class Generate extends Command {
   };
 
   public async run() {
-    const { flags } = this.parse(Generate);
+    const { flags } = await this.parse(Generate);
     const config = flags.declarations!;
     const target = flags.target!;
     // get and display the plans

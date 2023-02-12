@@ -1,5 +1,5 @@
 import indentString from 'indent-string';
-import { isPresent } from 'simple-type-guards';
+import { isPresent } from 'type-fns';
 
 import { Entity } from '../../../../domain';
 import { defineDeclarations } from './defineDeclarations';
