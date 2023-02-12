@@ -1,5 +1,4 @@
-sql-schema-generator
-==============
+# sql-schema-generator
 
 Declarative relational database schema generation. Ensure best practices are followed and abstract away boiler plate sql.
 
