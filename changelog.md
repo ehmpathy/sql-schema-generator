@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.4](https://github.com/ehmpathy/sql-schema-generator/compare/v0.21.3...v0.21.4) (2023-02-12)
+
+
+### Bug Fixes
+
+* **cicd:** ensure integration test is provisioned before deploy test ([743b7db](https://github.com/ehmpathy/sql-schema-generator/commit/743b7dbdfef2636224e887588d3ac2676157961b))
+
 ## [0.21.3](https://github.com/ehmpathy/sql-schema-generator/compare/v1.16.0...v0.21.3) (2023-02-12)
 
 
