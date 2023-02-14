@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.22.1](https://github.com/ehmpathy/sql-schema-generator/compare/v0.22.0...v0.22.1) (2023-02-14)
+
+
+### Bug Fixes
+
+* **errors:** help proactively identify circular import undefined reference errors ([3c261e0](https://github.com/ehmpathy/sql-schema-generator/commit/3c261e0a918247b0f5bf0d8cff062ed35bc3d128))
+* **errors:** show stacktrace when an error reading declarations file is caught ([2ea9cb7](https://github.com/ehmpathy/sql-schema-generator/commit/2ea9cb7a29678a26f0c5975ed37e89c3573bb711))
+
 ## [0.22.0](https://github.com/ehmpathy/sql-schema-generator/compare/v0.21.4...v0.22.0) (2023-02-14)
 
 
