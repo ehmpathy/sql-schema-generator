@@ -1,8 +1,8 @@
 // split out to make tit easier to test, and for historical reasons; can be merged if desired
 export const readDeclarationFile = async ({
-  configPath,
+  declarationsPath,
 }: {
-  configPath: string;
+  declarationsPath: string;
 }) => {
-  return require(configPath);
+  return require(declarationsPath);
 };

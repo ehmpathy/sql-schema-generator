@@ -3,6 +3,7 @@ import Listr from 'listr';
 
 import { generateAndRecordEntitySchema } from './generateAndRecordEntitySchema';
 import { normalizeDeclarationContents } from './normalizeDeclarationContents';
+import { readConfig } from './readConfig';
 import { readDeclarationFile } from './readDeclarationFile';
 
 /*
@@ -12,13 +13,14 @@ import { readDeclarationFile } from './readDeclarationFile';
 */
 export const generateSchema = async ({
   configPath,
-  targetDirPath,
 }: {
   configPath: string;
-  targetDirPath: string;
 }) => {
+  // 0. read the config file
+  const { declarationsPath, targetDirPath } = await readConfig({ configPath });
+
   // 1. read the entities from source file
-  const contents = await readDeclarationFile({ configPath });
+  const contents = await readDeclarationFile({ declarationsPath });
   const { entities } = await normalizeDeclarationContents({ contents });
 
   // 2. for each entity: generate and record resources
