@@ -11,13 +11,19 @@ export class UserInputError extends Error {
     potentialSolution?: string;
   }) {
     super(
-      `
-User input error. ${reason.replace(/\.$/, '')}. '${domainObjectName}${
-        domainObjectPropertyName ? `.${domainObjectPropertyName}` : ''
-      }' does not meet this criteria. Please correct this and try again.${
-        potentialSolution ? `\n\n${potentialSolution}` : ''
-      }
-    `.trim(),
+      [
+        'User input error.',
+        `${reason.replace(/\.$/, '')}.`,
+        domainObjectName
+          ? `'${domainObjectName}${
+              domainObjectPropertyName ? `.${domainObjectPropertyName}` : ''
+            }' does not meet this criteria.`
+          : undefined,
+        potentialSolution
+          ? `\n\nFor potential solutions, consider the following:${potentialSolution}`
+          : undefined,
+        '\n',
+      ].join(''),
     );
   }
 }

@@ -5,6 +5,7 @@ import { serialize } from 'domain-objects';
 import { isAFunction } from 'type-fns';
 
 import { DataType, DataTypeName, Entity, Property } from '../../domain';
+import { UserInputError } from '../../utils/errors/UserInputError';
 
 /**
  * SMALLINT: requires 2 bytes of storage. Range [-32,768, 32,768].
@@ -287,13 +288,22 @@ export const DATE = () =>
  * note
  * - the input can be a function that returns your entity, to support cases where your entity references itself
  */
-export const REFERENCES = (entityOrGetEntity: Entity | (() => Entity)) =>
-  new Property({
+export const REFERENCES = (entityOrGetEntity: Entity | (() => Entity)) => {
+  if (entityOrGetEntity === undefined)
+    throw new UserInputError({
+      reason: 'input to prop.REFERENCES was undefined',
+      potentialSolution: [
+        '',
+        '- This could be caused by how typescript handles circular imports, due to your schema having circular references. Circular references are an anti-pattern, so it may be best to re-evaluate the schema if you experience this.',
+      ].join('\n'),
+    });
+  return new Property({
     ...BIGINT(), // pk type is always a bigint
     references: isAFunction(entityOrGetEntity)
       ? entityOrGetEntity().name
       : entityOrGetEntity.name, // name of entity's table
   });
+};
 
 /**
  * REFERENCES_VERSION creates a column which has a Foreign Key constraint to the `entity_version`.
@@ -305,6 +315,14 @@ export const REFERENCES = (entityOrGetEntity: Entity | (() => Entity)) =>
 export const REFERENCES_VERSION = (
   entityOrGetEntity: Entity | (() => Entity),
 ) => {
+  if (entityOrGetEntity === undefined)
+    throw new UserInputError({
+      reason: 'input to prop.REFERENCES_VERSION was undefined',
+      potentialSolution: [
+        '',
+        '- This could be caused by how typescript handles circular imports, due to your schema having circular references. Circular references are an anti-pattern, so it may be best to re-evaluate the schema if you experience this.',
+      ].join('\n'),
+    });
   const entity = isAFunction(entityOrGetEntity)
     ? entityOrGetEntity()
     : entityOrGetEntity;

@@ -7,9 +7,6 @@ export const readDeclarationFile = async ({
   try {
     return await import(declarationsPath);
   } catch (error) {
-    console.warn(
-      'an error was thrown when attempting to read your declarations file',
-    );
     console.error(error);
     throw error;
   }
