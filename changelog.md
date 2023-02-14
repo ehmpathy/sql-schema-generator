@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/ehmpathy/sql-schema-generator/compare/v0.21.4...v0.22.0) (2023-02-14)
+
+
+### Features
+
+* **config:** support using config file instead of cli args ([1312bb0](https://github.com/ehmpathy/sql-schema-generator/commit/1312bb03b38a27c320b6b29dc7d10837c546b172))
+
 ## [0.21.4](https://github.com/ehmpathy/sql-schema-generator/compare/v0.21.3...v0.21.4) (2023-02-12)
 
 
