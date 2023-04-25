@@ -82,7 +82,7 @@
     "oclif": "3.3.1",
     "type-fns": "0.7.0",
     "uuid": "9.0.0",
-    "yaml": "2.2.1"
+    "yaml": "2.2.2"
   },
   "devDependencies": {
     "@commitlint/cli": "13.1.0",
