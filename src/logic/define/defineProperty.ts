@@ -8,6 +8,18 @@ import { DataType, DataTypeName, Entity, Property } from '../../domain';
 import { UserInputError } from '../../utils/errors/UserInputError';
 
 /**
+ * BOOLEAN: requires 1 byte of storage. Range [true, false].
+ *
+ * https://www.postgresql.org/docs/9.5/datatype-boolean.html
+ */
+export const BOOLEAN = () =>
+  new Property({
+    type: new DataType({
+      name: DataTypeName.BOOLEAN,
+    }),
+  });
+
+/**
  * SMALLINT: requires 2 bytes of storage. Range [-32,768, 32,768].
  *
  * https://www.postgresql.org/docs/9.5/datatype-numeric.html
