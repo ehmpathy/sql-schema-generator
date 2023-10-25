@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.2](https://github.com/ehmpathy/sql-schema-generator/compare/v0.22.1...v0.22.2) (2023-10-25)
+
+
+### Bug Fixes
+
+* **contract:** support boolean datatype ([bcb9549](https://github.com/ehmpathy/sql-schema-generator/commit/bcb95490a95f1a3197461559d05a28b94742cb4a))
+
 ## [0.22.1](https://github.com/ehmpathy/sql-schema-generator/compare/v0.22.0...v0.22.1) (2023-02-14)
 
 
