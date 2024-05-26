@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.23.0](https://github.com/ehmpathy/sql-schema-generator/compare/v0.22.2...v0.23.0) (2024-05-26)
+
+
+### Features
+
+* **names:** domainValueObject to domainLiteral, for intuition++ ([#74](https://github.com/ehmpathy/sql-schema-generator/issues/74)) ([c1b0eef](https://github.com/ehmpathy/sql-schema-generator/commit/c1b0eef09ed5d8cd8ea9995566a4770d7fb368c8))
+
+
+### Bug Fixes
+
+* **practs:** make hooks executable ([#77](https://github.com/ehmpathy/sql-schema-generator/issues/77)) ([b92f914](https://github.com/ehmpathy/sql-schema-generator/commit/b92f914e4dbdce1faaf45bea87203da830df0faf))
+* **practs:** upgrade to latest best ([#76](https://github.com/ehmpathy/sql-schema-generator/issues/76)) ([ab98fd5](https://github.com/ehmpathy/sql-schema-generator/commit/ab98fd5d9dad84f4cb3737063d05d4d06dbd00b4))
+
 ## [0.22.2](https://github.com/ehmpathy/sql-schema-generator/compare/v0.22.1...v0.22.2) (2023-10-25)
 
 
