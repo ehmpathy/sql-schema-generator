@@ -11,6 +11,8 @@
     "useUnknownInCatchVariables": false,
     "exactOptionalPropertyTypes": false,
     "target": "es6",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": [
     "**/*.ts"
@@ -18,6 +20,6 @@
   "exclude": [
     "dist",
     "coverage",
-    "node_modules",
+    "node_modules"
   ]
 }
