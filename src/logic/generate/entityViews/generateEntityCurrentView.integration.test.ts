@@ -5,7 +5,7 @@ import {
   getDatabaseConnection,
 } from '../../../__test_utils__/databaseConnection';
 import { uuid } from '../../../deps';
-import { Entity, ValueObject } from '../../../domain';
+import { Entity, Literal } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
 import { dropAndCreateUpsertFunctionForEntity } from '../__test_utils__/dropAndCreateUpsertForEntity';
@@ -47,14 +47,14 @@ describe('generateEntityViewCurrent', () => {
       });
     });
     describe('with array properties', () => {
-      const lock = new ValueObject({
+      const lock = new Literal({
         name: 'door_lock',
         properties: {
           manufacturer: prop.VARCHAR(255),
           manufacturerId: prop.VARCHAR(255),
         },
       });
-      const door = new ValueObject({
+      const door = new Literal({
         name: 'door',
         properties: {
           color: prop.ENUM(['red', 'green', 'blue']),
@@ -256,7 +256,7 @@ describe('generateEntityViewCurrent', () => {
       });
     });
     describe('with array properties', () => {
-      const wheel = new ValueObject({
+      const wheel = new Literal({
         name: 'wheel',
         properties: {
           name: prop.VARCHAR(255),

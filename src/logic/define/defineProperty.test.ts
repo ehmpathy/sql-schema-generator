@@ -1,4 +1,4 @@
-import { DataTypeName, Entity, Property, ValueObject } from '../../domain';
+import { DataTypeName, Entity, Property, Literal } from '../../domain';
 import * as prop from './defineProperty';
 
 describe('generateProperty', () => {
@@ -28,7 +28,7 @@ describe('generateProperty', () => {
     });
   });
   it('should throw an error if entity REFERENCES_VERSION of a non-updatable entity', () => {
-    const apple = new ValueObject({
+    const apple = new Literal({
       name: 'apple',
       properties: {
         name: prop.VARCHAR(255), // e.g., Granny Smith

@@ -8,7 +8,7 @@ import { Property } from './Property';
 interface EventConstructorProps {
   name: string;
   properties: {
-    [index: string]: Omit<Property, 'updatable'>; // by definition, value objects are not updatable
+    [index: string]: Omit<Property, 'updatable'>; // by definition, literals are not updatable
   };
   unique: string[];
 }

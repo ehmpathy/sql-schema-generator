@@ -3,7 +3,7 @@ import {
   getDatabaseConnection,
 } from '../../../__test_utils__/databaseConnection';
 import { getShowCreateTable } from '../../../__test_utils__/getShowCreateTable';
-import { Entity, ValueObject } from '../../../domain';
+import { Entity, Literal } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { createTablesForEntity, dropTablesForEntity } from '../__test_utils__';
 import { generateEntityTables } from './generateEntityTables';
@@ -170,13 +170,13 @@ describe('generateEntityTables', () => {
     expect(createVersionTable).toEqual(tables.version!.sql); // should be the exact string
   });
   it('generates tables for an entity with array properties (both updatable and static) and unique on one array, w/ the same syntax as show create', async () => {
-    const photo = new ValueObject({
+    const photo = new Literal({
       name: 'photo',
       properties: {
         url: prop.VARCHAR(255),
       },
     });
-    const host = new ValueObject({
+    const host = new Literal({
       name: 'host',
       properties: {
         name: prop.VARCHAR(255),

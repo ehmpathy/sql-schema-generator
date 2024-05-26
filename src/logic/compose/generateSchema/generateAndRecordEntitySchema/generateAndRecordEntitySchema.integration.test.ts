@@ -1,12 +1,12 @@
-import { Entity, ValueObject } from '../../../../domain';
+import { Entity, Literal } from '../../../../domain';
 import * as prop from '../../../define/defineProperty';
 import { generateAndRecordEntitySchema } from './generateAndRecordEntitySchema';
 import { readFile } from './utils/fileIO';
 
 describe('generateAndRecordEntitySchema', () => {
   const targetDirPath = `${__dirname}/__test_assets__/generated`;
-  it('should record all resources for a value object (i.e., non updatable entity)', async () => {
-    const address = new ValueObject({
+  it('should record all resources for a literal (i.e., non updatable entity)', async () => {
+    const address = new Literal({
       name: 'address',
       properties: {
         street: prop.VARCHAR(255),
@@ -105,13 +105,13 @@ describe('generateAndRecordEntitySchema', () => {
     expect(viewCurrentSql).toContain('CREATE OR REPLACE VIEW');
   });
   it('should record all resources for an updatable entity with array properties', async () => {
-    const language = new ValueObject({
+    const language = new Literal({
       name: 'language',
       properties: {
         name: prop.VARCHAR(255),
       },
     });
-    const producer = new ValueObject({
+    const producer = new Literal({
       name: 'producer',
       properties: {
         name: prop.VARCHAR(255),

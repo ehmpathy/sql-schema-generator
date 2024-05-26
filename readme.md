@@ -58,7 +58,7 @@ Consequently, by utilizing the schema generator:
 - you can comfortably modify any generated schema to support edge cases or differences in opinion not already supported by the library, as you fully manage the sql that was generated
 
 ### Inspiration
-- [Domain Driven Design](https://dddcommunity.org/learning-ddd/what_is_ddd/): domain driven design provides tools to define the Domain Model in a ubiquitous language (Entities, Value Objects, etc), which increase increases the maintainability and utility of the infrastructure you spend time building.
+- [Domain Driven Design](https://dddcommunity.org/learning-ddd/what_is_ddd/): domain driven design provides tools to define the Domain Model in a ubiquitous language (Entities, Literals, etc), which increase increases the maintainability and utility of the infrastructure you spend time building.
 - [Temporal Database Design](https://dba.stackexchange.com/a/114738/75296): temporal database design provides a way to optimally implement the "insert only" data lifecycle pattern, retaining the changes an entity goes through over time while also maintaining foreign keys, uniqueness constraints, and normalization.
 
 # Usage
@@ -72,9 +72,9 @@ Consequently, by utilizing the schema generator:
   ```ts
   // for example: in <root>/schema/entities.ts
 
-  import { Entity, prop, ValueObject } from '../module';
+  import { Entity, prop, Literal } from '../module';
 
-  const photo = new ValueObject({
+  const photo = new Literal({
     name: 'photo',
     properties: {
       url: prop.VARCHAR(),

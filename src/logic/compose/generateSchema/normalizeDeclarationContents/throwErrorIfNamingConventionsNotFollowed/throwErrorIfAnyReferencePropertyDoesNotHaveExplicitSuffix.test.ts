@@ -1,10 +1,10 @@
-import { Entity, ValueObject } from '../../../../../domain';
+import { Entity, Literal } from '../../../../../domain';
 import { prop } from '../../../../define';
 import { throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix } from './throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix';
 
 describe('throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix', () => {
   it('should throw an error if property references another but does not have correct name', () => {
-    const photo = new ValueObject({
+    const photo = new Literal({
       name: 'photo',
       properties: { url: prop.VARCHAR(255) },
     });
@@ -25,7 +25,7 @@ describe('throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix', () => {
     }
   });
   it('should throw an error if an array property references another but does not have correct name', () => {
-    const photo = new ValueObject({
+    const photo = new Literal({
       name: 'photo',
       properties: { url: prop.VARCHAR(255) },
     });
@@ -49,7 +49,7 @@ describe('throwErrorIfAnyReferencePropertyDoesNotHaveExplicitSuffix', () => {
     }
   });
   it('should not throw an error for an entity with correctly named reference properties', () => {
-    const photo = new ValueObject({
+    const photo = new Literal({
       name: 'photo',
       properties: { url: prop.VARCHAR(255) },
     });
