@@ -4,6 +4,6 @@ export {
   Entity,
   Event,
   Property,
-  ValueObject,
+  Literal,
 } from '../domain';
 export { prop } from '../logic/define';

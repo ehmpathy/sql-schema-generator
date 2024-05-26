@@ -1,4 +1,4 @@
-import { ValueObject } from '../../../../../domain';
+import { Literal } from '../../../../../domain';
 import { prop } from '../../../../define';
 import { castPropertyToFunctionInputDefinition } from './castPropertyToFunctionInputDefinition';
 
@@ -11,7 +11,7 @@ describe('castPropertyToFunctionInputDefinition', () => {
     expect(definition).toMatchSnapshot();
   });
   it('should define the definition accurately for an array property', () => {
-    const tag = new ValueObject({
+    const tag = new Literal({
       name: 'tag',
       properties: { name: prop.VARCHAR(255) },
     });

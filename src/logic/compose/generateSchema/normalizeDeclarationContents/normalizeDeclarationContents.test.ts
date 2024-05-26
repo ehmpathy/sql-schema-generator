@@ -1,4 +1,4 @@
-import { Entity, ValueObject } from '../../../../domain';
+import { Entity, Literal } from '../../../../domain';
 import { prop } from '../../../define';
 import { normalizeDeclarationContents } from './normalizeDeclarationContents';
 import { throwErrorIfAnyReservedPropertyNamesAreUsed } from './throwErrorIfAnyReservedPropertyNamesAreUsed';
@@ -34,7 +34,7 @@ describe('normalizeDeclarationContents', () => {
       );
     }
   });
-  it('throw an error if entities are not all of class Entity or ValueObject', () => {
+  it('throw an error if entities are not all of class Entity or Literal', () => {
     const contents = { entities: ['not an Entity'] };
     try {
       normalizeDeclarationContents({ contents });
@@ -101,12 +101,12 @@ describe('normalizeDeclarationContents', () => {
       entity: exampleEntity,
     });
   });
-  it('should return the entities and value objects found in the contents', () => {
-    const plant = new ValueObject({
+  it('should return the entities and literals found in the contents', () => {
+    const plant = new Literal({
       name: 'plant',
       properties: { genus: prop.VARCHAR(255) },
     });
-    const vase = new ValueObject({
+    const vase = new Literal({
       name: 'vase',
       properties: { plants: prop.ARRAY_OF(prop.REFERENCES(plant)) },
     });
@@ -131,12 +131,12 @@ describe('normalizeDeclarationContents', () => {
     // check that we return everything as expected
     expect(entities).toEqual([plant, vase, customer, order]);
   });
-  it('should return the entities and value objects found in the contents - when specified with the generateSqlSchemasFor syntax', () => {
-    const plant = new ValueObject({
+  it('should return the entities and literals found in the contents - when specified with the generateSqlSchemasFor syntax', () => {
+    const plant = new Literal({
       name: 'plant',
       properties: { genus: prop.VARCHAR(255) },
     });
-    const vase = new ValueObject({
+    const vase = new Literal({
       name: 'vase',
       properties: { plants: prop.ARRAY_OF(prop.REFERENCES(plant)) },
     });

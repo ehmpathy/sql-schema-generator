@@ -1,7 +1,7 @@
 import { Event } from '../../domain';
-import { Entity, prop, ValueObject } from '../module';
+import { Entity, prop, Literal } from '../module';
 
-const photo = new ValueObject({
+const photo = new Literal({
   name: 'photo',
   properties: {
     url: prop.VARCHAR(255),

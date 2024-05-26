@@ -1,9 +1,9 @@
-import { Entity, ValueObject } from '../../../../../domain';
+import { Entity, Literal } from '../../../../../domain';
 import { prop } from '../../../../define';
 import { castPropertyToWhereClauseConditional } from './castPropertyToWhereClauseConditional';
 
 describe('castPropertyToWhereClauseConditional', () => {
-  const user = new ValueObject({
+  const user = new Literal({
     name: 'user',
     properties: { name: prop.VARCHAR(255) },
   });

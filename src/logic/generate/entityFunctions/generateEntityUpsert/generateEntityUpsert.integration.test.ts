@@ -4,7 +4,7 @@ import { pg as prepare } from 'yesql';
 import { normalizeCreateFunctionDdl } from '../../../../__nonpublished_modules__/postgres-show-create-ddl/showCreateFunction/normalizeCreateFunctionDdl';
 import { getShowCreateFunction } from '../../../../__test_utils__/getShowCreateFunction';
 import { uuid as uuidV4 } from '../../../../deps';
-import { Entity, ValueObject } from '../../../../domain';
+import { Entity, Literal } from '../../../../domain';
 import * as prop from '../../../define/defineProperty';
 import {
   createTablesForEntity,
@@ -444,13 +444,13 @@ describe('generateEntityUpsert', () => {
   });
 
   describe('entity with array properties', () => {
-    const language = new ValueObject({
+    const language = new Literal({
       name: 'language',
       properties: {
         name: prop.VARCHAR(),
       },
     });
-    const producer = new ValueObject({
+    const producer = new Literal({
       name: 'producer',
       properties: {
         name: prop.VARCHAR(),
@@ -1138,10 +1138,10 @@ describe('generateEntityUpsert', () => {
       },
       unique: ['make', 'model', 'year'],
     });
-    const crashReport = new ValueObject({
+    const crashReport = new Literal({
       name: 'crash_report',
       properties: {
-        location_id: prop.BIGINT(), // this should reference a real "location" value object, but for this example lets just leave it as a bigint
+        location_id: prop.BIGINT(), // this should reference a real "location" literal, but for this example lets just leave it as a bigint
         vehicle_version_id: prop.REFERENCES_VERSION(vehicle), // reference the specific vehicle version, as maybe a software glitch is causing the crashes
       },
     });

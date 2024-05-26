@@ -1,15 +1,15 @@
 import { DataTypeName } from '../constants';
 import { DataType } from './DataType';
+import { Literal } from './Literal';
 import { Property } from './Property';
-import { ValueObject } from './ValueObject';
 
-describe('ValueObject', () => {
+describe('Literal', () => {
   const type = new DataType({
     name: DataTypeName.VARCHAR,
     precision: 255,
   });
   it('should be possible to initialize with valid data', () => {
-    const address = new ValueObject({
+    const address = new Literal({
       name: 'address',
       properties: {
         name: new Property({
@@ -19,12 +19,12 @@ describe('ValueObject', () => {
         }),
       },
     });
-    expect(address).toBeInstanceOf(ValueObject);
+    expect(address).toBeInstanceOf(Literal);
   });
   it('should throw an error if the property is "updatable"', () => {
     try {
       // tslint:disable-next-line: no-unused-expression
-      new ValueObject({
+      new Literal({
         name: 'address',
         properties: {
           name: new Property({
@@ -37,7 +37,7 @@ describe('ValueObject', () => {
       throw new Error('should not reach here');
     } catch (error) {
       expect(error.message).toEqual(
-        'value objects can not have updateable properties, by definition',
+        'literals can not have updateable properties, by definition',
       );
     }
   });

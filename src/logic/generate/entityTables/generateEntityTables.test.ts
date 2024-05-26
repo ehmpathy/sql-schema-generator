@@ -1,4 +1,4 @@
-import { Entity, ValueObject } from '../../../domain';
+import { Entity, Literal } from '../../../domain';
 import * as prop from '../../define/defineProperty';
 import { generateEntityTables } from './generateEntityTables';
 import { generateMappingTablesForArrayProperties } from './generateMappingTablesForArrayProperties';
@@ -88,13 +88,13 @@ describe('generateEntityTables', () => {
     );
   });
   it('should generateMappingTablesForArrayProperties for the array properties only', () => {
-    const language = new ValueObject({
+    const language = new Literal({
       name: 'language',
       properties: {
         name: prop.VARCHAR(255),
       },
     });
-    const producer = new ValueObject({
+    const producer = new Literal({
       name: 'producer',
       properties: {
         name: prop.VARCHAR(255),

@@ -2,18 +2,18 @@ import { Entity } from './Entity';
 import { Property } from './Property';
 
 /*
-  turns out: Domain Value Objects, from a persistance perspective, are just like Domain Entities - except with more constraints:
+  turns out: Domain Literals, from a persistance perspective, are just like Domain Entities - except with more constraints:
     - i.e., no updatable values
     - i.e., it is unique on all properties
 */
-interface ValueObjectConstructorProps {
+interface LiteralConstructorProps {
   name: string;
   properties: {
-    [index: string]: Omit<Property, 'updatable'>; // by definition, value objects are not updatable
+    [index: string]: Omit<Property, 'updatable'>; // by definition, literals are not updatable
   };
 }
-export class ValueObject extends Entity {
-  constructor(props: ValueObjectConstructorProps) {
+export class Literal extends Entity {
+  constructor(props: LiteralConstructorProps) {
     // 1. check that all the properties are immutable; this shouldn't be allowed w/ type checking but lets run time validate it too
     const updateableProperties = Object.keys(props.properties).filter(
       (propertyName) => {
@@ -24,7 +24,7 @@ export class ValueObject extends Entity {
     );
     if (updateableProperties.length)
       throw new Error(
-        'value objects can not have updateable properties, by definition',
+        'literals can not have updateable properties, by definition',
       );
 
     // 2. define the unique condition automatically, as all properties
