@@ -199,4 +199,54 @@ describe('generateAndRecordEntitySchema', () => {
     );
     expect(viewCurrentSql).toContain('CREATE OR REPLACE VIEW');
   });
+  it('should record all resources for an entity with array properties that have the same prefix', async () => {
+    const habitat = new Literal({
+      name: 'sea_turtle_habitat',
+      properties: {
+        name: prop.VARCHAR(255),
+      },
+    });
+    const turtle = new Entity({
+      name: 'sea_turtle',
+      properties: {
+        name: prop.VARCHAR(255),
+        favorite_habitat_ids: prop.ARRAY_OF(prop.REFERENCES(habitat)),
+      },
+      unique: ['name', 'favorite_habitat_ids'],
+    });
+    await generateAndRecordEntitySchema({
+      targetDirPath,
+      entity: turtle,
+    });
+
+    // check static table was created
+    const tableStaticSql = await readFile(
+      `${targetDirPath}/tables/${turtle.name}.sql`,
+      'utf8',
+    );
+    expect(tableStaticSql).toContain('CREATE TABLE');
+
+    // check that the mapping table was created
+    const mappingTableOne = await readFile(
+      `${targetDirPath}/tables/${turtle.name}_to_habitat.sql`, // !: the repeated suffix is not included
+      'utf8',
+    );
+    expect(mappingTableOne).toContain('CREATE TABLE');
+
+    // check that the upsert function was created
+    const upsertSql = await readFile(
+      `${targetDirPath}/functions/upsert_${turtle.name}.sql`,
+      'utf8',
+    );
+    expect(upsertSql).toContain('CREATE OR REPLACE FUNCTION');
+
+    // check that the getFromDelimiterSplitString function was created
+    const getFromDelimiterSplitStringSql = await readFile(
+      `${targetDirPath}/functions/upsert_${turtle.name}.sql`,
+      'utf8',
+    );
+    expect(getFromDelimiterSplitStringSql).toContain(
+      'CREATE OR REPLACE FUNCTION',
+    );
+  });
 });

@@ -54,8 +54,33 @@ export const defineMappingTableKeysForEntityProperty = ({
   // handle case where we are mapping directly to an entity, within this database, by fk
   if (referenceType === EntityReferenceType.DIRECT_FK_REFERENCE) {
     const mappedEntityReferenceTableName = propertyDefinition.references;
+
+    // determine the most common prefix between the two, if any
+    const wordsInEntityReferenceTableName = entityReferenceTableName.split('_');
+    const mostCommonPrefixWords = (() => {
+      const commonPrefixWords: string[] = [];
+      for (const commonPrefixCandidate of wordsInEntityReferenceTableName) {
+        const doesCandidateContributeToCommonPrefix =
+          mappedEntityReferenceTableName?.startsWith(
+            [...commonPrefixWords, commonPrefixCandidate].join('_'),
+          );
+        if (!doesCandidateContributeToCommonPrefix) break;
+        commonPrefixWords.push(commonPrefixCandidate);
+      }
+      return commonPrefixWords;
+    })();
+    const mostCommonPrefix = mostCommonPrefixWords.join('_');
+
+    // establish the join table name with the prefix removed
+    const mappedEntityReferenceTableNameWithPrefixDeduped =
+      mappedEntityReferenceTableName?.replace(
+        new RegExp(`^${mostCommonPrefix}_`), // replace the prefix, if any, to avoid having table names that are too long
+        '',
+      );
+
+    // return the declaration
     return {
-      tableName: `${entityReferenceTableName}_to_${mappedEntityReferenceTableName}`,
+      tableName: `${entityReferenceTableName}_to_${mappedEntityReferenceTableNameWithPrefixDeduped}`,
       entityReferenceColumnName: `${entityReferenceTableName}_id`,
       mappedEntityReferenceColumnName: `${mappedEntityReferenceTableName}_id`,
       mappedEntityReferenceColumnType: 'bigint',
