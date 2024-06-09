@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0](https://github.com/ehmpathy/sql-schema-generator/compare/v0.24.0...v0.25.0) (2024-06-09)
+
+
+### Features
+
+* **tables:** ensure constraint names dont exceed postgres name len limit ([2807c4d](https://github.com/ehmpathy/sql-schema-generator/commit/2807c4d0fe63ec848779f3df5d96026373b5a2f7))
+
 ## [0.24.0](https://github.com/ehmpathy/sql-schema-generator/compare/v0.23.0...v0.24.0) (2024-06-09)
 
 
