@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/ehmpathy/sql-schema-generator/compare/v0.23.0...v0.24.0) (2024-06-09)
+
+
+### Features
+
+* **arrays:** define join tables without redundant prefix to avoid resource name length issues ([d1cf466](https://github.com/ehmpathy/sql-schema-generator/commit/d1cf46621b91ad84f1d77add27d3afb4864ae8c8))
+
 ## [0.23.0](https://github.com/ehmpathy/sql-schema-generator/compare/v0.22.2...v0.23.0) (2024-05-26)
 
 
