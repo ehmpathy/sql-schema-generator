@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateTableConstraint should safely define the constraint names for constraints that would otherwise have names longer than 64 chars 1`] = `
+"CREATE TABLE async_task_predict_train_station_congestion_per_movement_event (
+  __COLUMN__,
+  __COLUMN__,
+  CONSTRAINT async_task_predict_train_station_congestion_per_mov_50cc24a7_pk PRIMARY KEY (id),
+  CONSTRAINT async_task_predict_train_station_congestion_per_mo_50cc24a7_ux1 UNIQUE (status),
+  __FOREIGN_KEY_CONSTRAINT__,
+  CONSTRAINT async_task_predict_train_station_congesti_50cc24a7_status_check CHECK (status IN ('happy', 'meh', 'sad'))
+);
+__FOREIGN_KEY_INDEX__"
+`;

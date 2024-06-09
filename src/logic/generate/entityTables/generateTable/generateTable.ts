@@ -1,4 +1,6 @@
+import { toHashShake256Sync } from '../../../../__nonpublished_modules__/hash-fns/toHashShake256Sync';
 import { Property } from '../../../../domain';
+import { defineConstraintNameSafely } from './defineConstraintNameSafely';
 import { generateColumn } from './generateColumn';
 import { generateConstraintForeignKey } from './generateConstraintForeignKey';
 
@@ -24,12 +26,16 @@ export const generateTable = ({
   );
 
   // define primary key
-  const primaryKeySql = `CONSTRAINT ${tableName}_pk PRIMARY KEY (id)`;
+  const primaryKeySql = `CONSTRAINT ${defineConstraintNameSafely({
+    tableName,
+    constraintName: 'pk',
+  })} PRIMARY KEY (id)`;
 
   // define unique index
-  const uniqueConstraintSql = `CONSTRAINT ${tableName}_ux1 UNIQUE (${unique.join(
-    ', ',
-  )})`; // unique key definition; required since it is required for idempotency
+  const uniqueConstraintSql = `CONSTRAINT ${defineConstraintNameSafely({
+    tableName,
+    constraintName: 'ux1',
+  })} UNIQUE (${unique.join(', ')})`; // unique key definition; required since it is required for idempotency
 
   // define foreign keys
   const foreignKeySqls = Object.entries(properties)
@@ -51,9 +57,10 @@ export const generateTable = ({
   const checkConstraintSqls = Object.entries(properties)
     .filter((entry) => !!entry[1].check)
     .map((entry) => {
-      return `CONSTRAINT ${tableName}_${
-        entry[0]
-      }_check CHECK ${entry[1].check!.replace(/\$COLUMN_NAME/g, entry[0])}`;
+      return `CONSTRAINT ${defineConstraintNameSafely({
+        tableName,
+        constraintName: `${entry[0]}_check`,
+      })} CHECK ${entry[1].check!.replace(/\$COLUMN_NAME/g, entry[0])}`;
     })
     .sort();
 

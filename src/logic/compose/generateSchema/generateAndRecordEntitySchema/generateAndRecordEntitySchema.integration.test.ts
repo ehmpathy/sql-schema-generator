@@ -199,7 +199,7 @@ describe('generateAndRecordEntitySchema', () => {
     );
     expect(viewCurrentSql).toContain('CREATE OR REPLACE VIEW');
   });
-  it('should record all resources for an entity with array properties that have the same prefix', async () => {
+  it('should record all resources for an entity with array properties that has a full match prefix', async () => {
     const habitat = new Literal({
       name: 'sea_turtle_habitat',
       properties: {
@@ -248,5 +248,48 @@ describe('generateAndRecordEntitySchema', () => {
     expect(getFromDelimiterSplitStringSql).toContain(
       'CREATE OR REPLACE FUNCTION',
     );
+  });
+
+  it('should record all resources for an entity with array properties that share a partial prefix', async () => {
+    const foodsource = new Literal({
+      name: 'sea_turtle_foodsource',
+      properties: {
+        name: prop.VARCHAR(255),
+      },
+    });
+    const habitat = new Entity({
+      name: 'sea_turtle_habitat',
+      properties: {
+        name: prop.VARCHAR(255),
+        foodsource_ids: prop.ARRAY_OF(prop.REFERENCES(foodsource)),
+      },
+      unique: ['name'],
+    });
+    await generateAndRecordEntitySchema({
+      targetDirPath,
+      entity: habitat,
+    });
+
+    // check static table was created
+    const tableStaticSql = await readFile(
+      `${targetDirPath}/tables/${habitat.name}.sql`,
+      'utf8',
+    );
+    expect(tableStaticSql).toContain('CREATE TABLE');
+
+    // check that the mapping table was created
+    const mappingTableOne = await readFile(
+      `${targetDirPath}/tables/${habitat.name}_to_foodsource.sql`, // !: the shared suffix is not included
+      'utf8',
+    );
+    expect(mappingTableOne).toContain('CREATE TABLE');
+
+    // check that the upsert function was created
+    const upsertSql = await readFile(
+      `${targetDirPath}/functions/upsert_${habitat.name}.sql`,
+      'utf8',
+    );
+    expect(upsertSql).toContain('CREATE OR REPLACE FUNCTION');
+    expect(upsertSql).toContain('_to_foodsource');
   });
 });

@@ -1,4 +1,5 @@
 import { Property } from '../../../../domain';
+import { defineConstraintNameSafely } from './defineConstraintNameSafely';
 
 export const generateConstraintForeignKey = ({
   index,
@@ -11,13 +12,19 @@ export const generateConstraintForeignKey = ({
   columnName: string;
   property: Property;
 }) => {
-  const constraintName = `${tableName}_fk${index}`;
+  const constraintName = `${tableName}`;
   const constraintSql = `
-CONSTRAINT ${constraintName} FOREIGN KEY (${columnName}) REFERENCES ${property.references!} (id)
+CONSTRAINT ${defineConstraintNameSafely({
+    tableName,
+    constraintName: `fk${index}`,
+  })} FOREIGN KEY (${columnName}) REFERENCES ${property.references!} (id)
   `.trim();
 
   const indexSql = `
-CREATE INDEX ${constraintName}_ix ON ${tableName} USING btree (${columnName});
+CREATE INDEX ${defineConstraintNameSafely({
+    tableName,
+    constraintName: `fk${index}_ix`,
+  })} ON ${tableName} USING btree (${columnName});
   `.trim();
 
   return {

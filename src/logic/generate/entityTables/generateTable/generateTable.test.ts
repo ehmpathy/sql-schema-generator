@@ -24,6 +24,12 @@ describe('generateTableConstraint', () => {
     }),
     references: 'user',
   });
+  const stationIdProperty = new Property({
+    type: new DataType({
+      name: DataTypeName.INT,
+    }),
+    references: 'train_station',
+  });
   const statusProperty = prop.ENUM(['happy', 'meh', 'sad']);
   it('should define the table with the correct name', () => {
     const sql = generateTable({
@@ -109,5 +115,15 @@ describe('generateTableConstraint', () => {
         'must have atleast one unique property; otherwise, idempotency cant be enforced',
       );
     }
+  });
+  it('should safely define the constraint names for constraints that would otherwise have names longer than 64 chars', () => {
+    const sql = generateTable({
+      tableName:
+        'async_task_predict_train_station_congestion_per_movement_event',
+      properties: { status: statusProperty, stationId: stationIdProperty },
+      unique: ['status'],
+    });
+    console.log(sql);
+    expect(sql).toMatchSnapshot();
   });
 });

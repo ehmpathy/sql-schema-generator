@@ -7,8 +7,8 @@ exports[`generateEntityViewCurrent static entity with array properties should ge
     s.uuid,
     s.color,
     (
-      SELECT coalesce(array_agg(door_to_door_lock.door_lock_id ORDER BY door_to_door_lock.array_order_index), array[]::bigint[]) as array_agg
-      FROM door_to_door_lock WHERE door_to_door_lock.door_id = s.id
+      SELECT coalesce(array_agg(door_to_lock.door_lock_id ORDER BY door_to_lock.array_order_index), array[]::bigint[]) as array_agg
+      FROM door_to_lock WHERE door_to_lock.door_id = s.id
     ) as lock_ids,
     s.created_at
   FROM door s;"
