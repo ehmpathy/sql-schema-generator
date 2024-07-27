@@ -2,7 +2,7 @@
   "name": "sql-schema-generator",
   "author": "ehmpathy",
   "description": "Declarative relational database sql schema generator. Ensure best practices are followed and abstract away boiler plate sql.",
-  "version": "0.25.1",
+  "version": "0.25.2",
   "repository": "ehmpathy/sql-schema-generator",
   "homepage": "https://github.com/ehmpathy/sql-schema-generator",
   "keywords": [
