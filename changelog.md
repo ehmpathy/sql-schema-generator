@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.1](https://github.com/ehmpathy/sql-schema-generator/compare/v0.25.0...v0.25.1) (2024-07-27)
+
+
+### Bug Fixes
+
+* **practs:** bump practs to latest best ([699abb5](https://github.com/ehmpathy/sql-schema-generator/commit/699abb5a008c27ef267c7802609511088d2d44ed))
+
 ## [0.25.0](https://github.com/ehmpathy/sql-schema-generator/compare/v0.24.0...v0.25.0) (2024-06-09)
 
 
