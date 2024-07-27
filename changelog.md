@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.2](https://github.com/ehmpathy/sql-schema-generator/compare/v0.25.1...v0.25.2) (2024-07-27)
+
+
+### Bug Fixes
+
+* **cicd:** run integration tests in band ([c2bc83f](https://github.com/ehmpathy/sql-schema-generator/commit/c2bc83f2f56fac8bef9d8359b9201dd8d5e717e1))
+
 ## [0.25.1](https://github.com/ehmpathy/sql-schema-generator/compare/v0.25.0...v0.25.1) (2024-07-27)
 
 
