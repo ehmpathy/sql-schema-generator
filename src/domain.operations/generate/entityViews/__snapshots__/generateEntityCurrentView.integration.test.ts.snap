@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`generateEntityViewCurrent static entity with array properties should generate good looking and consistent sql 1`] = `
+"CREATE OR REPLACE VIEW view_door_current AS
+  SELECT
+    s.id,
+    s.uuid,
+    s.color,
+    (
+      SELECT coalesce(array_agg(door_to_lock.door_lock_id ORDER BY door_to_lock.array_order_index), array[]::bigint[]) as array_agg
+      FROM door_to_lock WHERE door_to_lock.door_id = s.id
+    ) as lock_ids,
+    s.created_at
+  FROM door s;"
+`;
+
+exports[`generateEntityViewCurrent versioned entity with array properties should generate good looking and consistent sql 1`] = `
+"CREATE OR REPLACE VIEW view_vehicle_current AS
+  SELECT
+    s.id,
+    s.uuid,
+    s.name,
+    (
+      SELECT coalesce(array_agg(vehicle_to_manufacturer_uuid.manufacturer_uuid ORDER BY vehicle_to_manufacturer_uuid.array_order_index), array[]::uuid[]) as array_agg
+      FROM vehicle_to_manufacturer_uuid WHERE vehicle_to_manufacturer_uuid.vehicle_id = s.id
+    ) as manufacturer_uuids,
+    (
+      SELECT coalesce(array_agg(vehicle_version_to_wheel.wheel_id ORDER BY vehicle_version_to_wheel.array_order_index), array[]::bigint[]) as array_agg
+      FROM vehicle_version_to_wheel WHERE vehicle_version_to_wheel.vehicle_version_id = v.id
+    ) as wheel_ids,
+    s.created_at,
+    v.effective_at,
+    v.created_at as updated_at
+  FROM vehicle s
+  JOIN vehicle_cvp cvp ON s.id = cvp.vehicle_id
+  JOIN vehicle_version v ON v.id = cvp.vehicle_version_id;"
+`;
+
+exports[`generateEntityViewCurrent versioned entity without array properties should generate good looking and consistent sql 1`] = `
+"CREATE OR REPLACE VIEW view_alternative_user_current AS
+  SELECT
+    s.id,
+    s.uuid,
+    s.cognito_uuid,
+    v.name,
+    v.bio,
+    s.created_at,
+    v.effective_at,
+    v.created_at as updated_at
+  FROM alternative_user s
+  JOIN alternative_user_cvp cvp ON s.id = cvp.alternative_user_id
+  JOIN alternative_user_version v ON v.id = cvp.alternative_user_version_id;"
+`;

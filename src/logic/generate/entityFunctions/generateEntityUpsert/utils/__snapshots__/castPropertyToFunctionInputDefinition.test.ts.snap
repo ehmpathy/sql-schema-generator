@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`castPropertyToFunctionInputDefinition should define the definition accurately for a unit property 1`] = `"in_age int"`;
-
-exports[`castPropertyToFunctionInputDefinition should define the definition accurately for an array property 1`] = `"in_tag_ids bigint[]"`;

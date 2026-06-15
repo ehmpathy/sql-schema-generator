@@ -3,7 +3,7 @@ export {
   DataTypeName,
   Entity,
   Event,
-  Property,
   Literal,
-} from '../domain';
-export { prop } from '../logic/define';
+  Property,
+} from '@src/domain.objects';
+export { prop } from '@src/domain.operations/define';

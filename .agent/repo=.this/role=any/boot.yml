@@ -1,0 +1,4 @@
+always:
+  skills:
+    say:
+      - skills/use.testdb.sh

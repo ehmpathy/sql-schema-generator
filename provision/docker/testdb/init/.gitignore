@@ -1,0 +1,4 @@
+# ignore generated init files (copied from provision/schema/sql/init)
+# keep only the static extensions.sql
+*.sql
+!extensions.sql
