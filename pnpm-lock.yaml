@@ -26,6 +26,9 @@ importers:
       listr:
         specifier: 0.14.3
         version: 0.14.3
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
       type-fns:
         specifier: 1.21.2
         version: 1.21.2
@@ -162,9 +165,6 @@ importers:
       tsc-alias:
         specifier: 1.8.10
         version: 1.8.10
-      tsx:
-        specifier: 4.20.6
-        version: 4.20.6
       typescript:
         specifier: 5.4.5
         version: 5.4.5
