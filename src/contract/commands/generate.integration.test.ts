@@ -1,10 +1,12 @@
-import Generate from './generate';
+import { generateCommand } from './generate';
 
-describe('command', () => {
+describe('generateCommand', () => {
   it('should be able to generate schema for valid entities declaration', async () => {
-    await Generate.run([
+    await generateCommand.parseAsync([
+      'node',
+      'generate',
       '-c',
-      `${__dirname}/../__test_assets__/codegen.sql.schema.yml`,
+      `${__dirname}/../.test.assets/codegen.sql.schema.yml`,
     ]);
   });
 });

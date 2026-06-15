@@ -2,7 +2,6 @@
 
 Declarative relational database schema generation. Ensure best practices are followed and abstract away boiler plate sql.
 
-[![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/sql-schema-generator.svg)](https://npmjs.org/package/sql-schema-generator)
 [![Codecov](https://codecov.io/gh/uladkasach/sql-schema-generator/branch/master/graph/badge.svg)](https://codecov.io/gh/uladkasach/sql-schema-generator)
 [![Downloads/week](https://img.shields.io/npm/dw/sql-schema-generator.svg)](https://npmjs.org/package/sql-schema-generator)
@@ -176,8 +175,6 @@ ARGUMENTS
 OPTIONS
   --all  see all commands in CLI
 ```
-
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
 <!-- commandsstop -->
 
 
@@ -186,9 +183,9 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0
 Team work makes the dream work! Please create a ticket for any features you think are missing and, if willing and able, draft a PR for the feature :)
 
 ### Testing
-1. start the integration test db
-  - *note: you will need docker and docker-compose installed for this to work*
-  - `npm run integration-test-provision-db`
+1. start the test db
+  - *note: you will need docker installed for this to work*
+  - `npm run start:testdb`
 2. run the tests
   - `npm run test`
 

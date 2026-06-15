@@ -1,0 +1,18 @@
+version: '3'
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: build-image.dockerfile
+    container_name: superimportantdb
+    command: postgres -c 'max_connections=500'
+    ports:
+      - 7821:5432
+    environment:
+      POSTGRES_PASSWORD: a-secure-password # default user is `postgres`
+      POSTGRES_DB: superimportantdb # creates the database for us automatically
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d superimportantdb']
+      interval: 5s
+      timeout: 5s
+      retries: 5
