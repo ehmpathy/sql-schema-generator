@@ -1,0 +1,228 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`generate command should be able to generate schema for valid entities declaration: home table (native primitive array) 1`] = `
+"CREATE TABLE home (
+  id bigserial NOT NULL,
+  uuid uuid NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  name varchar(255) NOT NULL,
+  built timestamp with time zone NOT NULL,
+  bedrooms int NOT NULL,
+  bathrooms int NOT NULL,
+  tags varchar[] NOT NULL,
+  host_ids_hash bytea NOT NULL,
+  CONSTRAINT home_pk PRIMARY KEY (id),
+  CONSTRAINT home_ux1 UNIQUE (name, host_ids_hash)
+);
+"
+`;
+
+exports[`generate command should be able to generate schema for valid entities declaration: home upsert function (native array write path) 1`] = `
+"CREATE OR REPLACE FUNCTION upsert_home(
+  in_name varchar(255),
+  in_host_ids bigint[],
+  in_built timestamp with time zone,
+  in_bedrooms int,
+  in_bathrooms int,
+  in_tags varchar[],
+  in_amenities varchar[],
+  in_photo_ids bigint[]
+)
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone, updated_at timestamp with time zone)
+LANGUAGE plpgsql
+AS $$
+  DECLARE
+    v_static_id bigint;
+    v_created_at timestamptz := now(); -- define a common created_at timestamp to use
+    v_matching_version_id bigint;
+    v_effective_at timestamptz := v_created_at; -- i.e., effective "now"
+    v_current_version_id_recorded_in_pointer_table bigint;
+    v_effective_at_of_current_version_recorded_in_pointer_table timestamptz;
+    v_array_access_index int;
+  BEGIN
+    -- find or create the static record
+    SELECT s.id INTO v_static_id -- try to find the id of the static record
+    FROM home AS s
+    WHERE 1=1
+      AND (s.name = in_name)
+      AND (s.host_ids_hash = digest(array_to_string(in_host_ids, ',', '__NULL__'), 'sha256'));
+    IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+      INSERT INTO home AS s
+        (uuid, created_at, name, host_ids_hash, built, bedrooms, bathrooms, tags)
+        VALUES
+        (uuid_generate_v4(), v_created_at, in_name, digest(array_to_string(in_host_ids, ',', '__NULL__'), 'sha256'), in_built, in_bedrooms, in_bathrooms, in_tags)
+        RETURNING s.id INTO v_static_id; 
+
+      -- insert a row into the mapping table for each value in array in_host_ids
+      FOR v_array_access_index IN 1 .. coalesce(array_upper(in_host_ids, 1), 0)
+      LOOP
+        INSERT INTO home_to_host
+          (created_at, home_id, host_id, array_order_index)
+          VALUES
+          (v_created_at, v_static_id, in_host_ids[v_array_access_index], v_array_access_index);
+      END LOOP;
+    END IF;
+
+    -- insert new version record to ensure that latest dynamic data is effective, if dynamic data has changed
+    SELECT v.id INTO v_matching_version_id -- see if latest version record already has this data
+    FROM home_version AS v
+    WHERE 1=1
+      AND v.home_id = v_static_id -- for this entity
+      AND v.effective_at = ( -- and is the version record effective at the time of "v_effective_at"
+        SELECT MAX(ssv.effective_at)
+        FROM home_version ssv
+        WHERE ssv.home_id = v_static_id
+          AND ssv.effective_at <= v_effective_at
+      )
+      AND (v.amenities IS NOT DISTINCT FROM in_amenities)
+      AND (v.photo_ids_hash = digest(array_to_string(in_photo_ids, ',', '__NULL__'), 'sha256'));
+    IF (v_matching_version_id IS NULL) THEN -- if the latest version record does not match, insert a new version record
+      INSERT INTO home_version AS v
+        (home_id, created_at, effective_at, amenities, photo_ids_hash)
+        VALUES
+        (v_static_id, v_created_at, v_effective_at, in_amenities, digest(array_to_string(in_photo_ids, ',', '__NULL__'), 'sha256'))
+        RETURNING v.id INTO v_matching_version_id; 
+
+      -- insert a row into the mapping table for each value in array in_photo_ids
+      FOR v_array_access_index IN 1 .. coalesce(array_upper(in_photo_ids, 1), 0)
+      LOOP
+        INSERT INTO home_version_to_photo
+          (created_at, home_version_id, photo_id, array_order_index)
+          VALUES
+          (v_created_at, v_matching_version_id, in_photo_ids[v_array_access_index], v_array_access_index);
+      END LOOP;
+    END IF;
+
+    -- update the current version pointer table, if it is not already up to date
+    SELECT home_version_id INTO v_current_version_id_recorded_in_pointer_table  -- get the version recorded as current for the entity, if any
+    FROM home_cvp
+    WHERE 1=1
+      AND home_id = v_static_id; -- for this entity
+    IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
+      INSERT INTO home_cvp
+        (updated_at, home_id, home_version_id)
+        VALUES
+        (v_created_at, v_static_id, v_matching_version_id);
+      v_current_version_id_recorded_in_pointer_table := v_matching_version_id; -- and record that the current version recorded is now the real current version
+    END IF;
+    IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
+      SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
+      FROM home_version AS v
+      WHERE v.id = v_current_version_id_recorded_in_pointer_table;
+      IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is "newer" than the currently cached version
+        UPDATE home_cvp
+        SET
+          home_version_id = v_matching_version_id,
+          updated_at = v_created_at
+        WHERE
+          home_id = v_static_id;
+      END IF;
+    END IF;
+
+    -- return the db generated values
+    RETURN QUERY
+      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at, v.created_at AS updated_at
+      FROM home s
+      JOIN home_version v ON v.id = v_matching_version_id
+      WHERE s.id = v_static_id;
+  END;
+$$
+"
+`;
+
+exports[`generate command should be able to generate schema for valid entities declaration: home version table (native enum array + membership check) 1`] = `
+"CREATE TABLE home_version (
+  id bigserial NOT NULL,
+  home_id bigint NOT NULL,
+  effective_at timestamp with time zone NOT NULL DEFAULT now(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  amenities varchar[] NOT NULL,
+  photo_ids_hash bytea NOT NULL,
+  CONSTRAINT home_version_pk PRIMARY KEY (id),
+  CONSTRAINT home_version_ux1 UNIQUE (home_id, effective_at, created_at),
+  CONSTRAINT home_version_fk0 FOREIGN KEY (home_id) REFERENCES home (id),
+  CONSTRAINT home_version_amenities_check CHECK (amenities <@ ARRAY['POOL', 'WIFI', 'PARKING']::varchar[])
+);
+CREATE INDEX home_version_fk0_ix ON home_version USING btree (home_id);
+"
+`;
+
+exports[`generate command should be able to generate schema for valid entities declaration: home view (native arrays selected through) 1`] = `
+"CREATE OR REPLACE VIEW view_home_current AS
+  SELECT
+    s.id,
+    s.uuid,
+    s.name,
+    (
+      SELECT coalesce(array_agg(home_to_host.host_id ORDER BY home_to_host.array_order_index), array[]::bigint[]) as array_agg
+      FROM home_to_host WHERE home_to_host.home_id = s.id
+    ) as host_ids,
+    s.built,
+    s.bedrooms,
+    s.bathrooms,
+    coalesce(s.tags, array[]::varchar[]) as tags,
+    coalesce(v.amenities, array[]::varchar[]) as amenities,
+    (
+      SELECT coalesce(array_agg(home_version_to_photo.photo_id ORDER BY home_version_to_photo.array_order_index), array[]::bigint[]) as array_agg
+      FROM home_version_to_photo WHERE home_version_to_photo.home_version_id = v.id
+    ) as photo_ids,
+    s.created_at,
+    v.effective_at,
+    v.created_at as updated_at
+  FROM home s
+  JOIN home_cvp cvp ON s.id = cvp.home_id
+  JOIN home_version v ON v.id = cvp.home_version_id;
+"
+`;
+
+exports[`generate command should display help for the generate command: generate --help output 1`] = `
+"Usage: sql-schema-generator generate [options]
+
+generate sql schema for immutable and mutable entities: tables, upsert method,
+and views
+
+Options:
+  -c, --config <path>  path to config file (default: "codegen.sql.schema.yml")
+  -h, --help           display help for command
+"
+`;
+
+exports[`generate command should reject an invalid entities declaration with a helpful error: generate invalid declaration error 1`] = `
+"UserInputError: User input error. prop.ARRAY_OF does not support the serial pseudo-type 'bigserial' as an array element.
+
+For potential solutions, consider the following:
+- serial types are not real postgres types; they are shorthand for an integer column with a sequence default, and postgres has no serial array type.
+- use a concrete integer element instead (e.g. prop.BIGINT()), or a reference/uuid element for element-level identity."
+`;
+
+exports[`parcel native-array full round-trip (literal CLI output applied to postgres) should generate a native-array schema whose literal output applies and round-trips through upsert + view against real postgres: parcel round-trip view instance (native arrays through literal CLI output) 1`] = `
+{
+  "apn": "__PARCEL_ROUNDTRIP__",
+  "land_use": [
+    "RESIDENTIAL",
+  ],
+  "lot_dimensions": [
+    50.5,
+    120.25,
+  ],
+  "tags": [
+    "residential",
+    "corner-lot",
+  ],
+}
+`;
+
+exports[`parcel native-array full round-trip (literal CLI output applied to postgres) should generate a native-array schema whose literal output applies and round-trips through upsert + view against real postgres: parcel version rows across an enum array change (literal CLI output) 1`] = `
+[
+  {
+    "land_use": [
+      "RESIDENTIAL",
+    ],
+  },
+  {
+    "land_use": [
+      "COMMERCIAL",
+    ],
+  },
+]
+`;

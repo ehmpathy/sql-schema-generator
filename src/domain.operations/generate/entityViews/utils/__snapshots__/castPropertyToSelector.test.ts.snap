@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`castPropertyToSelector should collapse a join-table (reference) array via array_agg 1`] = `
+"(
+  SELECT coalesce(array_agg(sensor_to_user.user_id ORDER BY sensor_to_user.array_order_index), array[]::bigint[]) as array_agg
+  FROM sensor_to_user WHERE sensor_to_user.sensor_id = s.id
+) as owner_ids"
+`;

@@ -26,6 +26,10 @@ export const generateEntityCurrentView = ({ entity }: { entity: Entity }) => {
   const updateablePropertyNames = Object.entries(entity.properties)
     .filter((entry) => !!entry[1].updatable)
     .map((entry) => entry[0]);
+  // any array property forces a view, native or join-table:
+  //   - a join-table array needs the view to collapse the join table via array_agg
+  //   - a native array needs the view to coalesce a NULL cell to an empty array (`[]`),
+  //     so consumers see `[]` not NULL for an unset list (per the vision's null->[] contract)
   const arrayPropertyNames = Object.entries(entity.properties)
     .filter((entry) => !!entry[1].array)
     .map((entry) => entry[0]);

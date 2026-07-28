@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`castCheckToArrayElementMembership should throw for a custom / scalar check that does not fit the enum shape 1`] = `
+"User input error. a native array column only supports the ENUM check shape; a custom or scalar check cannot be applied to a native array column.
+
+For potential solutions, consider the following:
+- a scalar check (e.g. a regex or inequality) is operator-invalid against an array column and would fail only at apply time.
+- drop the custom check, or express the constraint via prop.ENUM([...]) for element-membership.
+"
+`;

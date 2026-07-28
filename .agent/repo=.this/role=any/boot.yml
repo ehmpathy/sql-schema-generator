@@ -1,4 +1,7 @@
 always:
+  briefs:
+    say:
+      - briefs/practices/behavior.verification/rule.require.acceptance-full-roundtrip.md
   skills:
     say:
       - skills/use.testdb.sh

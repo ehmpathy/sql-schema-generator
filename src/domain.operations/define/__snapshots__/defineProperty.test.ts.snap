@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`generateProperty ARRAY_OF should throw at declare time for a custom (non-enum) check element 1`] = `
+"User input error. a native array column only supports the ENUM check shape; a custom or scalar check cannot be applied to a native array column.
+
+For potential solutions, consider the following:
+- a scalar check (e.g. a regex or inequality) is operator-invalid against an array column and would fail only at apply time.
+- drop the custom check, or express the constraint via prop.ENUM([...]) for element-membership.
+"
+`;
+
+exports[`generateProperty ARRAY_OF should throw at declare time for a serial pseudo-type element 1`] = `
+"User input error. prop.ARRAY_OF does not support the serial pseudo-type 'bigserial' as an array element.
+
+For potential solutions, consider the following:
+- serial types are not real postgres types; they are shorthand for an integer column with a sequence default, and postgres has no serial array type.
+- use a concrete integer element instead (e.g. prop.BIGINT()), or a reference/uuid element for element-level identity.
+"
+`;
+
+exports[`generateProperty ARRAY_OF should throw at declare time for an already-arrayed (nested) element 1`] = `
+"User input error. prop.ARRAY_OF cannot be applied to an already-arrayed property (nested arrays are not supported).
+
+For potential solutions, consider the following:
+- apply prop.ARRAY_OF exactly once, to a scalar element (e.g. prop.ARRAY_OF(prop.VARCHAR())).
+"
+`;

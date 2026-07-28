@@ -1,5 +1,6 @@
 import type { Entity, Property } from '@src/domain.objects';
 import { pickKeysFromObject } from '@src/domain.operations/generate/utils/pickKeysFromObject';
+import { isJoinTableArrayProperty } from '@src/domain.operations/utils/isJoinTableArrayProperty';
 
 import { generateMappingTablesForArrayProperties } from './generateMappingTablesForArrayProperties';
 import { generateTableForCurrentVersionPointer } from './generateTableForCurrentVersionPointer';
@@ -16,9 +17,10 @@ export const generateEntityTables = ({ entity }: { entity: Entity }) => {
     object: entity.properties,
     keep: (property: Property) => !!property.updatable,
   });
+  // only join-table arrays need a mapping table; native arrays live inline as a column
   const arrayProps = pickKeysFromObject({
     object: entity.properties,
-    keep: (property: Property) => !!property.array,
+    keep: (property: Property) => isJoinTableArrayProperty({ property }),
   });
 
   // 2. validate the props

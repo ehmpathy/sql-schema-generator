@@ -2,6 +2,7 @@ import { type Properties, Property } from '@src/domain.objects';
 import * as prop from '@src/domain.operations/define/defineProperty';
 import { castPropertyToColumnName } from '@src/domain.operations/generate/utils/castPropertyToColumnName';
 import { pickKeysFromObject } from '@src/domain.operations/generate/utils/pickKeysFromObject';
+import { isJoinTableArrayProperty } from '@src/domain.operations/utils/isJoinTableArrayProperty';
 
 import { generateTable } from './generateTable';
 import { castArrayPropertiesToValuesHashProperties } from './utils/castArrayPropertiesToValuesHashProperties';
@@ -15,14 +16,16 @@ export const generateTableForStaticProperties = ({
   properties: Properties;
   unique: string[];
 }) => {
-  // 0. split singular and array properties
+  // 0. split singular and join-table-array properties
+  //    - native arrays flow through as real array columns, so they count as "singular" here
+  //    - only join-table arrays are swapped for a values-hash column
   const staticSingularProperties = pickKeysFromObject({
     object: properties,
-    keep: (property: Property) => !property.array,
+    keep: (property: Property) => !isJoinTableArrayProperty({ property }),
   });
   const staticArrayProperties = pickKeysFromObject({
     object: properties,
-    keep: (property: Property) => !!property.array,
+    keep: (property: Property) => isJoinTableArrayProperty({ property }),
   });
 
   // 1. add metadata properties

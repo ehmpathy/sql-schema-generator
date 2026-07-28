@@ -1,4 +1,5 @@
 import type { Entity } from '@src/domain.objects';
+import { isJoinTableArrayProperty } from '@src/domain.operations/utils/isJoinTableArrayProperty';
 
 export const defineDeclarations = ({ entity }: { entity: Entity }) => {
   const declarations = [];
@@ -22,11 +23,12 @@ export const defineDeclarations = ({ entity }: { entity: Entity }) => {
     );
   }
 
-  // add the mapping table loop declarations, if needed
-  const hasArrayProperties = Object.values(entity.properties).some(
-    (property) => !!property.array,
+  // add the join-table loop declarations, if needed
+  //   - only join-table arrays loop per element; native arrays are written as one value
+  const hasJoinTableArrayProperties = Object.values(entity.properties).some(
+    (property) => isJoinTableArrayProperty({ property }),
   );
-  if (hasArrayProperties) {
+  if (hasJoinTableArrayProperties) {
     declarations.push(
       'v_array_access_index int;', // tracks the index of the array that we're at
     );

@@ -1,5 +1,7 @@
 import type { Property } from '@src/domain.objects';
 import { defineMappingTableKeysForEntityProperty } from '@src/domain.operations/generate/utils/defineMappingTableKeysForEntityProperty';
+import { extractDataTypeDefinitionFromProperty } from '@src/domain.operations/generate/utils/extractDataTypeDefinitionFromProperty';
+import { isNativeArrayProperty } from '@src/domain.operations/utils/isNativeArrayProperty';
 
 export const castPropertyToSelector = ({
   entityName,
@@ -10,7 +12,19 @@ export const castPropertyToSelector = ({
   name: string;
   definition: Property;
 }) => {
-  // if property is an array, the selector should CONCAT_WS from the mapping table
+  // a native array is a real column - but coalesce a null to an empty array, so the DAO
+  //   sees one shape ([], never null) across both native and join-table storage
+  //   (this matches the join-table convention, whose array_agg also coalesces to array[])
+  if (isNativeArrayProperty({ property: definition })) {
+    const arrayTableAlias = definition.updatable ? 'v' : 's';
+    const arrayDataType = extractDataTypeDefinitionFromProperty({
+      property: definition,
+    });
+    return `coalesce(${arrayTableAlias}.${name}, array[]::${arrayDataType}) as ${name}`;
+  }
+
+  // a join-table array needs the array_agg collapse handled here
+  //   (native arrays already returned above, so any array reaching here is join-table)
   if (definition.array) {
     const mappingTableKeys = defineMappingTableKeysForEntityProperty({
       entityName,

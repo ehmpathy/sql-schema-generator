@@ -103,6 +103,40 @@ describe('generateTableConstraint', () => {
     });
     expect(sql).not.toMatch(/^\s*,?$/m); // no lines should be empty or only contain spaces and a comma
   });
+  it('should recast an enum check spread onto a native array after ARRAY_OF (order-independent)', () => {
+    // the idiomatic `{ ...ARRAY_OF(x), check }` order attaches the check AFTER ARRAY_OF returned,
+    // so the declare-time recast never saw it. the emission-site guard must recast it anyway.
+    const statusesProperty = new Property({
+      ...prop.ARRAY_OF(prop.VARCHAR()),
+      check: "($COLUMN_NAME IN ('ACTIVE', 'OFFLINE'))",
+    });
+    const sql = generateTable({
+      tableName: 'sensor',
+      properties: { statuses: statusesProperty },
+      unique: ['statuses'],
+    });
+    expect(sql).toContain(
+      "CHECK (statuses <@ ARRAY['ACTIVE', 'OFFLINE']::varchar[])",
+    );
+  });
+  it('should throw at emission for a scalar check spread onto a native array (bypass guard)', () => {
+    // a scalar check spread on after ARRAY_OF would emit operator-invalid DDL (`varchar[] ~ ...`)
+    // that fails only at apply time; the emission-site guard must reject it fail-fast at generate.
+    const codesProperty = new Property({
+      ...prop.ARRAY_OF(prop.VARCHAR()),
+      check: "($COLUMN_NAME ~ '^SN')",
+    });
+    try {
+      generateTable({
+        tableName: 'sensor',
+        properties: { codes: codesProperty },
+        unique: ['codes'],
+      });
+      throw new Error('should not reach here');
+    } catch (error) {
+      expect(error.message).toContain('only supports the ENUM check shape');
+    }
+  });
   it('should throw an error if no unique key columns are specified', () => {
     try {
       generateTable({
