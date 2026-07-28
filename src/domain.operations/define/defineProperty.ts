@@ -1,7 +1,6 @@
 /*
   purpose: provide convenient tools to define types
 */
-import { serialize } from 'domain-objects';
 import { isAFunction } from 'type-fns';
 
 import {
@@ -10,6 +9,8 @@ import {
   type Entity,
   Property,
 } from '@src/domain.objects';
+import { castCheckToArrayElementMembership } from '@src/domain.operations/utils/castCheckToArrayElementMembership';
+import { isNativeArrayProperty } from '@src/domain.operations/utils/isNativeArrayProperty';
 import { UserInputError } from '@src/utils/errors/UserInputError';
 
 /**
@@ -358,16 +359,78 @@ export const REFERENCES_VERSION = (
 };
 
 /**
+ * the serial pseudo-types, which are not valid array element types in postgres.
+ *
+ * serial/smallserial/bigserial are not real types; they are shorthand for an integer column
+ * with an attached sequence default. postgres has no `serial[]` array type, so an array of a
+ * serial element cannot produce valid DDL. we reject it at declare time (fail-fast) rather
+ * than emit invalid DDL that only fails at `sql-schema-control apply` time.
+ */
+const serialTypeNames = [
+  DataTypeName.SMALLSERIAL,
+  DataTypeName.SERIAL,
+  DataTypeName.BIGSERIAL,
+];
+
+/**
  * ARRAY_OF is an alias which sets the array flag to true on a property.
  *
- * This flag tells the generator to create a mapping table and to expect to write and read an array of these values. It results in the addition of a BINARY(32) column to the base table on which uniqueness can be defined.
+ * The storage model depends on the element kind:
+ * - REFERENCEs and UUIDs are stored via a join table, since they represent element-level
+ *   references (postgres cannot foreign-key an array element). This results in the addition
+ *   of a BINARY(32) hash column to the base table on which uniqueness can be defined.
+ * - Primitives and ENUMs are stored as a native postgres array column (e.g. `text[]`,
+ *   `numeric[]`, `<enum>[]`) directly on the base (and version) table. This suits small,
+ *   read-mostly lists. The supported primitive element types are: SMALLINT, INT, BIGINT,
+ *   NUMERIC, REAL, DOUBLE_PRECISION, CHAR, VARCHAR, TEXT, BYTEA, TIMESTAMP, TIMESTAMPTZ,
+ *   TIME, DATE, and BOOLEAN.
  *
- * NOTE: only arrays of REFERENCEs or UUIDs are supported.
+ * NOT supported as array elements: the serial pseudo-types (SMALLSERIAL, SERIAL, BIGSERIAL),
+ * which are rejected at declare time since postgres has no serial array type.
+ *
+ * NOTE: reserve native arrays for small, read-mostly lists; element-level mutation rewrites
+ * the whole cell, and native arrays cannot enforce element-level foreign keys or uniqueness.
  */
 export const ARRAY_OF = (property: Property) => {
-  const isArrayOfReferences = !!property.references;
-  const isArrayOfUuids = serialize(property) === serialize(UUID());
-  if (!isArrayOfReferences && !isArrayOfUuids)
-    throw new Error('only arrays of REFERENCEs or UUIDs are supported');
-  return new Property({ ...property, array: true });
+  // guard: reject a nested array (postgres has no multi-dimensional support here). without this,
+  // ARRAY_OF(ARRAY_OF(x)) would silently no-op the second wrap into a single-dimension array.
+  if (property.array)
+    throw new UserInputError({
+      reason:
+        'prop.ARRAY_OF cannot be applied to an already-arrayed property (nested arrays are not supported)',
+      potentialSolution: [
+        '',
+        '- apply prop.ARRAY_OF exactly once, to a scalar element (e.g. prop.ARRAY_OF(prop.VARCHAR())).',
+      ].join('\n'),
+    });
+
+  // flip the array flag; the arrayed candidate then decides its own storage model
+  const arrayProperty = new Property({ ...property, array: true });
+
+  // a reference or uuid element stays on the join-table path, unchanged
+  //   - delegate to isNativeArrayProperty so there is one classifier, not two
+  if (!isNativeArrayProperty({ property: arrayProperty })) return arrayProperty;
+
+  // guard: reject the serial pseudo-types, which have no valid postgres array form
+  if (serialTypeNames.includes(property.type.name))
+    throw new UserInputError({
+      reason: `prop.ARRAY_OF does not support the serial pseudo-type '${property.type.name}' as an array element`,
+      potentialSolution: [
+        '',
+        '- serial types are not real postgres types; they are shorthand for an integer column with a sequence default, and postgres has no serial array type.',
+        '- use a concrete integer element instead (e.g. prop.BIGINT()), or a reference/uuid element for element-level identity.',
+      ].join('\n'),
+    });
+
+  // otherwise it is a primitive or enum element -> native array column
+  //   - an enum carries a scalar `IN (...)` check; recast it to element-membership for the array.
+  //     this is early feedback for the baked-in call order; the authoritative guard runs again
+  //     at DDL emission (generateTable) so the post-hoc `{ ...ARRAY_OF(x), check }` order is
+  //     caught too. the recast is idempotent, so running it in both places is safe.
+  return new Property({
+    ...arrayProperty,
+    check: property.check
+      ? castCheckToArrayElementMembership({ check: property.check })
+      : property.check,
+  });
 };

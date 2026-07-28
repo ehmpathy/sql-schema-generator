@@ -51,19 +51,19 @@ describe('generateTableForStaticProperties', () => {
       }),
     );
   });
-  it('should convert array properties into "hash" properties', async () => {
+  it('should convert join-table array properties into "hash" properties', async () => {
     /*
       purpose:
-        having the data hash will allow us to quickly and easily query to see if the full array is exactly equal to another row's full array
+        a data hash lets us quickly and easily query to see if the full array is exactly equal to another row's full array
 
       example:
-        if we need to be unique on the property and it happens to be an array
+        if we need to be unique on the property and it happens to be a join-table (reference/uuid) array
     */
     await generateTableForStaticProperties({
       entityName: '__ENTITY_NAME__',
       unique: ['uniqueProp'],
       properties: {
-        testProp: { type: 'TEST_PROP', array: true } as any,
+        testProp: prop.ARRAY_OF(prop.UUID()), // a uuid array is a join-table array -> hashed
         uniqueProp: '__TEST_PROP__' as any,
       },
     });
@@ -76,11 +76,31 @@ describe('generateTableForStaticProperties', () => {
       }),
     );
   });
-  it('should be able to be unique on an array property', async () => {
+  it('should keep native array properties as real columns, not hash properties', async () => {
+    /*
+      purpose:
+        a native primitive/enum array is stored inline as a real array column (e.g. text[]),
+        so it must flow through under its own name, NOT be swapped for a values-hash column
+    */
+    const nativeArrayProp = prop.ARRAY_OF(prop.VARCHAR());
+    await generateTableForStaticProperties({
+      entityName: '__ENTITY_NAME__',
+      unique: ['uniqueProp'],
+      properties: {
+        testProp: nativeArrayProp,
+        uniqueProp: '__TEST_PROP__' as any,
+      },
+    });
+    expect(generateTableMock).toHaveBeenCalledTimes(1);
+    const passedProperties = generateTableMock.mock.calls[0]![0].properties;
+    expect(passedProperties.testProp).toEqual(nativeArrayProp); // passed through as-is
+    expect(passedProperties.testProp_hash).toEqual(undefined); // no hash column
+  });
+  it('should be able to be unique on a join-table array property', async () => {
     await generateTableForStaticProperties({
       entityName: '__ENTITY_NAME__',
       unique: ['testProp'],
-      properties: { testProp: { type: 'TEST_PROP', array: true } as any },
+      properties: { testProp: prop.ARRAY_OF(prop.UUID()) },
     });
     expect(generateTableMock).toHaveBeenCalledTimes(1);
     expect(generateTableMock).toHaveBeenCalledWith(

@@ -1,6 +1,7 @@
 import type { Entity } from '@src/domain.objects';
 import { castPropertyToColumnName } from '@src/domain.operations/generate/utils/castPropertyToColumnName';
 import { pickKeysFromObject } from '@src/domain.operations/generate/utils/pickKeysFromObject';
+import { isJoinTableArrayProperty } from '@src/domain.operations/utils/isJoinTableArrayProperty';
 
 import { defineMappingTableInsertsForArrayProperty } from './defineMappingTableInsertsForArrayProperty';
 import { castPropertyToTableColumnValueReference } from './utils/castPropertyToTableColumnValueReference';
@@ -41,10 +42,12 @@ export const defineInsertVersionIfDynamicDataChangedLogic = ({
       }),
   );
 
-  // define the array properties, for which we'll need to insert into a mapping table
+  // define the join-table array properties, for which we insert into a join table per element
+  //   - native arrays are written inline as a column value, so they are excluded here
   const updatableArrayProperties = pickKeysFromObject({
     object: entity.properties,
-    keep: (property) => !!property.array && !!property.updatable,
+    keep: (property) =>
+      !!property.updatable && isJoinTableArrayProperty({ property }),
   });
   const mappingTableInserts = Object.entries(updatableArrayProperties).map(
     ([name, definition]) =>

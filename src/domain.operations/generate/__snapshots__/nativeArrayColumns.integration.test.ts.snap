@@ -1,0 +1,429 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`native array columns broad primitive element types should round-trip an explicit empty array as an empty array: roundtrip view instance (broad primitive types, all empty) 1`] = `
+{
+  "bigs": [],
+  "blobs": [],
+  "codes": [],
+  "days": [],
+  "doubles": [],
+  "ints": [],
+  "moments": [],
+  "notes": [],
+  "prices": [],
+  "reals": [],
+  "serial_number": "__PROBE_EMPTY__",
+  "shorts": [],
+  "times": [],
+}
+`;
+
+exports[`native array columns broad primitive element types should round-trip the broad primitive array types through the view: roundtrip view instance (broad primitive element types) 1`] = `
+{
+  "bigs": [
+    "1000",
+    "2000",
+  ],
+  "blobs": [
+    "0102",
+    "0304",
+  ],
+  "codes": [
+    "abc",
+    "xyz",
+  ],
+  "days": [
+    "2026-01-01T00:00:00.000Z",
+    "2026-02-01T00:00:00.000Z",
+  ],
+  "doubles": [
+    3.25,
+    4.75,
+  ],
+  "ints": [
+    10,
+    20,
+  ],
+  "moments": [
+    "2026-01-01T00:00:00.000Z",
+    "2026-02-01T00:00:00.000Z",
+  ],
+  "notes": [
+    "hello",
+    "world",
+  ],
+  "prices": [
+    10.25,
+    20.5,
+  ],
+  "reals": [
+    1.5,
+    2.5,
+  ],
+  "serial_number": "__PROBE_ROUNDTRIP__",
+  "shorts": [
+    1,
+    2,
+  ],
+  "times": [
+    "14:30:00",
+    "09:00:00",
+  ],
+}
+`;
+
+exports[`native array columns entity mixing native and join-table arrays should round-trip both arrays through upsert and the view without collision: roundtrip view instance (native array + join-table array) 1`] = `
+{
+  "labels": [
+    "alpha",
+    "beta",
+  ],
+  "part_uuids_count": 2,
+}
+`;
+
+exports[`native array columns nullable updatable native array (CVP null<->value transition) should bump the version across value<->null transitions, but not on a no-op: version rows across value<->null transitions (nullable native array) 1`] = `
+[
+  {
+    "maybe_tags": [
+      "a",
+      "b",
+    ],
+  },
+  {
+    "maybe_tags": null,
+  },
+  {
+    "maybe_tags": [
+      "a",
+      "b",
+    ],
+  },
+]
+`;
+
+exports[`native array columns nullable updatable native array (CVP null<->value transition) should not bump the version when an unchanged array holds a NULL element: version row holding a NULL array element (unchanged, no bump) 1`] = `
+[
+  {
+    "maybe_tags": [
+      "a",
+      null,
+    ],
+  },
+]
+`;
+
+exports[`native array columns should accept an explicit empty enum array through the element-membership check: roundtrip view instance (all empty arrays) 1`] = `
+{
+  "flags": [],
+  "labels": [],
+  "moments_at": [],
+  "readings": [],
+  "serial_number": "__SERIAL_EMPTY_ENUM__",
+  "statuses": [],
+  "tags": [],
+}
+`;
+
+exports[`native array columns should bump the version exactly once for a change in each updatable array element type: version rows across a change in each updatable native array element type 1`] = `
+[
+  {
+    "flags": [
+      false,
+    ],
+    "moments_at": [
+      "2026-04-01T00:00:00.000Z",
+    ],
+    "readings": [
+      5,
+    ],
+    "statuses": [
+      "ACTIVE",
+    ],
+    "tags": [
+      "before",
+    ],
+  },
+  {
+    "flags": [
+      false,
+    ],
+    "moments_at": [
+      "2026-04-01T00:00:00.000Z",
+    ],
+    "readings": [
+      5,
+    ],
+    "statuses": [
+      "ACTIVE",
+    ],
+    "tags": [
+      "after",
+    ],
+  },
+  {
+    "flags": [
+      false,
+    ],
+    "moments_at": [
+      "2026-04-01T00:00:00.000Z",
+    ],
+    "readings": [
+      6,
+    ],
+    "statuses": [
+      "ACTIVE",
+    ],
+    "tags": [
+      "after",
+    ],
+  },
+  {
+    "flags": [
+      true,
+    ],
+    "moments_at": [
+      "2026-04-01T00:00:00.000Z",
+    ],
+    "readings": [
+      6,
+    ],
+    "statuses": [
+      "ACTIVE",
+    ],
+    "tags": [
+      "after",
+    ],
+  },
+  {
+    "flags": [
+      true,
+    ],
+    "moments_at": [
+      "2026-05-01T00:00:00.000Z",
+    ],
+    "readings": [
+      6,
+    ],
+    "statuses": [
+      "ACTIVE",
+    ],
+    "tags": [
+      "after",
+    ],
+  },
+  {
+    "flags": [
+      true,
+    ],
+    "moments_at": [
+      "2026-05-01T00:00:00.000Z",
+    ],
+    "readings": [
+      6,
+    ],
+    "statuses": [
+      "FAULTED",
+    ],
+    "tags": [
+      "after",
+    ],
+  },
+]
+`;
+
+exports[`native array columns should reject an enum array element outside the allowed set 1`] = `"new row for relation "sensor_version" violates check constraint "sensor_version_statuses_check""`;
+
+exports[`native array columns should reject an enum array that holds a NULL element: enum array NULL-element rejection error 1`] = `"new row for relation "sensor_version" violates check constraint "sensor_version_statuses_check""`;
+
+exports[`native array columns should round-trip native arrays through upsert and the hydrated view: roundtrip view instance (all native array element types) 1`] = `
+{
+  "flags": [
+    true,
+    false,
+  ],
+  "labels": [
+    "alpha",
+    "beta",
+  ],
+  "moments_at": [
+    "2026-01-01T00:00:00.000Z",
+    "2026-02-01T00:00:00.000Z",
+  ],
+  "readings": [
+    1,
+    2,
+  ],
+  "serial_number": "__SERIAL_ROUNDTRIP__",
+  "statuses": [
+    "ACTIVE",
+    "FAULTED",
+  ],
+  "tags": [
+    "a",
+    "b",
+  ],
+}
+`;
+
+exports[`native array columns should snapshot the generated DDL, upsert function, and view for eyeball review 1`] = `
+"CREATE TABLE sensor (
+  id bigserial NOT NULL,
+  uuid uuid NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  serial_number varchar NOT NULL,
+  labels varchar[] NOT NULL,
+  CONSTRAINT sensor_pk PRIMARY KEY (id),
+  CONSTRAINT sensor_ux1 UNIQUE (serial_number)
+);"
+`;
+
+exports[`native array columns should snapshot the generated DDL, upsert function, and view for eyeball review 2`] = `
+"CREATE TABLE sensor_version (
+  id bigserial NOT NULL,
+  sensor_id bigint NOT NULL,
+  effective_at timestamp with time zone NOT NULL DEFAULT now(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  tags varchar[] NOT NULL,
+  readings numeric[] NOT NULL,
+  flags boolean[] NOT NULL,
+  moments_at timestamp with time zone[] NOT NULL,
+  statuses varchar[] NOT NULL,
+  CONSTRAINT sensor_version_pk PRIMARY KEY (id),
+  CONSTRAINT sensor_version_ux1 UNIQUE (sensor_id, effective_at, created_at),
+  CONSTRAINT sensor_version_fk0 FOREIGN KEY (sensor_id) REFERENCES sensor (id),
+  CONSTRAINT sensor_version_statuses_check CHECK (statuses <@ ARRAY['ACTIVE', 'FAULTED', 'OFFLINE']::varchar[])
+);
+CREATE INDEX sensor_version_fk0_ix ON sensor_version USING btree (sensor_id);"
+`;
+
+exports[`native array columns should snapshot the generated DDL, upsert function, and view for eyeball review 3`] = `
+"CREATE OR REPLACE FUNCTION upsert_sensor(
+  in_serial_number varchar,
+  in_labels varchar[],
+  in_tags varchar[],
+  in_readings numeric[],
+  in_flags boolean[],
+  in_moments_at timestamp with time zone[],
+  in_statuses varchar[]
+)
+RETURNS TABLE(id bigint, uuid uuid, created_at timestamp with time zone, effective_at timestamp with time zone, updated_at timestamp with time zone)
+LANGUAGE plpgsql
+AS $$
+  DECLARE
+    v_static_id bigint;
+    v_created_at timestamptz := now(); -- define a common created_at timestamp to use
+    v_matching_version_id bigint;
+    v_effective_at timestamptz := v_created_at; -- i.e., effective "now"
+    v_current_version_id_recorded_in_pointer_table bigint;
+    v_effective_at_of_current_version_recorded_in_pointer_table timestamptz;
+  BEGIN
+    -- find or create the static record
+    SELECT s.id INTO v_static_id -- try to find the id of the static record
+    FROM sensor AS s
+    WHERE 1=1
+      AND (s.serial_number = in_serial_number);
+    IF (v_static_id IS NULL) THEN -- if static record could not be already found, create the static record
+      INSERT INTO sensor AS s
+        (uuid, created_at, serial_number, labels)
+        VALUES
+        (uuid_generate_v4(), v_created_at, in_serial_number, in_labels)
+        RETURNING s.id INTO v_static_id; 
+    END IF;
+
+    -- insert new version record to ensure that latest dynamic data is effective, if dynamic data has changed
+    SELECT v.id INTO v_matching_version_id -- see if latest version record already has this data
+    FROM sensor_version AS v
+    WHERE 1=1
+      AND v.sensor_id = v_static_id -- for this entity
+      AND v.effective_at = ( -- and is the version record effective at the time of "v_effective_at"
+        SELECT MAX(ssv.effective_at)
+        FROM sensor_version ssv
+        WHERE ssv.sensor_id = v_static_id
+          AND ssv.effective_at <= v_effective_at
+      )
+      AND (v.tags IS NOT DISTINCT FROM in_tags)
+      AND (v.readings IS NOT DISTINCT FROM in_readings)
+      AND (v.flags IS NOT DISTINCT FROM in_flags)
+      AND (v.moments_at IS NOT DISTINCT FROM in_moments_at)
+      AND (v.statuses IS NOT DISTINCT FROM in_statuses);
+    IF (v_matching_version_id IS NULL) THEN -- if the latest version record does not match, insert a new version record
+      INSERT INTO sensor_version AS v
+        (sensor_id, created_at, effective_at, tags, readings, flags, moments_at, statuses)
+        VALUES
+        (v_static_id, v_created_at, v_effective_at, in_tags, in_readings, in_flags, in_moments_at, in_statuses)
+        RETURNING v.id INTO v_matching_version_id; 
+    END IF;
+
+    -- update the current version pointer table, if it is not already up to date
+    SELECT sensor_version_id INTO v_current_version_id_recorded_in_pointer_table  -- get the version recorded as current for the entity, if any
+    FROM sensor_cvp
+    WHERE 1=1
+      AND sensor_id = v_static_id; -- for this entity
+    IF (v_current_version_id_recorded_in_pointer_table IS null) THEN -- if its null, then just insert it, since it isn't already defined
+      INSERT INTO sensor_cvp
+        (updated_at, sensor_id, sensor_version_id)
+        VALUES
+        (v_created_at, v_static_id, v_matching_version_id);
+      v_current_version_id_recorded_in_pointer_table := v_matching_version_id; -- and record that the current version recorded is now the real current version
+    END IF;
+    IF (v_current_version_id_recorded_in_pointer_table <> v_matching_version_id) THEN -- if they are not exactly equal, try to update the current version recorded in the pointer table
+      SELECT v.effective_at INTO v_effective_at_of_current_version_recorded_in_pointer_table  -- grab the effective_at value of the recorded current version
+      FROM sensor_version AS v
+      WHERE v.id = v_current_version_id_recorded_in_pointer_table;
+      IF (v_effective_at_of_current_version_recorded_in_pointer_table < v_effective_at) THEN -- update cached current version only if the version we just inserted is "newer" than the currently cached version
+        UPDATE sensor_cvp
+        SET
+          sensor_version_id = v_matching_version_id,
+          updated_at = v_created_at
+        WHERE
+          sensor_id = v_static_id;
+      END IF;
+    END IF;
+
+    -- return the db generated values
+    RETURN QUERY
+      SELECT s.id, s.uuid, s.created_at, v.effective_at AS effective_at, v.created_at AS updated_at
+      FROM sensor s
+      JOIN sensor_version v ON v.id = v_matching_version_id
+      WHERE s.id = v_static_id;
+  END;
+$$"
+`;
+
+exports[`native array columns should snapshot the generated DDL, upsert function, and view for eyeball review 4`] = `
+"CREATE OR REPLACE VIEW view_sensor_current AS
+  SELECT
+    s.id,
+    s.uuid,
+    s.serial_number,
+    coalesce(s.labels, array[]::varchar[]) as labels,
+    coalesce(v.tags, array[]::varchar[]) as tags,
+    coalesce(v.readings, array[]::numeric[]) as readings,
+    coalesce(v.flags, array[]::boolean[]) as flags,
+    coalesce(v.moments_at, array[]::timestamp with time zone[]) as moments_at,
+    coalesce(v.statuses, array[]::varchar[]) as statuses,
+    s.created_at,
+    v.effective_at,
+    v.created_at as updated_at
+  FROM sensor s
+  JOIN sensor_cvp cvp ON s.id = cvp.sensor_id
+  JOIN sensor_version v ON v.id = cvp.sensor_version_id;"
+`;
+
+exports[`native array columns static native array only entity (no version table) should present a NULL native array cell as an empty array via the view: roundtrip view instance (NULL native array cell coalesced to []) 1`] = `
+{
+  "labels": [],
+  "serial_number": "__BEACON_NULL_LABELS__",
+}
+`;
+
+exports[`native array columns static native array only entity (no version table) should round-trip the static native array through the view: roundtrip view instance (static native array only, no version table) 1`] = `
+{
+  "labels": [
+    "alpha",
+    "beta",
+  ],
+  "serial_number": "__BEACON_ROUNDTRIP__",
+}
+`;

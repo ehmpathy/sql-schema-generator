@@ -49,10 +49,10 @@ describe('generateTableForUpdateableProperties', () => {
       }),
     );
   });
-  it('should convert array properties into "values hash" properties', async () => {
+  it('should convert join-table array properties into "values hash" properties', async () => {
     /*
       purpose:
-        having the values_hash will allow us to quickly and easily query to see if the full array is exactly equal to another row's full array
+        a values_hash lets us quickly and easily query to see if the full array is exactly equal to another row's full array
 
       example:
         if we need to determine whether or not the current version's array is equal to the array in the upsert
@@ -60,7 +60,7 @@ describe('generateTableForUpdateableProperties', () => {
     await generateTableForUpdateableProperties({
       entityName: '__ENTITY_NAME__',
       properties: {
-        testProp: { type: 'TEST_PROP', updatable: true, array: true } as any,
+        testProp: { ...prop.ARRAY_OF(prop.UUID()), updatable: true }, // a uuid array is a join-table array -> hashed
       },
     });
     expect(generateTableMock).toHaveBeenCalledTimes(1);
@@ -71,5 +71,26 @@ describe('generateTableForUpdateableProperties', () => {
         }),
       }),
     );
+  });
+  it('should keep native array properties as real columns, not hash properties', async () => {
+    /*
+      purpose:
+        a native primitive/enum array is stored inline as a real array column (e.g. text[]),
+        so it must flow through under its own name, NOT be swapped for a values-hash column
+    */
+    const nativeArrayProp = {
+      ...prop.ARRAY_OF(prop.VARCHAR()),
+      updatable: true,
+    };
+    await generateTableForUpdateableProperties({
+      entityName: '__ENTITY_NAME__',
+      properties: {
+        testProp: nativeArrayProp,
+      },
+    });
+    expect(generateTableMock).toHaveBeenCalledTimes(1);
+    const passedProperties = generateTableMock.mock.calls[0]![0].properties;
+    expect(passedProperties.testProp).toEqual(nativeArrayProp); // passed through as-is
+    expect(passedProperties.testProp_hash).toEqual(undefined); // no hash column
   });
 });

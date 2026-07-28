@@ -24,7 +24,7 @@ Declarative relational database schema generation. Ensure best practices are fol
     - to interact with data
       - entity static table
       - entity version table (if updatable properties exist, for an insert-only / event-driven design, per temporal database design)
-      - entity mapping tables (if array properties exist, to define the many-to-many relationship)
+      - entity mapping tables (if reference/uuid array properties exist, to define the many-to-many relationship; primitive/enum arrays become a native array column on the row instead)
       - upsert function (for idempotent inserts)
       - a `_current` view, to abstract away the versioning pattern and mapping tables
     - to improve performance
@@ -97,7 +97,9 @@ Consequently, by utilizing the schema generator:
       built: prop.TIMESTAMPTZ(),
       bedrooms: prop.INT(),
       bathrooms: prop.INT(),
-      photo_ids: { ...prop.ARRAY_OF(prop.REFERENCES(photo)), updatable: true }, // array of photos
+      photo_ids: { ...prop.ARRAY_OF(prop.REFERENCES(photo)), updatable: true }, // array of photos -> join table (element-level fk)
+      tags: { ...prop.ARRAY_OF(prop.VARCHAR()), updatable: true }, // array of primitives -> native varchar[] column on the row
+      statuses: { ...prop.ARRAY_OF(prop.ENUM(['FOR_SALE', 'PENDING', 'SOLD'])), updatable: true }, // array of enums -> native varchar[] column + array-membership check
     },
     unique: ['name', 'owner_id'],
   });

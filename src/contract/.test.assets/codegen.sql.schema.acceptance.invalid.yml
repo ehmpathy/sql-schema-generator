@@ -1,0 +1,6 @@
+language: postgres
+dialect: 10.7
+declarations: domain.acceptance.invalid.ts
+generates:
+  sql:
+    to: generated.invalid

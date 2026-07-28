@@ -1,4 +1,6 @@
 import type { Property } from '@src/domain.objects';
+import { castCheckToArrayElementMembership } from '@src/domain.operations/utils/castCheckToArrayElementMembership';
+import { isNativeArrayProperty } from '@src/domain.operations/utils/isNativeArrayProperty';
 
 import { defineConstraintNameSafely } from './defineConstraintNameSafely';
 import { generateColumn } from './generateColumn';
@@ -54,13 +56,21 @@ export const generateTable = ({
   );
 
   // define check constraints
+  //   - a native array column can only carry an element-membership check; the authoritative
+  //     guard runs here (at emission) so a scalar check spread onto an array property after
+  //     ARRAY_OF (e.g. `{ ...ARRAY_OF(x), check }`) is caught regardless of construction order.
+  //     castCheckToArrayElementMembership is idempotent, so an already-recast `<@` check passes
+  //     through and a scalar/custom check fails fast at generate time, not apply time.
   const checkConstraintSqls = Object.entries(properties)
     .filter((entry) => !!entry[1].check)
     .map((entry) => {
+      const check = isNativeArrayProperty({ property: entry[1] })
+        ? castCheckToArrayElementMembership({ check: entry[1].check! })
+        : entry[1].check!;
       return `CONSTRAINT ${defineConstraintNameSafely({
         tableName,
         constraintName: `${entry[0]}_check`,
-      })} CHECK ${entry[1].check!.replace(/\$COLUMN_NAME/g, entry[0])}`;
+      })} CHECK ${check.replace(/\$COLUMN_NAME/g, entry[0])}`;
     })
     .sort();
 

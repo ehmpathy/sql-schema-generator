@@ -1,6 +1,7 @@
 import { Property } from '@src/domain.objects';
 import * as prop from '@src/domain.operations/define/defineProperty';
 import { pickKeysFromObject } from '@src/domain.operations/generate/utils/pickKeysFromObject';
+import { isJoinTableArrayProperty } from '@src/domain.operations/utils/isJoinTableArrayProperty';
 
 import { generateTable } from './generateTable';
 import { castArrayPropertiesToValuesHashProperties } from './utils/castArrayPropertiesToValuesHashProperties';
@@ -12,14 +13,16 @@ export const generateTableForUpdateableProperties = ({
   entityName: string;
   properties: { [index: string]: Property };
 }) => {
-  // 0. split singular and array properties
+  // 0. split singular and join-table-array properties
+  //    - native arrays flow through as real array columns, so they count as "singular" here
+  //    - only join-table arrays are swapped for a values-hash column
   const updatableSingularProperties = pickKeysFromObject({
     object: properties,
-    keep: (property: Property) => !property.array,
+    keep: (property: Property) => !isJoinTableArrayProperty({ property }),
   });
   const updatableArrayProperties = pickKeysFromObject({
     object: properties,
-    keep: (property: Property) => !!property.array,
+    keep: (property: Property) => isJoinTableArrayProperty({ property }),
   });
 
   // 1. add metadata properties
